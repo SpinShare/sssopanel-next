@@ -15,13 +15,6 @@ public class CommandSettingsSet : ICommand
 {
     private SettingsManager? _settingsManager;
     
-    private readonly ILogger<CommandSettingsSet> _logger;
-
-    public CommandSettingsSet(ServiceProvider serviceProvider)
-    {
-        _logger = serviceProvider.GetRequiredService<ILogger<CommandSettingsSet>>();
-    }
-    
     public async Task Execute(PhotinoWindow? sender, object? data)
     {
         if (data == null) return;
@@ -37,7 +30,7 @@ public class CommandSettingsSet : ICommand
             
             if (key != null && value != null)
             {
-                _logger.LogInformation("Writing Setting: {Key}", key);
+                Console.WriteLine("Writing Setting: {0}", key);
             
                 _settingsManager.Set(key, value);
             }

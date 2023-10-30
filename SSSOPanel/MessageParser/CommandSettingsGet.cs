@@ -12,13 +12,6 @@ public class CommandSettingsGet : ICommand
 {
     private SettingsManager? _settingsManager;
     
-    private readonly ILogger<CommandSettingsGet> _logger;
-
-    public CommandSettingsGet(ServiceProvider serviceProvider)
-    {
-        _logger = serviceProvider.GetRequiredService<ILogger<CommandSettingsGet>>();
-    }
-    
     public async Task Execute(PhotinoWindow? sender, object? data)
     {
         if (data == null) return;

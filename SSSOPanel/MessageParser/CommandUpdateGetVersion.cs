@@ -11,16 +11,6 @@ using UpdateManager;
 /// </summary>
 public class CommandUpdateGetVersion : ICommand
 {
-    private readonly ILogger<CommandUpdateGetVersion> _logger;
-    
-    private UpdateManager? _updateManager;
-
-    public CommandUpdateGetVersion(ServiceProvider serviceProvider)
-    {
-        _logger = serviceProvider.GetRequiredService<ILogger<CommandUpdateGetVersion>>();
-        _updateManager = UpdateManager.GetInstance();
-    }
-    
     public async Task Execute(PhotinoWindow? sender, object? data)
     {
         Message response = new() {

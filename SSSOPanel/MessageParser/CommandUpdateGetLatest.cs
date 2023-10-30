@@ -12,20 +12,17 @@ using UpdateManager;
 /// </summary>
 public class CommandUpdateGetLatest : ICommand
 {
-    private readonly ILogger<CommandUpdateGetLatest> _logger;
-    
     private UpdateManager? _updateManager;
 
-    public CommandUpdateGetLatest(ServiceProvider serviceProvider)
+    public CommandUpdateGetLatest()
     {
-        _logger = serviceProvider.GetRequiredService<ILogger<CommandUpdateGetLatest>>();
         _updateManager = UpdateManager.GetInstance();
     }
     
     public async Task Execute(PhotinoWindow? sender, object? data)
     {
         if (_updateManager == null) return;
-        _logger.LogInformation("Getting latest Version");
+        Console.WriteLine("Getting latest Version");
 
         var releases = await _updateManager.LoadReleases();
         var latestRelease = releases.FirstOrDefault(x => x.Prerelease == false);

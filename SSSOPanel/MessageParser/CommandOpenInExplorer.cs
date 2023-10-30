@@ -7,12 +7,6 @@ using PhotinoNET;
 
 namespace SpinShareClient.MessageParser;
 
-/// <summary>
-/// A command that opens a <c>path</c> in the OS explorer/finder
-/// </summary>
-/// <remarks>
-/// Does nothing if the <c>path</c> does not exist.
-/// </remarks>
 public class CommandOpenInExplorer : ICommand
 {
     public async Task Execute(PhotinoWindow? sender, object? data)

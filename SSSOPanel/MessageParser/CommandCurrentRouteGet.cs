@@ -7,13 +7,6 @@ namespace SpinShareClient.MessageParser;
 
 public class CommandCurrentRouteGet : ICommand
 {
-    private readonly ILogger<CommandCurrentRouteGet> _logger;
-
-    public CommandCurrentRouteGet(ServiceProvider serviceProvider)
-    {
-        _logger = serviceProvider.GetRequiredService<ILogger<CommandCurrentRouteGet>>();
-    }
-    
     public async Task Execute(PhotinoWindow? sender, object? data)
     {
         var screenManager = ScreenManager.GetInstance();

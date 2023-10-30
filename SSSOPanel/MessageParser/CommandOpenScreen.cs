@@ -28,7 +28,7 @@ public class CommandOpenScreen: ICommand
         windowScreen.SetDevToolsEnabled(true);
         windowScreen.Load(new Uri($"http://localhost:5173/#/screen"));
 #else
-        _logger.LogInformation("Production Mode, starting built site");
+        Console.WriteLine("Production Mode, starting built site");
         windowScreen.Load($"{baseUrl}/index.html#/screen");
 #endif
         windowScreen.WaitForClose();
