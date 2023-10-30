@@ -1,7 +1,7 @@
 using Newtonsoft.Json.Linq;
 using PhotinoNET;
 
-namespace SpinShareClient.MessageParser;
+namespace SSSOPanel.MessageParser;
 
 public class CommandScreenNavigate: ICommand
 {
@@ -9,13 +9,13 @@ public class CommandScreenNavigate: ICommand
     {
         if (data == null) return;
 
-        var screenManager = ScreenManager.GetInstance();
+        var screenManager = ScreenManager.ScreenManager.GetInstance();
         
-        JObject dataItem = (JObject)data;
+        var dataItem = (JObject)data;
             
-        string? path = dataItem.GetValue("path")?.ToObject<string>();
-        JObject? query = dataItem.GetValue("query")?.ToObject<JObject>();
-        JObject? parameters = dataItem.GetValue("params")?.ToObject<JObject>();
+        var path = dataItem.GetValue("path")?.ToObject<string>();
+        var query = dataItem.GetValue("query")?.ToObject<JObject>();
+        var parameters = dataItem.GetValue("params")?.ToObject<JObject>();
 
         // Force Navigation even if same route
         var navigationGuid = Guid.NewGuid();

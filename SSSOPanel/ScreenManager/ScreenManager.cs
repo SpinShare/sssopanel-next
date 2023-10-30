@@ -1,15 +1,11 @@
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using PhotinoNET;
 
-namespace SpinShareClient;
+namespace SSSOPanel.ScreenManager;
 
 public class ScreenManager
 {
-    private readonly ILogger<ScreenManager> _logger;
-
     private static ScreenManager? _instance;
-    private static readonly object _lock = new();
+    private static readonly object Lock = new();
 
     private List<PhotinoWindow> _screens = new();
     public object CurrentRoute = new
@@ -18,24 +14,18 @@ public class ScreenManager
         Parameters = new {},
         Query = new {}
     };
+    public string BaseUrl = "";
 
     public ScreenManager()
     {
-        using var serviceProvider = new ServiceCollection()
-            .AddLogging(configure => configure.AddConsole())
-            .AddLogging(configure => configure.AddDebug())
-            .BuildServiceProvider();
-        
-        _logger = serviceProvider.GetRequiredService<ILogger<ScreenManager>>();
-        
-        _logger.LogInformation("Initializing");
+        Console.WriteLine("Initializing ScreenManager");
     }
     
     public static ScreenManager GetInstance()
     {
         if (_instance == null)
         {
-            lock (_lock)
+            lock (Lock)
             {
                 if (_instance == null)
                 {
@@ -48,13 +38,13 @@ public class ScreenManager
 
     public void RegisterScreen(PhotinoWindow screen)
     {
-        _logger.LogInformation("Registering Screen: {ScreenId}", screen.Id);
+        Console.WriteLine("Registering Screen: {0}", screen.Id);
         _screens.Add(screen);
     }
 
     public void UnregisterScreen(PhotinoWindow screen)
     {
-        _logger.LogInformation("Deregistering Screen: {ScreenId}", screen.Id);
+        Console.WriteLine("Deregistering Screen: {0}", screen.Id);
         _screens.Remove(screen);
     }
 

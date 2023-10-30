@@ -1,23 +1,16 @@
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using PhotinoNET;
 
-namespace SpinShareClient.MessageParser;
+namespace SSSOPanel.MessageParser;
 
-/// <summary>
-/// A command that returns all settings as an object
-/// </summary>
 public class CommandSettingsGetFull : ICommand
 {
-    private SettingsManager? _settingsManager;
-    
     public async Task Execute(PhotinoWindow? sender, object? data)
     {
-        _settingsManager = SettingsManager.GetInstance();
+        var settingsManager = SettingsManager.SettingsManager.GetInstance();
 
         Message response = new() {
             Command = "settings-get-full-response",
-            Data = _settingsManager.GetFull()
+            Data = settingsManager.GetFull()
         };
         
         await Task.Yield();

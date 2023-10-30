@@ -1,13 +1,13 @@
 using PhotinoNET;
 
-namespace SpinShareClient.MessageParser;
+namespace SSSOPanel.MessageParser;
 
 public class CommandOpenScreen: ICommand
 {
     public async Task Execute(PhotinoWindow? sender, object? data)
     {
-        MessageHandler messageHandler = new MessageHandler();
-        ScreenManager screenManager = ScreenManager.GetInstance();
+        var messageHandler = new MessageHandler();
+        var screenManager = ScreenManager.ScreenManager.GetInstance();
         
         Console.WriteLine("Creating Screen Window");
         var windowScreen = new PhotinoWindow()
@@ -29,7 +29,7 @@ public class CommandOpenScreen: ICommand
         windowScreen.Load(new Uri($"http://localhost:5173/#/screen"));
 #else
         Console.WriteLine("Production Mode, starting built site");
-        windowScreen.Load($"{baseUrl}/index.html#/screen");
+        windowScreen.Load($"{screenManager.BaseUrl}/index.html#/screen");
 #endif
         windowScreen.WaitForClose();
         
@@ -39,7 +39,7 @@ public class CommandOpenScreen: ICommand
     bool WindowClosingHandler(object sender, EventArgs e)
     {
         var window = (PhotinoWindow)sender;
-        var screenManager = ScreenManager.GetInstance();
+        var screenManager = ScreenManager.ScreenManager.GetInstance();
         
         screenManager.UnregisterScreen(window);
         return false;

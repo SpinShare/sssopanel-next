@@ -5,31 +5,22 @@ using PhotinoNET;
 using PhotinoNET.Server;
 using Sentry;
 
-namespace SpinShareClient;
+namespace SSSOPanel;
 
 using MessageParser;
 
 public class Program
 {
-    private static ILogger<Program>? _logger;
     private static FileStream? _lockFile;
     
     [STAThread]
     private static void Main(string[] args)
     {
-        // Error Logging
-        using var serviceProvider = new ServiceCollection()
-            .AddLogging(configure => configure.AddConsole())
-            .AddLogging(configure => configure.AddDebug())
-            .BuildServiceProvider();
-        
-        _logger = serviceProvider.GetRequiredService<ILogger<Program>>();
-        
         // Single Instance Lock
         AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
         if (!IsSingleInstance())
         {
-            _logger.LogError("Single Instance Check failed");
+            Console.WriteLine("Single Instance Check failed");
             
             // TODO: Error Dialog
             return;
@@ -39,10 +30,14 @@ public class Program
             .CreateStaticFileServer(args, out string baseUrl)
             .RunAsync();
 
-        MessageHandler messageHandler = new MessageHandler();
-        SettingsManager settingsManager = SettingsManager.GetInstance();
+        var messageHandler = new MessageHandler();
+        var updateManager = UpdateManager.UpdateManager.GetInstance();
+        var settingsManager = SettingsManager.SettingsManager.GetInstance();
+        var screenManager = ScreenManager.ScreenManager.GetInstance();
+
+        screenManager.BaseUrl = baseUrl;
         
-        _logger.LogInformation("Creating Panel Window");
+        Console.WriteLine("Creating Panel Window");
         var windowPanel = new PhotinoWindow()
             .SetLogVerbosity(2)
             .SetTitle("Panel")
@@ -53,13 +48,13 @@ public class Program
             .RegisterWebMessageReceivedHandler(messageHandler.RegisterWebMessageReceivedHandler);
 
 #if DEBUG
-        _logger.LogInformation("Debug Mode, starting dev site");
+        Console.WriteLine("Debug Mode, starting dev site");
         
         windowPanel.SetDevToolsEnabled(true);
         windowPanel.Load(new Uri($"http://localhost:5173/#/panel"));
 #else
-        _logger.LogInformation("Production Mode, starting built site");
-        windowPanel.Load($"{baseUrl}/index.html#/panel");
+        Console.WriteLine("Production Mode, starting built site");
+        windowPanel.Load($"{screenManager.BaseUrl}/index.html#/panel");
 #endif
         
         windowPanel.WaitForClose();
@@ -75,7 +70,7 @@ public class Program
     
     static bool IsSingleInstance()
     {
-        string appFolder = SettingsManager.GetAppFolder();
+        string appFolder = SettingsManager.SettingsManager.GetAppFolder();
 
         if (string.IsNullOrEmpty(appFolder) || !Directory.Exists(appFolder))
         {

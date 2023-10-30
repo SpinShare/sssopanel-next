@@ -1,26 +1,24 @@
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using PhotinoNET;
 
-namespace SpinShareClient.MessageParser;
+namespace SSSOPanel.MessageParser;
 
 /// <summary>
 /// A command that returns the value of a setting given a <c>key</c>
 /// </summary>
 public class CommandSettingsGet : ICommand
 {
-    private SettingsManager? _settingsManager;
+    private SettingsManager.SettingsManager? _settingsManager;
     
     public async Task Execute(PhotinoWindow? sender, object? data)
     {
         if (data == null) return;
-        _settingsManager = SettingsManager.GetInstance();
+        _settingsManager = SettingsManager.SettingsManager.GetInstance();
         
         var key = data.ToString();
         if (key == null) return;
 
-        JObject responseData = new JObject(
+        var responseData = new JObject(
             new JProperty("key", key),
             new JProperty("data", _settingsManager.Get<object>(key))
         );

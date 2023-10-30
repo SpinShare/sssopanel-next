@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace SpinShareClient.UpdateManager;
+namespace SSSOPanel.UpdateManager;
 
 public class GithubRelease
 {

@@ -1,10 +1,7 @@
 using System.Diagnostics;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using PhotinoNET;
 
-namespace SpinShareClient.MessageParser;
+namespace SSSOPanel.MessageParser;
 
 public class CommandOpenInBrowser : ICommand
 {
@@ -13,7 +10,7 @@ public class CommandOpenInBrowser : ICommand
         if (data == null) return;
         var url = data.ToString();
 
-        Process openBrowserProcess = new Process();
+        var openBrowserProcess = new Process();
         openBrowserProcess.StartInfo.UseShellExecute = true;
         openBrowserProcess.StartInfo.FileName = url;
         openBrowserProcess.Start();

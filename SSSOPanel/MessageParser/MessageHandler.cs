@@ -1,8 +1,7 @@
 using Newtonsoft.Json;
 using PhotinoNET;
-using Sentry;
 
-namespace SpinShareClient.MessageParser;
+namespace SSSOPanel.MessageParser;
 
 public class MessageHandler
 {
@@ -35,29 +34,28 @@ public class MessageHandler
         try
         {
             var resultJson = JsonConvert.SerializeObject(result);
-            sender?.SendWebMessage(resultJson);
+            sender.SendWebMessage(resultJson);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            SentrySdk.CaptureException(ex);
-            return;
+            // ignored
         }
     }
 
     public static void SendScreenResponse(object result)
     {
-        var screens = ScreenManager.GetInstance().GetScreens();
+        var screens = ScreenManager.ScreenManager.GetInstance().GetScreens();
 
         foreach (var screen in screens)
         {
             try
             {
                 var resultJson = JsonConvert.SerializeObject(result);
-                screen?.SendWebMessage(resultJson);
+                screen.SendWebMessage(resultJson);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return;
+                // ignored
             }
         }
     }

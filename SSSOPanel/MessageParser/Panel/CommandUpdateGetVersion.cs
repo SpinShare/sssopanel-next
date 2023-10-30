@@ -1,21 +1,18 @@
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using PhotinoNET;
 
-namespace SpinShareClient.MessageParser;
+namespace SSSOPanel.MessageParser;
 
 using UpdateManager;
 
-/// <summary>
-/// Returns the current client version
-/// </summary>
 public class CommandUpdateGetVersion : ICommand
 {
     public async Task Execute(PhotinoWindow? sender, object? data)
     {
+        var updateManager = UpdateManager.GetInstance();
+        
         Message response = new() {
             Command = "update-get-version-response",
-            Data = UpdateManager.CurrentVersion
+            Data = updateManager.CurrentVersion
         };
 
         await Task.Yield();
