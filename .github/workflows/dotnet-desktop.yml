@@ -1,0 +1,71 @@
+name: Build and Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'release/*'
+    paths:
+      - 'SSSOPanel/**'
+
+jobs:
+  build:
+    name: build
+    permissions: write-all
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.x
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 7.0.x
+      - name: Restore NuGet packages
+        run: dotnet restore
+      - name: Run tests
+        run: dotnet test --no-restore --verbosity normal
+      - name: Build & Publish
+        run: |
+          mkdir -p build
+          dotnet publish ./SSSOPanel/SSSOPanel.csproj --no-restore --configuration Release --runtime win-x64 --output ./build
+        shell: bash
+      - name: Archive build artifacts
+        uses: vimtor/action-zip@v1
+        with:
+          files: build
+          dest: build.zip
+      - name: List Files
+        run: |
+          ls -lp build
+      - name: Save Release Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          path: build.zip
+          name: build.zip
+          retention-days: 1
+  release:
+    needs: build
+    permissions: write-all
+    runs-on: ubuntu-latest
+    steps:
+      - name: Retrieve Release Artifacts
+        uses: actions/download-artifact@v2
+        with:
+          path: build
+      - name: List Files
+        run: |
+          ls -lp build
+      - name: Create release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            build/build.zip
+          token: ${{ secrets.GITHUB_TOKEN }}
+          generate_release_notes: true
+          name: Release ${{ github.event.repository.updated_at }}
+          draft: true
+          prerelease: true
+    
