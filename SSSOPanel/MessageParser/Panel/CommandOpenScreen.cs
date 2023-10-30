@@ -36,7 +36,7 @@ public class CommandOpenScreen: ICommand
         await Task.Yield();
     }
 
-    bool WindowClosingHandler(object sender, EventArgs e)
+    static bool WindowClosingHandler(object sender, EventArgs e)
     {
         var window = (PhotinoWindow)sender;
         var screenManager = ScreenManager.ScreenManager.GetInstance();

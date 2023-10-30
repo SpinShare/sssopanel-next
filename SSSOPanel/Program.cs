@@ -45,6 +45,7 @@ public class Program
             .SetUseOsDefaultSize(false)
             .Center()
             .SetResizable(false)
+            .RegisterWindowClosingHandler(WindowClosingHandler)
             .RegisterWebMessageReceivedHandler(messageHandler.RegisterWebMessageReceivedHandler);
 
 #if DEBUG
@@ -95,5 +96,19 @@ public class Program
         {
             return false;
         }
+    }
+
+    static bool WindowClosingHandler(object sender, EventArgs e)
+    {
+        var screenManager = ScreenManager.ScreenManager.GetInstance();
+        
+        Console.WriteLine("Closing Screen Windows");
+
+        foreach (var screen in screenManager.GetScreens())
+        {
+            screen.Close();
+        }
+        
+        return false;
     }
 }
