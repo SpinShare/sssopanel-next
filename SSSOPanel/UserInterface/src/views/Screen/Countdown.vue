@@ -72,7 +72,6 @@ setInterval(() => {
     bottom: 0;
     top: 0;
     mix-blend-mode: soft-light;
-    animation: noise 2s steps(2) infinite;
   }
   
   & .countdown {
@@ -138,20 +137,6 @@ setInterval(() => {
       animation: marqueeRight 10s infinite linear;
     }
   }
-}
-
-@keyframes noise {
-  0% { background-position: 0 0; }
-  10% { background-position: -1rem -4rem; }
-  20% { background-position: -8rem 2rem; }
-  30% { background-position: 9rem -9rem; }
-  40% { background-position: -2rem 7rem; }
-  50% { background-position: -9rem -4rem; }
-  60% { background-position: 2rem 6rem; }
-  70% { background-position: 7rem -8rem; }
-  80% { background-position: -9rem 1rem; }
-  90% { background-position: 6rem -5rem; }
-  100% { background-position: -7rem 0rem; }
 }
 
 @keyframes marqueeLeft {
