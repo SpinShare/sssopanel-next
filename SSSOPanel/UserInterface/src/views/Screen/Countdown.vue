@@ -44,32 +44,30 @@ const route = useRoute();
 
 const hasCountdown = ref(route.query.countdownTime !== undefined);
 
-if(hasCountdown) {
-  const countdownDate = new Date(route.query.countdownTime);
-  const timeLeft = ref('00:00');
-  const timeLeftMilliseconds = ref('.0');
+const countdownDate = new Date(route.query.countdownTime);
+const timeLeft = ref('00:00');
+const timeLeftMilliseconds = ref('.0');
 
-  const pad = (number, length = 2) => {
-    return number.toString().padStart(length, '0');
-  }
-
-  setInterval(() => {
-    let currentDate = new Date();
-    let timeDifference = countdownDate.getTime() - currentDate.getTime();
-
-    if (timeDifference > 0) {
-      let minutes = Math.floor((timeDifference / (1000 * 60)) % 60);
-      let seconds = Math.floor((timeDifference / 1000) % 60);
-      let milliseconds = Math.floor((timeDifference % 1000) / 100);
-
-      timeLeft.value = `${pad(minutes)}:${pad(seconds)}`;
-      timeLeftMilliseconds.value = `.${milliseconds}`;
-    } else {
-      timeLeft.value = '00:00';
-      timeLeftMilliseconds.value = '.0';
-    }
-  }, 50);
+const pad = (number, length = 2) => {
+  return number.toString().padStart(length, '0');
 }
+
+setInterval(() => {
+  let currentDate = new Date();
+  let timeDifference = countdownDate.getTime() - currentDate.getTime();
+
+  if (timeDifference > 0) {
+    let minutes = Math.floor((timeDifference / (1000 * 60)) % 60);
+    let seconds = Math.floor((timeDifference / 1000) % 60);
+    let milliseconds = Math.floor((timeDifference % 1000) / 100);
+
+    timeLeft.value = `${pad(minutes)}:${pad(seconds)}`;
+    timeLeftMilliseconds.value = `.${milliseconds}`;
+  } else {
+    timeLeft.value = '00:00';
+    timeLeftMilliseconds.value = '.0';
+  }
+}, 50);
 </script>
 
 <style lang="scss" scoped>

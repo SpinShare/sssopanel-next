@@ -1,8 +1,14 @@
 <template>
   <AppLayout title="Countdown">
-    <input type="datetime-local" v-model="countdownTime" />
+    
+    <label>
+      <input type="checkbox" v-model="countdownActive" />
+      HasCountdown
+    </label><br />
+    
+    <input type="datetime-local" v-model="countdownTime" v-if="countdownActive" /><br />
+    
     <button @click="transition">Transition</button>
-    <button @click="transitionNoCountdown">Transition no countdown</button>
   </AppLayout>
 </template>
 
@@ -10,6 +16,7 @@
 import AppLayout from "../../layouts/AppLayout.vue";
 import {ref} from "vue";
 
+const countdownActive = ref(false);
 const countdownTime = ref(new Date());
 
 const transition = () => {
@@ -18,19 +25,7 @@ const transition = () => {
     data: {
       path: "countdown",
       params: {},
-      query: {
-        countdownTime: countdownTime.value,
-      },
-    }
-  }));
-}
-const transitionNoCountdown = () => {
-  window.external.sendMessage(JSON.stringify({
-    command: "screen-navigate",
-    data: {
-      path: "countdown",
-      params: {},
-      query: {},
+      query: countdownActive.value === true ? {countdownTime: countdownTime.value} : {},
     }
   }));
 }
