@@ -1,12 +1,19 @@
 <template>
   <ScreenLayout>
     <section class="screen-streamstart-countdown">
+      <div class="tint winter"></div>
+      
       <div class="noise"></div>
-      <div class="countdown">
-        <div class="header">STARTING UP...</div>
-        <div class="time-left">
-          <span>{{ timeLeft }}</span>
-          <span>{{ timeLeftMilliseconds }}</span>
+      
+      <div class="content">
+        <img :src="EventLogo" class="event-logo" />
+        
+        <div class="countdown" v-if="hasCountdown">
+          <div class="header">STARTING UP...</div>
+          <div class="time-left">
+            <span>{{ timeLeft }}</span>
+            <span>{{ timeLeftMilliseconds }}</span>
+          </div>
         </div>
       </div>
       
@@ -30,44 +37,62 @@
 <script setup>
 import { useRoute } from 'vue-router';
 import ScreenLayout from "../../layouts/ScreenLayout.vue";
+import EventLogo from "../../assets/eventlogo-winter-2023.svg";
 import {ref} from "vue";
 
 const route = useRoute();
-const countdownDate = new Date(route.query.countdownTime);
-const timeLeft = ref('00:00');
-const timeLeftMilliseconds = ref('.0');
 
-const pad = (number, length = 2) => {
-  return number.toString().padStart(length, '0');
-}
+const hasCountdown = ref(route.query.countdownTime !== undefined);
 
-setInterval(() => {
-  let currentDate = new Date();
-  let timeDifference = countdownDate.getTime() - currentDate.getTime();
-  
-  if(timeDifference > 0) {
-    let minutes = Math.floor((timeDifference / (1000 * 60)) % 60);
-    let seconds = Math.floor((timeDifference / 1000) % 60);
-    let milliseconds = Math.floor((timeDifference % 1000) / 100);
+if(hasCountdown) {
+  const countdownDate = new Date(route.query.countdownTime);
+  const timeLeft = ref('00:00');
+  const timeLeftMilliseconds = ref('.0');
 
-    timeLeft.value = `${pad(minutes)}:${pad(seconds)}`;
-    timeLeftMilliseconds.value = `.${milliseconds}`;
-  } else {
-    timeLeft.value = '00:00';
-    timeLeftMilliseconds.value = '.0';
+  const pad = (number, length = 2) => {
+    return number.toString().padStart(length, '0');
   }
-}, 50);
+
+  setInterval(() => {
+    let currentDate = new Date();
+    let timeDifference = countdownDate.getTime() - currentDate.getTime();
+
+    if (timeDifference > 0) {
+      let minutes = Math.floor((timeDifference / (1000 * 60)) % 60);
+      let seconds = Math.floor((timeDifference / 1000) % 60);
+      let milliseconds = Math.floor((timeDifference % 1000) / 100);
+
+      timeLeft.value = `${pad(minutes)}:${pad(seconds)}`;
+      timeLeftMilliseconds.value = `.${milliseconds}`;
+    } else {
+      timeLeft.value = '00:00';
+      timeLeftMilliseconds.value = '.0';
+    }
+  }, 50);
+}
 </script>
 
 <style lang="scss" scoped>
 .screen-streamstart-countdown {
-  background: url("../../assets/background.svg");
-  background-size: contain;
   color: #222;
   position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
+  
+  & .tint {
+    background: url("../../assets/background.svg");
+    background-size: contain;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: 0;
+    
+    &.winter {
+      filter: hue-rotate(160deg);
+    }
+  }
   
   & .noise {
     background: url("../../assets/noise.png");
@@ -80,40 +105,52 @@ setInterval(() => {
     mix-blend-mode: soft-light;
   }
   
-  & .countdown {
-    background: #111111;
-    color: #dcdcdc;
-    padding: 0.5em 2.5em;
-    border-radius: 0 0.5em 0.5em 0.5em;
-    position: relative;
+  & .content {
+    display: flex;
+    gap: 5em;
+    z-index: 10;
+    align-items: center;
+    font-size: 0.8em;
     
-    & .header {
-      font-size: 1em;
-      font-weight: 900;
-      letter-spacing: 0.15em;
-      background: #111111;
-      position: absolute;
-      top: -1.45em;
-      left: 0;
-      padding: 0.5em 1em;
-      border-top-left-radius: 0.5em;
-      border-top-right-radius: 0.5em;
+    & .event-logo {
+      width: 25em;
+      height: 25em;
     }
-    
-    & .time-left {
-      font-family: 'JetBrains Mono', monospace;
-      font-weight: 900;
-      display: flex;
-      align-items: flex-end;
-      
-      & span:nth-child(1) {
-        font-size: 5em;
+    & .countdown {
+      background: #111111;
+      color: #dcdcdc;
+      padding: 0.5em 2.5em;
+      border-radius: 0 0.5em 0.5em 0.5em;
+      position: relative;
+
+      & .header {
+        font-size: 1em;
+        font-weight: 900;
+        letter-spacing: 0.15em;
+        background: #111111;
+        position: absolute;
+        top: -1.45em;
+        left: 0;
+        padding: 0.5em 1em;
+        border-top-left-radius: 0.5em;
+        border-top-right-radius: 0.5em;
       }
-      & span:nth-child(2) {
-        font-size: 3em;
-        font-weight: 600;
-        transform: translateY(-0.1em);
-        opacity: 0.6;
+
+      & .time-left {
+        font-family: 'JetBrains Mono', monospace;
+        font-weight: 900;
+        display: flex;
+        align-items: flex-end;
+
+        & span:nth-child(1) {
+          font-size: 5em;
+        }
+        & span:nth-child(2) {
+          font-size: 3em;
+          font-weight: 600;
+          transform: translateY(-0.1em);
+          opacity: 0.6;
+        }
       }
     }
   }
