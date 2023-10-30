@@ -52,6 +52,10 @@ onMounted(() => {
   window.external.sendMessage(JSON.stringify({
     command: "current-route-get",
   }));
+  
+  window.external.sendMessage(JSON.stringify({
+    command: "screen-spotify-get",
+  }));
 });
 </script>
 

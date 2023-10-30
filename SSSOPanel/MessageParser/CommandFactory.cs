@@ -17,6 +17,7 @@ public class CommandFactory
             "update-get-latest" => new CommandUpdateGetLatest(),
             "current-route-get" => new CommandCurrentRouteGet(),
             "screen-navigate" => new CommandScreenNavigate(),
+            "screen-spotify-get" => new CommandScreenSpotifyGet(),
             _ => throw new Exception($"Unknown command: {command}")
         };
     }
