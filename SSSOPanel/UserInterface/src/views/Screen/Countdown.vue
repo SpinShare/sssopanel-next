@@ -4,7 +4,10 @@
       <div class="noise"></div>
       <div class="countdown">
         <div class="header">STARTING UP...</div>
-        <div class="time-left">{{ timeLeft }}</div>
+        <div class="time-left">
+          <span>{{ timeLeft }}</span>
+          <span>{{ timeLeftMilliseconds }}</span>
+        </div>
       </div>
       
       <div class="dots left"></div>
@@ -31,7 +34,8 @@ import {ref} from "vue";
 
 const route = useRoute();
 const countdownDate = new Date(route.query.countdownTime);
-const timeLeft = ref('00:00.0');
+const timeLeft = ref('00:00');
+const timeLeftMilliseconds = ref('.0');
 
 const pad = (number, length = 2) => {
   return number.toString().padStart(length, '0');
@@ -46,9 +50,11 @@ setInterval(() => {
     let seconds = Math.floor((timeDifference / 1000) % 60);
     let milliseconds = Math.floor((timeDifference % 1000) / 100);
 
-    timeLeft.value = `${pad(minutes)}:${pad(seconds)}.${milliseconds}`;
+    timeLeft.value = `${pad(minutes)}:${pad(seconds)}`;
+    timeLeftMilliseconds.value = `.${milliseconds}`;
   } else {
-    timeLeft.value = '00:00.0';
+    timeLeft.value = '00:00';
+    timeLeftMilliseconds.value = '.0';
   }
 }, 50);
 </script>
@@ -97,7 +103,18 @@ setInterval(() => {
     & .time-left {
       font-family: 'JetBrains Mono', monospace;
       font-weight: 900;
-      font-size: 5em;
+      display: flex;
+      align-items: flex-end;
+      
+      & span:nth-child(1) {
+        font-size: 5em;
+      }
+      & span:nth-child(2) {
+        font-size: 3em;
+        font-weight: 600;
+        transform: translateY(-0.1em);
+        opacity: 0.6;
+      }
     }
   }
   
