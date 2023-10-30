@@ -41,7 +41,7 @@ public class Program
         var windowPanel = new PhotinoWindow()
             .SetLogVerbosity(2)
             .SetTitle("Panel")
-            .SetSize(500, 750)
+            .SetSize(400, 750)
             .SetUseOsDefaultSize(false)
             .Center()
             .SetResizable(false)

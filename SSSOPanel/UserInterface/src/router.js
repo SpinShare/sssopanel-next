@@ -1,8 +1,12 @@
 import * as VueRouter from 'vue-router';
 
 import ViewPanelDashboard from './views/Panel/Dashboard.vue';
-import ViewScreenIndex from './views/Screen/Index.vue';
+
+import ViewPanelInit from './views/Panel/Init.vue';
+import ViewPanelCountdown from './views/Panel/Countdown.vue';
+import ViewScreenInit from './views/Screen/Init.vue';
 import ViewScreenCountdown from './views/Screen/Countdown.vue';
+
 import ViewError from './views/Error.vue';
 
 const routes = [
@@ -11,8 +15,16 @@ const routes = [
         component: ViewPanelDashboard,
     },
     {
+        path: '/panel/init',
+        component: ViewPanelInit,
+    },
+    {
+        path: '/panel/countdown',
+        component: ViewPanelCountdown,
+    },
+    {
         path: '/screen',
-        component: ViewScreenIndex,
+        component: ViewScreenInit,
     },
     {
         path: '/screen/countdown',

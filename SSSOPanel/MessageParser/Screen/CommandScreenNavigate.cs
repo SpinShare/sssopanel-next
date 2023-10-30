@@ -42,6 +42,12 @@ public class CommandScreenNavigate: ICommand
 
             screenManager.CurrentRoute = newCurrentRoute;
             
+            MessageHandler.SendResponse(sender, new
+            {
+                Command = "screen-navigate-response",
+                Data = newCurrentRoute,
+            });
+            
             MessageHandler.SendScreenResponse(new
             {
                 Command = "screen-navigate-response",
