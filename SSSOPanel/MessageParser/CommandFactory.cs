@@ -18,6 +18,7 @@ public class CommandFactory
             "current-route-get" => new CommandCurrentRouteGet(),
             "screen-navigate" => new CommandScreenNavigate(),
             "screen-spotify-get" => new CommandScreenSpotifyGet(),
+            "screen-fullscreen-toggle" => new CommandScreenFullscreenToggle(),
             _ => throw new Exception($"Unknown command: {command}")
         };
     }

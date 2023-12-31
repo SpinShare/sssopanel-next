@@ -84,7 +84,25 @@ a {
 }
 
 /* TOOLTIPS */
-// TODO: Dark Mode Tooltip Styling
+.v-popper__popper {
+    & .v-popper__wrapper {
+        & .v-popper__inner {
+            background: #ddd;
+            color: #222;
+            border-radius: 2px;
+            font-size: 0.85rem;
+            line-height: 0.8rem;
+        }
+        & .v-popper__arrow-container {
+            & .v-popper__arrow-outer {
+                border-color: #ddd;
+            }
+            & .v-popper__arrow-inner {
+                border-color: #ddd;
+            }
+        }
+    }
+}
 
 /* CONTEXT MENU */
 .mx-menu-bar.spinshare,
@@ -151,6 +169,21 @@ a {
 .default-enter-from,
 .default-leave-to {
     transform: scale(0.975);
+    opacity: 0;
+}
+
+.promo-enter-active {
+    transition: all 0.15s ease-out;
+}
+.promo-leave-active {
+    transition: all 0.15s cubic-bezier(1, 0.5, 0.8, 1);
+}
+.promo-enter-from {
+    transform: translateY(-1vw);
+    opacity: 0;
+}
+.promo-leave-to {
+    transform: translateY(1vw);
     opacity: 0;
 }
 

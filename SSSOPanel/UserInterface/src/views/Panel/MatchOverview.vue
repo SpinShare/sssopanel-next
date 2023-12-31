@@ -1,5 +1,5 @@
 <template>
-    <AppLayout title="Init">
+    <AppLayout title="Match (Overview)">
         <template #transition>
             <SpinButton
                 @click="transition"
@@ -20,7 +20,7 @@ const transition = () => {
         JSON.stringify({
             command: 'screen-navigate',
             data: {
-                path: '',
+                path: 'match-overview',
                 params: {},
                 query: {},
             },

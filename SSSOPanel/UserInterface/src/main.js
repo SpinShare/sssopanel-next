@@ -1,6 +1,6 @@
 import { createApp } from 'vue';
 import App from './App.vue';
-import Router from "@/router";
+import Router from '@/router';
 
 import FloatingVue from 'floating-vue';
 import 'floating-vue/dist/style.css';
@@ -20,14 +20,14 @@ app.use(FloatingVue);
 app.use(Router);
 
 // Components
-import SpinButton from "@/components/Common/SpinButton.vue";
-import SpinLoader from "@/components/Common/SpinLoader.vue";
-import SpinSwitch from "@/components/Common/SpinSwitch.vue";
-import SpinHeader from "@/components/Common/SpinHeader.vue";
-import SpinTabBar from "@/components/Common/SpinTabBar.vue";
-import SpinTabItem from "@/components/Common/SpinTabItem.vue";
-import SpinInput from "@/components/Common/SpinInput.vue";
-import SpinSelect from "@/components/Common/SpinSelect.vue";
+import SpinButton from '@/components/Common/SpinButton.vue';
+import SpinLoader from '@/components/Common/SpinLoader.vue';
+import SpinSwitch from '@/components/Common/SpinSwitch.vue';
+import SpinHeader from '@/components/Common/SpinHeader.vue';
+import SpinTabBar from '@/components/Common/SpinTabBar.vue';
+import SpinTabItem from '@/components/Common/SpinTabItem.vue';
+import SpinInput from '@/components/Common/SpinInput.vue';
+import SpinSelect from '@/components/Common/SpinSelect.vue';
 
 app.component('SpinButton', SpinButton);
 app.component('SpinLoader', SpinLoader);

@@ -1,13 +1,19 @@
 <template>
     <router-view v-slot="{ Component, route }">
-        <transition name="default" mode="out-in">
-            <component :is="Component" :key="route.fullPath" />
+        <transition
+            name="default"
+            mode="out-in"
+        >
+            <component
+                :is="Component"
+                :key="route.fullPath"
+            />
         </transition>
     </router-view>
 </template>
 
 <script setup>
-import {ref, inject} from 'vue';
+import { inject } from 'vue';
 const emitter = inject('emitter');
 
 window.external.receiveMessage((rawResponse) => {

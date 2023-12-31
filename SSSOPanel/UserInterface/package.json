@@ -6,6 +6,7 @@
     "build": "vite build --emptyOutDir",
     "preview": "vite preview --port 4173",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore",
+    "prettier": "prettier",
     "generate-licenses": "generate-license-file --input package.json --output src/assets/third-party-licenses.md --overwrite"
   },
   "dependencies": {

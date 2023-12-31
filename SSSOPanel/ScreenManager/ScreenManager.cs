@@ -54,7 +54,7 @@ public class ScreenManager
         return _screens;
     }
 
-    public PhotinoWindow CreateNewScreen()
+    public PhotinoWindow CreateNewScreen(bool isFullScreen)
     {
         var messageHandler = new MessageHandler();
         
@@ -62,12 +62,21 @@ public class ScreenManager
         var windowScreen = new PhotinoWindow()
             .SetLogVerbosity(2)
             .SetTitle("Screen")
-            .SetSize(1280, 720)
             .SetUseOsDefaultSize(false)
             .Center()
-            .SetResizable(true)
             .RegisterWindowClosingHandler(WindowClosingHandler)
             .RegisterWebMessageReceivedHandler(messageHandler.RegisterWebMessageReceivedHandler);
+
+        if (isFullScreen)
+        {
+            windowScreen.SetFullScreen(true);
+            windowScreen.SetResizable(false);
+        }
+        else
+        {
+            windowScreen.SetSize(1280, 720);
+            windowScreen.SetResizable(true);
+        }
         
         RegisterScreen(windowScreen);
 

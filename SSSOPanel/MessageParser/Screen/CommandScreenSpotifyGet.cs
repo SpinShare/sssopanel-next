@@ -9,15 +9,30 @@ public class CommandScreenSpotifyGet: ICommand
     {
         var spotifyProcesses = Process.GetProcesses();
 
+        var spotifyActive = false;
+        var spotifyArtist = "";
+        var spotifyTitle = "";
         foreach (var process in spotifyProcesses)
         {
-            Console.WriteLine(process.MainWindowTitle);
+            var windowTitle = process.MainWindowTitle;
+            if (!process.ProcessName.Contains("Spotify") || windowTitle.Length == 0 || !windowTitle.Contains(" - ")) continue;
+            
+            var splitTitle = windowTitle.Split(" - ");
+
+            spotifyActive = true;
+            spotifyArtist = splitTitle[0];
+            spotifyTitle = splitTitle[1];
         }
         
         MessageHandler.SendScreenResponse(new
         {
             Command = "screen-spotify-get-response",
-            Data = new {},
+            Data = new
+            {
+                active = spotifyActive,
+                artist = spotifyArtist,
+                title = spotifyTitle,
+            },
         });
         
         await Task.Yield();

@@ -1,5 +1,5 @@
 <template>
-    <AppLayout title="Init">
+    <AppLayout title="End (Tournament)">
         <template #transition>
             <SpinButton
                 @click="transition"
@@ -20,7 +20,7 @@ const transition = () => {
         JSON.stringify({
             command: 'screen-navigate',
             data: {
-                path: '',
+                path: 'end-tournament',
                 params: {},
                 query: {},
             },

@@ -1,21 +1,15 @@
 <template>
     <ScreenLayout>
-        <section class="screen-init">
-            <img
-                :src="Logo"
-                class="logo"
-            />
-        </section>
+        <section class="screen-end-stream">End of Stream</section>
     </ScreenLayout>
 </template>
 
 <script setup>
 import ScreenLayout from '../../layouts/ScreenLayout.vue';
-import Logo from '../../assets/logo.svg';
 </script>
 
 <style lang="scss" scoped>
-.screen-init {
+.screen-end-stream {
     display: flex;
     justify-content: center;
     align-items: center;
