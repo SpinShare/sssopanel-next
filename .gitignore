@@ -118,4 +118,4 @@ fabric.properties
 .idea/httpRequests
 
 # Build UI
-SpinShareClient/Resources/wwwroot/
+SSSOPanel/Resources/wwwroot/
