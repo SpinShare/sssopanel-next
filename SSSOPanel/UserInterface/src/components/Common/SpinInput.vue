@@ -68,7 +68,8 @@ defineProps({
         display: grid;
         gap: 5px;
 
-        & input[type='text'] {
+        & input[type='text'],
+        & input[type='number'] {
             background: rgba(var(--colorBaseText), 0.07);
             border: 0;
             color: rgb(var(--colorBaseText));

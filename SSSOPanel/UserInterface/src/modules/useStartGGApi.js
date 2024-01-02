@@ -45,5 +45,57 @@ export default function useTournamentAPI(apiToken) {
         loading.value = false;
     };
 
-    return { loadTournamentEvents, loading };
+    const loadEventEntrants = async (eventId) => {
+        loading.value = true;
+
+        const query = `
+            query EventEntrants($eventId: ID!, $page: Int!, $perPage: Int!) {
+              event(id: $eventId) {
+                id
+                name
+                entrants(query: {
+                  page: $page
+                  perPage: $perPage
+                }) {
+                  pageInfo {
+                    total
+                    totalPages
+                  }
+                  nodes {
+                    id
+                    name
+                    isDisqualified
+                  }
+                }
+              }
+            }
+        `;
+
+        const variables = {
+            eventId: eventId,
+            page: 1,
+            perPage: 100,
+        };
+
+        const response = await fetch(API_URI, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: 'Bearer ' + apiToken,
+            },
+            body: JSON.stringify({
+                query,
+                variables,
+            }),
+        });
+
+        const { data } = await response.json();
+        if (response.ok) {
+            return data?.event?.entrants?.nodes || null;
+        }
+
+        loading.value = false;
+    };
+
+    return { loadTournamentEvents, loadEventEntrants, loading };
 }

@@ -2,6 +2,7 @@ import * as VueRouter from 'vue-router';
 
 import ViewPanelDashboard from './views/Panel/Dashboard.vue';
 import ViewPanelSettings from './views/Panel/Settings.vue';
+import ViewPanelPlayerMapping from './views/Panel/PlayerMapping.vue';
 
 import ViewPanelInit from './views/Panel/Init.vue';
 import ViewPanelCountdown from './views/Panel/Countdown.vue';
@@ -31,6 +32,10 @@ const routes = [
     {
         path: '/panel/settings',
         component: ViewPanelSettings,
+    },
+    {
+        path: '/panel/player-mapping',
+        component: ViewPanelPlayerMapping,
     },
     {
         path: '/panel/init',
