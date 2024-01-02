@@ -74,7 +74,7 @@ public class ScreenManager
         }
         else
         {
-            windowScreen.SetSize(1280, 720);
+            windowScreen.SetSize(Convert.ToInt32(1280 * ScreenScaleFactor.Get()), Convert.ToInt32(720 * ScreenScaleFactor.Get()));
             windowScreen.SetResizable(true);
         }
         

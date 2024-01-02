@@ -1,9 +1,6 @@
-﻿using System.Diagnostics;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using PhotinoNET;
+﻿using PhotinoNET;
 using PhotinoNET.Server;
-using Sentry;
+using SSSOPanel.ScreenManager;
 
 namespace SSSOPanel;
 
@@ -36,12 +33,12 @@ public class Program
         var screenManager = ScreenManager.ScreenManager.GetInstance();
 
         screenManager.BaseUrl = baseUrl;
-        
+
         Console.WriteLine("Creating Panel Window");
         var windowPanel = new PhotinoWindow()
             .SetLogVerbosity(2)
             .SetTitle("Panel")
-            .SetSize(400, 750)
+            .SetSize(Convert.ToInt32(400 * ScreenScaleFactor.Get()), Convert.ToInt32(750 * ScreenScaleFactor.Get()))
             .SetUseOsDefaultSize(false)
             .Center()
             .SetResizable(false)
