@@ -34,53 +34,18 @@
 </template>
 
 <script setup>
-import { ref, inject, onMounted } from 'vue';
+import { ref, inject, onMounted, onUnmounted } from 'vue';
 const emitter = inject('emitter');
 
 const currentVersion = ref('0.0.0');
 const latestRelease = ref(null);
 const needsUpdate = ref(false);
 
-onMounted(() => {
-    window.external.sendMessage(
-        JSON.stringify({
-            command: 'update-get-version',
-            data: '',
-        }),
-    );
-});
-
-emitter.on('update-get-version-response', (version) => {
-    currentVersion.value = version;
-
-    window.external.sendMessage(
-        JSON.stringify({
-            command: 'update-get-latest',
-            data: '',
-        }),
-    );
-});
-
-emitter.on('update-get-latest-response', (release) => {
-    latestRelease.value = JSON.parse(release);
-
-    if (latestRelease.value == null) {
-        return;
-    }
-
-    needsUpdate.value = isVersionOutdated(
-        currentVersion.value,
-        latestRelease.value.tag_name.replace('v', '').replace('-preview', ''),
-    );
-});
-
 const isVersionOutdated = (localVersion, latestVersion) => {
     let localParts = localVersion.split('.');
     let latestParts = latestVersion.split('.');
 
-    return latestParts.every(
-        (part, index) => parseInt(part) >= parseInt(localParts[index]),
-    );
+    return latestParts.every((part, index) => parseInt(part) >= parseInt(localParts[index]));
 };
 
 const openUpdate = () => {
@@ -95,6 +60,41 @@ const openUpdate = () => {
 const closeBanner = () => {
     needsUpdate.value = false;
 };
+
+onMounted(() => {
+    emitter.on('update-get-version-response', (version) => {
+        currentVersion.value = version;
+
+        window.external.sendMessage(
+            JSON.stringify({
+                command: 'update-get-latest',
+                data: '',
+            }),
+        );
+    });
+
+    emitter.on('update-get-latest-response', (release) => {
+        latestRelease.value = JSON.parse(release);
+
+        if (latestRelease.value == null) {
+            return;
+        }
+
+        needsUpdate.value = isVersionOutdated(currentVersion.value, latestRelease.value.tag_name.replace('v', '').replace('-preview', ''));
+    });
+
+    window.external.sendMessage(
+        JSON.stringify({
+            command: 'update-get-version',
+            data: '',
+        }),
+    );
+});
+
+onUnmounted(() => {
+    emitter.off('update-get-version-response');
+    emitter.off('update-get-latest-response');
+});
 </script>
 
 <style lang="scss" scoped>

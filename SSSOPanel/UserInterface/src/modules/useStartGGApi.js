@@ -106,6 +106,7 @@ export default function useTournamentAPI(apiToken) {
                 id
                 name
                 phases {
+                  id
                   name
                   phaseGroups {
                     nodes {

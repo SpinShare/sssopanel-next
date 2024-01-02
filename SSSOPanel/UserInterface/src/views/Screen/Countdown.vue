@@ -171,8 +171,7 @@ setInterval(() => {
         width: 4vw;
         bottom: 5vw;
         background-size: 1.5vw 1.5vw;
-        background-image: radial-gradient(circle, #000 10%, transparent 12%),
-            radial-gradient(circle, #000 10%, transparent 12%);
+        background-image: radial-gradient(circle, #000 10%, transparent 12%), radial-gradient(circle, #000 10%, transparent 12%);
 
         &.left {
             left: 2vw;

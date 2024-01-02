@@ -15,6 +15,7 @@ public class CommandScreenNavigate: ICommand
             
         var path = dataItem.GetValue("path")?.ToObject<string>();
         var query = dataItem.GetValue("query")?.ToObject<JObject>();
+        var richData = dataItem.GetValue("richData")?.ToObject<JObject>();
         var parameters = dataItem.GetValue("params")?.ToObject<JObject>();
 
         // Force Navigation even if same route
@@ -37,7 +38,8 @@ public class CommandScreenNavigate: ICommand
             {
                 Path = "/screen/" + path,
                 Query = query,
-                Params = parameters
+                Params = parameters,
+                RichData = richData
             };
 
             screenManager.CurrentRoute = newCurrentRoute;

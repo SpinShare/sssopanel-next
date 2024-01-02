@@ -13,7 +13,8 @@ public class ScreenManager
     {
         Path = "/screen",
         Parameters = new {},
-        Query = new {}
+        Query = new {},
+        RichData = new {}
     };
     public string BaseUrl = "";
 

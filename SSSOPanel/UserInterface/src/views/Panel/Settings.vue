@@ -101,7 +101,7 @@ import AppLayout from '../../layouts/AppLayout.vue';
 import SpinInput from '@/components/Common/SpinInput.vue';
 import SpinSelect from '@/components/Common/SpinSelect.vue';
 import SpinButton from '@/components/Common/SpinButton.vue';
-import { onMounted, ref, inject } from 'vue';
+import { onMounted, ref, inject, onUnmounted } from 'vue';
 import useTournamentAPI from '@/modules/useStartGGApi';
 import SpinLoader from '@/components/Common/SpinLoader.vue';
 import router from '@/router';
@@ -120,29 +120,6 @@ const startGGTournamentId = ref(null);
 const startGGTournamentName = ref('');
 const startGGEvents = ref([]);
 const startGGEventId = ref('-1');
-
-onMounted(() => {
-    window.external.sendMessage(
-        JSON.stringify({
-            command: 'settings-get-full',
-            data: '',
-        }),
-    );
-});
-emitter.on('settings-get-full-response', async (settings) => {
-    theme.value = settings['theme'] ?? 'winter';
-
-    startGGApiToken.value = settings['currentEvent.startgg.apiToken'] ?? '';
-    startGGTournamentSlug.value = settings['currentEvent.startgg.tournamentSlug'] ?? '';
-    startGGTournamentId.value = settings['currentEvent.startgg.tournamentId'] ?? null;
-    startGGTournamentName.value = settings['currentEvent.startgg.tournamentName'] ?? '';
-    startGGEventId.value = settings['currentEvent.startgg.eventId'] ?? '-1';
-    if (startGGApiToken.value !== '' && startGGTournamentSlug.value !== '') {
-        await loadStartGGEvents();
-    }
-
-    settingsState.value = SETTING_STATE_IDLE;
-});
 
 const loadStartGGEvents = async () => {
     startGGTournamentId.value = null;
@@ -181,8 +158,37 @@ const saveSettings = () => {
         }),
     );
 };
-emitter.on('settings-set-response', () => {
-    settingsState.value = SETTING_STATE_IDLE;
+
+onMounted(() => {
+    emitter.on('settings-get-full-response', async (settings) => {
+        theme.value = settings['theme'] ?? 'winter';
+
+        startGGApiToken.value = settings['currentEvent.startgg.apiToken'] ?? '';
+        startGGTournamentSlug.value = settings['currentEvent.startgg.tournamentSlug'] ?? '';
+        startGGTournamentId.value = settings['currentEvent.startgg.tournamentId'] ?? null;
+        startGGTournamentName.value = settings['currentEvent.startgg.tournamentName'] ?? '';
+        startGGEventId.value = settings['currentEvent.startgg.eventId'] ?? '-1';
+        if (startGGApiToken.value !== '' && startGGTournamentSlug.value !== '') {
+            await loadStartGGEvents();
+        }
+
+        settingsState.value = SETTING_STATE_IDLE;
+    });
+    emitter.on('settings-set-response', () => {
+        settingsState.value = SETTING_STATE_IDLE;
+    });
+
+    window.external.sendMessage(
+        JSON.stringify({
+            command: 'settings-get-full',
+            data: '',
+        }),
+    );
+});
+
+onUnmounted(() => {
+    emitter.off('settings-get-full-response');
+    emitter.off('settings-set-response');
 });
 </script>
 

@@ -51,10 +51,9 @@
 <script setup>
 import UpdateBanner from '@/components/UpdateBanner.vue';
 import AlertMessage from '@/components/Common/AlertMessage.vue';
-import { inject, onMounted, ref } from 'vue';
+import { inject, onMounted, onUnmounted, ref } from 'vue';
 import router from '@/router';
-
-const emitter = inject('emitter');
+import useCurrentScreen from '@/modules/useCurrentScreen';
 
 const props = defineProps({
     title: {
@@ -63,7 +62,7 @@ const props = defineProps({
     },
 });
 
-const currentScreen = ref('');
+const currentScreen = useCurrentScreen();
 
 const openScreen = () => {
     window.external.sendMessage(
@@ -85,22 +84,6 @@ const openScreenFullscreen = () => {
         }),
     );
 };
-
-onMounted(() => {
-    window.external.sendMessage(
-        JSON.stringify({
-            command: 'current-route-get',
-        }),
-    );
-});
-
-emitter.on('screen-navigate-response', (data) => {
-    currentScreen.value = data.Path;
-});
-
-emitter.on('current-route-get-response', (data) => {
-    currentScreen.value = data.Path;
-});
 </script>
 
 <style lang="scss" scoped>

@@ -51,7 +51,7 @@
 
 <script setup>
 import AppLayout from '../../layouts/AppLayout.vue';
-import { onMounted, ref, inject } from 'vue';
+import { onMounted, ref, inject, onUnmounted } from 'vue';
 import useTournamentAPI from '@/modules/useStartGGApi';
 import SpinLoader from '@/components/Common/SpinLoader.vue';
 import SpinButton from '@/components/Common/SpinButton.vue';
@@ -67,28 +67,6 @@ const state = ref(STATE_LOADING);
 const startGGApiToken = ref('');
 const startGGEventId = ref('-1');
 const playerMappings = ref([]);
-
-onMounted(() => {
-    window.external.sendMessage(
-        JSON.stringify({
-            command: 'settings-get-full',
-            data: '',
-        }),
-    );
-});
-emitter.on('settings-get-full-response', async (settings) => {
-    playerMappings.value = settings['currentEvent.playerMapping'] ?? [];
-    startGGApiToken.value = settings['currentEvent.startgg.apiToken'] ?? '';
-    startGGEventId.value = settings['currentEvent.startgg.eventId'] ?? '-1';
-
-    console.log(startGGEventId.value);
-
-    if (startGGApiToken.value !== '' && startGGEventId.value !== '-1') {
-        await loadStartGGEventEntrants();
-    }
-
-    state.value = STATE_IDLE;
-});
 
 const loadStartGGEventEntrants = async () => {
     const { loadEventEntrants } = useTournamentAPI(startGGApiToken.value);
@@ -128,6 +106,14 @@ const loadEntrantSpinShareProfile = async (playerMapping) => {
         return;
     }
 
+    delete user?.isVerified;
+    delete user?.isPatreon;
+    delete user?.songs;
+    delete user?.playlists;
+    delete user?.reviews;
+    delete user?.spinplays;
+    delete user?.cards;
+
     playerMapping.spinshareProfile = user;
 };
 
@@ -144,9 +130,6 @@ const saveMapping = () => {
         }),
     );
 };
-emitter.on('settings-set-response', () => {
-    state.value = STATE_IDLE;
-});
 
 const resetMapping = async () => {
     const { loadEventEntrants } = useTournamentAPI(startGGApiToken.value);
@@ -159,6 +142,37 @@ const resetMapping = async () => {
         playerMappings.value.push({ ...entrant, inEvent: true });
     }
 };
+
+onMounted(() => {
+    emitter.on('settings-get-full-response', async (settings) => {
+        playerMappings.value = settings['currentEvent.playerMapping'] ?? [];
+        startGGApiToken.value = settings['currentEvent.startgg.apiToken'] ?? '';
+        startGGEventId.value = settings['currentEvent.startgg.eventId'] ?? '-1';
+
+        console.log(startGGEventId.value);
+
+        if (startGGApiToken.value !== '' && startGGEventId.value !== '-1') {
+            await loadStartGGEventEntrants();
+        }
+
+        state.value = STATE_IDLE;
+    });
+    emitter.on('settings-set-response', () => {
+        state.value = STATE_IDLE;
+    });
+
+    window.external.sendMessage(
+        JSON.stringify({
+            command: 'settings-get-full',
+            data: '',
+        }),
+    );
+});
+
+onUnmounted(() => {
+    emitter.off('settings-get-full-response');
+    emitter.off('settings-set-response');
+});
 </script>
 
 <style lang="scss" scoped>

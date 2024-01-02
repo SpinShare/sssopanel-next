@@ -9,36 +9,41 @@
 </template>
 
 <script setup>
-import { inject, onMounted } from 'vue';
+import { inject, onMounted, onUnmounted } from 'vue';
 import router from '@/router';
 import AspectLayout from '@/layouts/AspectLayout.vue';
 import ScreenFooter from '@/components/ScreenFooter/ScreenFooter.vue';
 
 const emitter = inject('emitter');
 
-emitter.on('screen-navigate-response', (data) => {
-    router.push({
-        path: data.Path,
-        query: data.Query ?? '',
-        params: data.Params ?? '',
-    });
-});
-
-emitter.on('current-route-get-response', (data) => {
-    if (data.Path == null) return;
-    router.push({
-        path: data.Path,
-        query: data.Query ?? '',
-        params: data.Params ?? '',
-    });
-});
-
 onMounted(() => {
+    emitter.on('screen-navigate-response', (data) => {
+        router.push({
+            path: data.Path,
+            query: data.Query ?? '',
+            params: data.Params ?? '',
+        });
+    });
+
+    emitter.on('current-route-get-response', (data) => {
+        if (data.Path == null) return;
+        router.push({
+            path: data.Path,
+            query: data.Query ?? '',
+            params: data.Params ?? '',
+        });
+    });
+
     window.external.sendMessage(
         JSON.stringify({
             command: 'current-route-get',
         }),
     );
+});
+
+onUnmounted(() => {
+    emitter.off('screen-navigate-response');
+    emitter.off('current-route-get-response');
 });
 </script>
 

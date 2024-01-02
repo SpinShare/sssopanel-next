@@ -17,7 +17,7 @@
 </template>
 
 <script setup>
-import { ref, inject } from 'vue';
+import { ref, inject, onMounted, onUnmounted } from 'vue';
 const emitter = inject('emitter');
 
 const dialogRef = ref();
@@ -25,20 +25,27 @@ const dialogRef = ref();
 const dialogTitle = ref(false);
 const dialogMessage = ref(false);
 
-emitter.on('alert-show', (options) => {
-    dialogTitle.value = options.title ?? false;
-    dialogMessage.value = options.message ?? false;
-
-    dialogRef.value.showModal();
-});
-
-emitter.on('alert-close', () => {
-    close();
-});
-
 const close = () => {
     dialogRef.value.close();
 };
+
+onMounted(() => {
+    emitter.on('alert-show', (options) => {
+        dialogTitle.value = options.title ?? false;
+        dialogMessage.value = options.message ?? false;
+
+        dialogRef.value.showModal();
+    });
+
+    emitter.on('alert-close', () => {
+        close();
+    });
+});
+
+onUnmounted(() => {
+    emitter.off('alert-show');
+    emitter.off('alert-close');
+});
 </script>
 
 <style lang="scss" scoped>

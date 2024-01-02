@@ -57,15 +57,8 @@ const spotifyActive = ref(false);
 const spotifyArtist = ref('');
 const spotifyTitle = ref('');
 
-emitter.on('screen-spotify-get-response', (data) => {
-    spotifyActive.value = data.active;
-    spotifyArtist.value = data.artist;
-    spotifyTitle.value = data.title;
-});
-
 let spotifyUpdateInterval = null;
 const updateSpotify = () => {
-    console.log('update Spotify');
     window.external.sendMessage(
         JSON.stringify({
             command: 'screen-spotify-get',
@@ -74,9 +67,14 @@ const updateSpotify = () => {
 };
 
 onMounted(() => {
+    emitter.on('screen-spotify-get-response', (data) => {
+        spotifyActive.value = data.active;
+        spotifyArtist.value = data.artist;
+        spotifyTitle.value = data.title;
+    });
+
     promoUpdateInterval = setInterval(() => {
-        activePromoIndex.value =
-            (activePromoIndex.value + 1) % promos.value.length;
+        activePromoIndex.value = (activePromoIndex.value + 1) % promos.value.length;
     }, 12000);
     spotifyUpdateInterval = setInterval(() => {
         updateSpotify();
@@ -84,7 +82,10 @@ onMounted(() => {
 
     updateSpotify();
 });
+
 onUnmounted(() => {
+    emitter.off('screen-spotify-get-response');
+
     clearInterval(promoUpdateInterval);
     clearInterval(spotifyUpdateInterval);
 });

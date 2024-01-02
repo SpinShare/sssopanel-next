@@ -35,7 +35,7 @@
                 @click="transition"
                 icon="record"
                 color="primary"
-                :disabled="phase.length === 0 || phaseGroup.length === 0"
+                :disabled="screenData === null"
                 v-tooltip="'Transition to screen'"
             />
         </template>
@@ -46,7 +46,7 @@
 import AppLayout from '../../layouts/AppLayout.vue';
 import SpinButton from '@/components/Common/SpinButton.vue';
 import SpinInput from '@/components/Common/SpinInput.vue';
-import { onMounted, ref, inject } from 'vue';
+import { onMounted, ref, inject, onUnmounted } from 'vue';
 const emitter = inject('emitter');
 import SpinSelect from '@/components/Common/SpinSelect.vue';
 import useTournamentAPI from '@/modules/useStartGGApi';
@@ -58,7 +58,9 @@ const phaseGroups = ref([]);
 const phase = ref('');
 const phaseGroup = ref('');
 
-const screenData = ref('');
+const playerMappings = ref([]);
+
+const screenData = ref(null);
 
 const startGGApiToken = ref('');
 const startGGEventId = ref('-1');
@@ -71,45 +73,28 @@ const transition = () => {
             data: {
                 path: 'brackets',
                 params: {},
-                query: {
-                    data: screenData.value,
-                },
+                query: {},
+                richData: screenData.value,
             },
         }),
     );
 };
 
-onMounted(() => {
-    loading.value = true;
-
-    window.external.sendMessage(
-        JSON.stringify({
-            command: 'settings-get-full',
-            data: '',
-        }),
-    );
-});
-emitter.on('settings-get-full-response', async (settings) => {
-    startGGApiToken.value = settings['currentEvent.startgg.apiToken'] ?? '';
-    startGGEventId.value = settings['currentEvent.startgg.eventId'] ?? '-1';
-
-    if (startGGApiToken.value !== '' && startGGEventId.value !== '-1') {
-        await loadStartGGPhases();
-    }
-
-    loading.value = false;
-});
-
 const loadStartGGPhases = async () => {
     const { loadEventPhases } = useTournamentAPI(startGGApiToken.value);
     startGGPhases.value = await loadEventPhases(startGGEventId.value);
 
-    phases.value = startGGPhases.value.map((phase) => ({
-        icon: 'tournament',
-        label: phase.name,
-        value: phase.id + '',
-    }));
+    phases.value = startGGPhases.value.map((phase) => {
+        console.log(phase);
+
+        return {
+            icon: 'tournament',
+            label: phase.name,
+            value: phase.id + '',
+        };
+    });
 };
+
 const loadPhaseGroupsSelect = () => {
     phaseGroups.value = startGGPhases.value
         .filter((x) => x?.id + '' === phase.value)[0]
@@ -119,34 +104,63 @@ const loadPhaseGroupsSelect = () => {
             value: phaseGroup.id + '',
         }));
 };
-
 const updateSelectedPhaseGroup = async () => {
     const { loadPhaseGroup } = useTournamentAPI(startGGApiToken.value);
     const phaseData = startGGPhases.value.filter((x) => x?.id + '' === phase.value)[0];
     const phaseGroupData = await loadPhaseGroup(phaseGroup.value);
 
+    // Matches: 0 = Match A, 1 = Match B, 2 = Match C, 3 = Match D, 4 = Match F, 5 = Match G
     const matches = [];
     phaseGroupData.sets.nodes.forEach((set) => {
-        let match = [];
+        let match = { players: [] };
 
         set.slots.forEach((slot) => {
-            match.push([slot.entrant?.id, slot.standing?.placement, slot.standing?.stats?.score?.value]);
+            const entrant = playerMappings.value.filter((x) => x?.id === slot.entrant?.id)[0];
+
+            match.players.push({
+                entrantId: slot.entrant?.id,
+                entrant: entrant ?? null,
+                placement: slot.standing?.placement ?? null,
+                score: slot.standing?.stats?.score?.value ?? 0,
+            });
         });
 
         matches.push(match);
     });
 
-    // Matches: 0 = A, 1 = B, 2 = C, 3 = D, 4 = F, 5 = G
-    // Match: Player A, Player B
-    // Player: [StartGG ID, Placement, Score]
     screenData.value = {
         phase: phaseData.name,
         phaseGroup: phaseGroupData.displayIdentifier,
         matches: matches,
     };
-
-    console.log(screenData.value);
 };
+
+onMounted(() => {
+    loading.value = true;
+
+    emitter.on('settings-get-full-response', async (settings) => {
+        playerMappings.value = settings['currentEvent.playerMapping'] ?? [];
+        startGGApiToken.value = settings['currentEvent.startgg.apiToken'] ?? '';
+        startGGEventId.value = settings['currentEvent.startgg.eventId'] ?? '-1';
+
+        if (startGGApiToken.value !== '' && startGGEventId.value !== '-1') {
+            await loadStartGGPhases();
+        }
+
+        loading.value = false;
+    });
+
+    window.external.sendMessage(
+        JSON.stringify({
+            command: 'settings-get-full',
+            data: '',
+        }),
+    );
+});
+
+onUnmounted(() => {
+    emitter.off('settings-get-full-response');
+});
 </script>
 
 <style lang="scss" scoped></style>
