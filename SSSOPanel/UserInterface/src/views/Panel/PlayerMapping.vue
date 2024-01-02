@@ -9,6 +9,18 @@
             </div>
 
             <SpinInput
+                label="Reset"
+                hint="Reload all mappings"
+                type="horizontal"
+            >
+                <SpinButton
+                    label="Reset"
+                    color="danger"
+                    @click="resetMapping"
+                />
+            </SpinInput>
+
+            <SpinInput
                 v-for="playerMapping in playerMappings"
                 :key="playerMapping.id"
                 :label="playerMapping.name"
@@ -69,6 +81,8 @@ emitter.on('settings-get-full-response', async (settings) => {
     startGGApiToken.value = settings['currentEvent.startgg.apiToken'] ?? '';
     startGGEventId.value = settings['currentEvent.startgg.eventId'] ?? '-1';
 
+    console.log(startGGEventId.value);
+
     if (startGGApiToken.value !== '' && startGGEventId.value !== '-1') {
         await loadStartGGEventEntrants();
     }
@@ -85,18 +99,16 @@ const loadStartGGEventEntrants = async () => {
     // Flag player mappings not present in event entrants
     playerMappings.value = playerMappings.value.filter((playerMapping) => {
         if (entrantsMap.has(playerMapping.id)) {
-            playerMapping.inEvent = true;
             entrantsMap.delete(playerMapping.id);
             return true;
         } else {
-            playerMapping.inEvent = false;
             return false;
         }
     });
 
     // Add new event entrants not present in player mappings
     for (const entrant of entrantsMap.values()) {
-        playerMappings.value.push({ ...entrant, inEvent: true });
+        playerMappings.value.push({ ...entrant });
     }
 };
 
@@ -135,11 +147,23 @@ const saveMapping = () => {
 emitter.on('settings-set-response', () => {
     state.value = STATE_IDLE;
 });
+
+const resetMapping = async () => {
+    const { loadEventEntrants } = useTournamentAPI(startGGApiToken.value);
+    const entrants = await loadEventEntrants(startGGEventId.value);
+
+    const entrantsMap = new Map(entrants.map((e) => [e.id, e]));
+    playerMappings.value = [];
+
+    for (const entrant of entrantsMap.values()) {
+        playerMappings.value.push({ ...entrant, inEvent: true });
+    }
+};
 </script>
 
 <style lang="scss" scoped>
 .incomplete-mapping-banner {
-    background-color: #111;
+    background: #111;
     background-image: linear-gradient(rgba(var(--colorError), 1), rgba(var(--colorError), 1)), linear-gradient(white, white);
     background-blend-mode: overlay;
     color: rgb(var(--colorError));
@@ -150,6 +174,9 @@ emitter.on('settings-set-response', () => {
     left: 0;
     right: 0;
 }
+</style>
+
+<style lang="scss" scoped v-if="playerMappings.filter((x) => !x.spinshareProfile).length > 0">
 .setup-input:first-of-type {
     margin-top: 50px;
 }

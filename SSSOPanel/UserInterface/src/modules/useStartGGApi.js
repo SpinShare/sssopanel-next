@@ -97,5 +97,105 @@ export default function useTournamentAPI(apiToken) {
         loading.value = false;
     };
 
-    return { loadTournamentEvents, loadEventEntrants, loading };
+    const loadEventPhases = async (eventId) => {
+        loading.value = true;
+
+        const query = `
+            query Query($eventId: ID) {
+              event(id: $eventId) {
+                id
+                name
+                phases {
+                  name
+                  phaseGroups {
+                    nodes {
+                      id
+                      startAt
+                      displayIdentifier
+                    }
+                  }
+                }
+              }
+            }
+        `;
+
+        const variables = {
+            eventId: eventId,
+        };
+
+        const response = await fetch(API_URI, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: 'Bearer ' + apiToken,
+            },
+            body: JSON.stringify({
+                query,
+                variables,
+            }),
+        });
+
+        const { data } = await response.json();
+        if (response.ok) {
+            return data?.event?.phases || null;
+        }
+
+        loading.value = false;
+    };
+
+    const loadPhaseGroup = async (phaseGroupId) => {
+        loading.value = true;
+
+        const query = `
+            query Query($phaseGroupId: ID) {
+              phaseGroup(id: $phaseGroupId) {
+                id
+                startAt
+                displayIdentifier
+                sets(page: 1, perPage: 32, sortType: CALL_ORDER) {
+                  nodes {
+                    slots {
+                      entrant {
+                        id
+                      }
+                      standing {
+                        placement
+                        stats {
+                          score {
+                            value
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+        `;
+
+        const variables = {
+            phaseGroupId: phaseGroupId,
+        };
+
+        const response = await fetch(API_URI, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: 'Bearer ' + apiToken,
+            },
+            body: JSON.stringify({
+                query,
+                variables,
+            }),
+        });
+
+        const { data } = await response.json();
+        if (response.ok) {
+            return data?.phaseGroup || null;
+        }
+
+        loading.value = false;
+    };
+
+    return { loadTournamentEvents, loadEventEntrants, loadEventPhases, loadPhaseGroup, loading };
 }
