@@ -12,6 +12,8 @@ module.exports = {
         ecmaVersion: 'latest',
     },
     rules: {
+        'vue/max-len': 'off',
+        'max-len': 'off',
         'vue/multi-word-component-names': 'off',
         'prettier/prettier': ['error', { endOfLine: 'auto' }],
     },
