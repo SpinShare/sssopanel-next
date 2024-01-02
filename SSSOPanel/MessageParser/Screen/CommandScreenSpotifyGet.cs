@@ -7,7 +7,7 @@ public class CommandScreenSpotifyGet: ICommand
 {
     public async Task Execute(PhotinoWindow? sender, object? data)
     {
-        var spotifyProcesses = Process.GetProcesses();
+        var spotifyProcesses = Process.GetProcessesByName("Spotify");
 
         var spotifyActive = false;
         var spotifyArtist = "";
@@ -15,7 +15,7 @@ public class CommandScreenSpotifyGet: ICommand
         foreach (var process in spotifyProcesses)
         {
             var windowTitle = process.MainWindowTitle;
-            if (!process.ProcessName.Contains("Spotify") || windowTitle.Length == 0 || !windowTitle.Contains(" - ")) continue;
+            if (string.IsNullOrEmpty(windowTitle) || !windowTitle.Contains(" - ")) continue;
             
             var splitTitle = windowTitle.Split(" - ");
 
