@@ -29,5 +29,29 @@ export default function useSpinShareApi() {
         }
     };
 
-    return { loadUser, loading };
+    const loadChart = async (chartId) => {
+        loading.value = true;
+
+        try {
+            const endpoint = API_URI + 'song/' + chartId;
+
+            const response = await fetch(endpoint, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            const { data } = await response.json();
+            if (response.ok) {
+                return data || null;
+            }
+        } catch (e) {
+            return null;
+        } finally {
+            loading.value = false;
+        }
+    };
+
+    return { loadUser, loadChart, loading };
 }

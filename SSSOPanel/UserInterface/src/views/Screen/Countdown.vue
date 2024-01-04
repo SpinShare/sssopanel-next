@@ -2,7 +2,6 @@
     <ScreenLayout>
         <section class="screen-streamstart-countdown">
             <div class="tint winter"></div>
-
             <div class="noise"></div>
 
             <div class="content">

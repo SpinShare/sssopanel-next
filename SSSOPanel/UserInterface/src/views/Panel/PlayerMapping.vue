@@ -149,8 +149,6 @@ onMounted(() => {
         startGGApiToken.value = settings['currentEvent.startgg.apiToken'] ?? '';
         startGGEventId.value = settings['currentEvent.startgg.eventId'] ?? '-1';
 
-        console.log(startGGEventId.value);
-
         if (startGGApiToken.value !== '' && startGGEventId.value !== '-1') {
             await loadStartGGEventEntrants();
         }

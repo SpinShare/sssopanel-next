@@ -1,8 +1,7 @@
 <template>
     <AppLayout title="Settings">
         <template v-if="settingsState !== SETTING_STATE_LOADING">
-            <div class="group">
-                <header>General</header>
+            <SpinInputGroup header="General">
                 <SpinInput
                     label="SSSOPanel Next"
                     hint="Version 1.0.0"
@@ -23,9 +22,8 @@
                         ]"
                     />
                 </SpinInput>
-            </div>
-            <div class="group">
-                <header>start.gg</header>
+            </SpinInputGroup>
+            <SpinInputGroup header="start.gg">
                 <SpinInput
                     label="Token"
                     hint="start.gg"
@@ -79,7 +77,7 @@
                         @click="router.push({ path: '/panel/player-mapping' })"
                     />
                 </SpinInput>
-            </div>
+            </SpinInputGroup>
         </template>
         <template v-if="settingsState === SETTING_STATE_LOADING">
             <SpinLoader />
@@ -105,6 +103,7 @@ import { onMounted, ref, inject, onUnmounted } from 'vue';
 import useTournamentAPI from '@/modules/useStartGGApi';
 import SpinLoader from '@/components/Common/SpinLoader.vue';
 import router from '@/router';
+import SpinInputGroup from '@/components/Common/SpinInputGroup.vue';
 const emitter = inject('emitter');
 
 const SETTING_STATE_LOADING = 'loading';
@@ -192,21 +191,4 @@ onUnmounted(() => {
 });
 </script>
 
-<style lang="scss" scoped>
-.group {
-    display: grid;
-    gap: 15px;
-
-    &:not(:first-of-type) header {
-        margin-top: 15px;
-    }
-    & header {
-        font-size: 0.8rem;
-        font-weight: bold;
-        padding: 6px 20px;
-        background: rgba(var(--colorBaseText), 0.8);
-        color: rgb(var(--colorBase));
-        margin: 0 -20px;
-    }
-}
-</style>
+<style lang="scss" scoped></style>

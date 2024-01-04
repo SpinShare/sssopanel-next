@@ -19,6 +19,7 @@ public class CommandFactory
             "screen-navigate" => new CommandScreenNavigate(),
             "screen-spotify-get" => new CommandScreenSpotifyGet(),
             "screen-fullscreen-toggle" => new CommandScreenFullscreenToggle(),
+            "screen-match-update" => new CommandScreenMatchUpdate(),
             _ => throw new Exception($"Unknown command: {command}")
         };
     }

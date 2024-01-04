@@ -65,6 +65,8 @@ public class ScreenManager
             .SetTitle("Screen")
             .SetUseOsDefaultSize(false)
             .Center()
+            .SetMediaStreamEnabled(true)
+            .SetMediaAutoplayEnabled(true)
             .RegisterWindowClosingHandler(WindowClosingHandler)
             .RegisterWebMessageReceivedHandler(messageHandler.RegisterWebMessageReceivedHandler);
 
