@@ -38,10 +38,11 @@
 
 <script setup>
 import AppLayout from '../../layouts/AppLayout.vue';
-import { ref } from 'vue';
+import { onMounted, ref, inject, onUnmounted } from 'vue';
 import SpinButton from '@/components/Common/SpinButton.vue';
 import SpinInput from '@/components/Common/SpinInput.vue';
 import SpinSwitch from '@/components/Common/SpinSwitch.vue';
+const emitter = inject('emitter');
 
 const countdownActive = ref(false);
 const countdownTime = ref(new Date());
@@ -49,18 +50,42 @@ const countdownTime = ref(new Date());
 const transition = () => {
     window.external.sendMessage(
         JSON.stringify({
+            command: 'state-set',
+            data: {
+                countdown: {
+                    active: countdownActive.value,
+                    time: countdownTime.value,
+                },
+            },
+        }),
+    );
+
+    window.external.sendMessage(
+        JSON.stringify({
             command: 'screen-navigate',
             data: {
                 path: 'countdown',
-                params: {},
-                query:
-                    countdownActive.value === true
-                        ? { countdownTime: countdownTime.value }
-                        : {},
             },
         }),
     );
 };
+
+onMounted(() => {
+    window.external.sendMessage(
+        JSON.stringify({
+            command: 'state-get',
+        }),
+    );
+
+    emitter.on('state-get-response', (state) => {
+        countdownActive.value = state?.countdown?.active ?? countdownActive.value;
+        countdownTime.value = state?.countdown?.time ?? countdownTime.value;
+    });
+});
+
+onUnmounted(() => {
+    emitter.off('state-get-response');
+});
 </script>
 
 <style lang="scss" scoped></style>

@@ -110,8 +110,7 @@ onUnmounted(() => {
 
         & .streams {
             background: #111111;
-            border-radius: 1vw;
-            border-top-left-radius: 0;
+            border-radius: 0 1vw 1vw 1vw;
             overflow: hidden;
 
             & iframe {

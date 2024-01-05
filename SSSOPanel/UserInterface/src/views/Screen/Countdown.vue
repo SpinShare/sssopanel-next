@@ -12,7 +12,7 @@
 
                 <div
                     class="countdown"
-                    v-if="hasCountdown"
+                    v-if="countdownActive"
                 >
                     <div class="header">STARTING UP...</div>
                     <div class="time-left">
@@ -46,16 +46,13 @@
 </template>
 
 <script setup>
-import { useRoute } from 'vue-router';
 import ScreenLayout from '../../layouts/ScreenLayout.vue';
 import EventLogo from '../../assets/eventlogo-winter-2023.svg';
-import { ref } from 'vue';
+import { ref, inject, onMounted, onUnmounted } from 'vue';
+const emitter = inject('emitter');
 
-const route = useRoute();
-
-const hasCountdown = ref(route.query.countdownTime !== undefined);
-
-const countdownDate = new Date(route.query.countdownTime);
+const countdownActive = ref(false);
+const countdownTime = ref(null);
 const timeLeft = ref('00:00');
 const timeLeftMilliseconds = ref('.0');
 
@@ -64,8 +61,10 @@ const pad = (number, length = 2) => {
 };
 
 setInterval(() => {
+    if (countdownTime.value === null) return;
+
     let currentDate = new Date();
-    let timeDifference = countdownDate.getTime() - currentDate.getTime();
+    let timeDifference = countdownTime.value.getTime() - currentDate.getTime();
 
     if (timeDifference > 0) {
         let minutes = Math.floor((timeDifference / (1000 * 60)) % 60);
@@ -79,6 +78,23 @@ setInterval(() => {
         timeLeftMilliseconds.value = '.0';
     }
 }, 50);
+
+onMounted(() => {
+    window.external.sendMessage(
+        JSON.stringify({
+            command: 'state-get',
+        }),
+    );
+
+    emitter.on('state-get-response', (state) => {
+        countdownActive.value = state?.countdown?.active ?? countdownActive.value;
+        countdownTime.value = state?.countdown?.time ? new Date(state?.countdown?.time) : countdownTime.value;
+    });
+});
+
+onUnmounted(() => {
+    emitter.off('state-get-response');
+});
 </script>
 
 <style lang="scss" scoped>

@@ -20,6 +20,7 @@ public class ScreenManager
     private List<PhotinoWindow> _screens = new();
     public ScreenRoute CurrentRoute = new();
     public string BaseUrl = "";
+    public JObject State = new JObject();
 
     public ScreenManager()
     {

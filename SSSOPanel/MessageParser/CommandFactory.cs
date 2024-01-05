@@ -13,6 +13,8 @@ public class CommandFactory
             "settings-get" => new CommandSettingsGet(),
             "settings-get-full" => new CommandSettingsGetFull(),
             "settings-set" => new CommandSettingsSet(),
+            "state-get" => new CommandStateGet(),
+            "state-set" => new CommandStateSet(),
             "update-get-version" => new CommandUpdateGetVersion(),
             "update-get-latest" => new CommandUpdateGetLatest(),
             "current-route-get" => new CommandCurrentRouteGet(),
