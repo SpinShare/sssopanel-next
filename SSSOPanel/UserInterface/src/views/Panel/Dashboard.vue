@@ -6,9 +6,7 @@
                 :key="button.panelPath"
                 :label="button.label"
                 :icon="button.icon"
-                :color="
-                    currentScreen === button.screenPath ? 'primary' : 'default'
-                "
+                :color="currentScreen === button.screenPath ? 'primary' : 'default'"
                 @click="router.push({ path: button.panelPath })"
             />
         </div>
@@ -66,12 +64,14 @@ const buttons = [
         panelPath: '/panel/end-stream',
         screenPath: '/screen/end-stream',
     },
+    /*
+    // TODO: DESIGN END OF TOURNAMENT PAGE
     {
         label: 'End (Tournament)',
         icon: 'flag-checkered',
         panelPath: '/panel/end-tournament',
         screenPath: '/screen/end-tournament',
-    },
+    }, */
 ];
 </script>
 

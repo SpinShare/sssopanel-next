@@ -99,6 +99,8 @@ onUnmounted(() => {
     grid-template-columns: 1fr auto;
     align-items: center;
     padding: 0 2vw;
+    position: relative;
+    z-index: 100;
 
     & .promos {
         font-size: 1vw;

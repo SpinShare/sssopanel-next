@@ -43,13 +43,19 @@ const roomId = ref('');
 const roomPassword = ref('');
 
 onMounted(() => {
-    emitter.on('current-route-get-response', (data) => {
-        roomId.value = data?.RichData?.roomId ?? '';
-        roomPassword.value = data?.RichData?.roomPassword ?? '';
+    emitter.on('state-get-response', (state) => {
+        roomId.value = state?.commentators?.roomId ?? roomId.value;
+        roomPassword.value = state?.commentators?.roomPassword ?? roomPassword.value;
     });
+
+    window.external.sendMessage(
+        JSON.stringify({
+            command: 'state-get',
+        }),
+    );
 });
 onUnmounted(() => {
-    emitter.off('current-route-get-response');
+    emitter.off('state-get-response');
 });
 </script>
 

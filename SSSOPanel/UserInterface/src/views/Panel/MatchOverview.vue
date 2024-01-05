@@ -52,15 +52,23 @@ const loadedPlayer2 = ref(null);
 const transition = () => {
     window.external.sendMessage(
         JSON.stringify({
+            command: 'state-set',
+            data: {
+                currentMatch: {
+                    players: {
+                        player1: loadedPlayer1.value,
+                        player2: loadedPlayer2.value,
+                    },
+                },
+            },
+        }),
+    );
+
+    window.external.sendMessage(
+        JSON.stringify({
             command: 'screen-navigate',
             data: {
                 path: 'match-overview',
-                params: {},
-                query: {},
-                richData: {
-                    player1: loadedPlayer1.value,
-                    player2: loadedPlayer2.value,
-                },
             },
         }),
     );
@@ -87,11 +95,11 @@ const setPlayer2 = () => {
 };
 
 onMounted(() => {
-    emitter.on('current-route-get-response', (data) => {
-        player1Id.value = data?.RichData?.player1?.id + '';
-        player2Id.value = data?.RichData?.player2?.id + '';
-        loadedPlayer1.value = data?.RichData?.player1 ?? null;
-        loadedPlayer2.value = data?.RichData?.player2 ?? null;
+    emitter.on('state-get-response', (state) => {
+        player1Id.value = state?.currentMatch?.players?.player1?.id ? state?.currentMatch?.players?.player1?.id + '' : player1Id.value;
+        player2Id.value = state?.currentMatch?.players?.player2?.id ? state?.currentMatch?.players?.player2?.id + '' : player2Id.value;
+        loadedPlayer1.value = state?.currentMatch?.players?.player1 ?? loadedPlayer1.value;
+        loadedPlayer2.value = state?.currentMatch?.players?.player2 ?? loadedPlayer2.value;
     });
 
     emitter.on('settings-get-full-response', async (settings) => {
@@ -101,14 +109,19 @@ onMounted(() => {
     window.external.sendMessage(
         JSON.stringify({
             command: 'settings-get-full',
-            data: '',
+        }),
+    );
+
+    window.external.sendMessage(
+        JSON.stringify({
+            command: 'state-get',
         }),
     );
 });
 
 onUnmounted(() => {
     emitter.off('settings-get-full-response');
-    emitter.off('current-route-get-response');
+    emitter.off('state-get-response');
 });
 </script>
 

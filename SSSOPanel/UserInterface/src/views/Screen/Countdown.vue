@@ -132,18 +132,20 @@ onUnmounted(() => {
 
     & .content {
         display: flex;
-        gap: 5vw;
+        gap: 10vw;
         z-index: 10;
         align-items: center;
         font-size: 0.8vw;
 
         & .event-logo {
+            justify-self: center;
+            align-self: center;
             width: 25vw;
             height: 25vw;
         }
         & .countdown {
             background: #111111;
-            color: #dcdcdc;
+            color: #ededed;
             padding: 0.5vw 2.5vw;
             border-radius: 0 0.5vw 0.5vw 0.5vw;
             position: relative;
@@ -153,6 +155,7 @@ onUnmounted(() => {
                 font-weight: 900;
                 letter-spacing: 0.15vw;
                 background: #111111;
+                color: #ededed;
                 position: absolute;
                 top: -1.45vw;
                 left: 0;

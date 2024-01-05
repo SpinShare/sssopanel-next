@@ -69,12 +69,18 @@ const startGGPhases = ref(null);
 const transition = () => {
     window.external.sendMessage(
         JSON.stringify({
+            command: 'state-set',
+            data: {
+                brackets: screenData.value,
+            },
+        }),
+    );
+
+    window.external.sendMessage(
+        JSON.stringify({
             command: 'screen-navigate',
             data: {
                 path: 'brackets',
-                params: {},
-                query: {},
-                richData: screenData.value,
             },
         }),
     );
@@ -92,7 +98,6 @@ const loadStartGGPhases = async () => {
         };
     });
 };
-
 const loadPhaseGroupsSelect = () => {
     phaseGroups.value = startGGPhases.value
         .filter((x) => x?.id + '' === phase.value)[0]
@@ -151,7 +156,6 @@ onMounted(() => {
     window.external.sendMessage(
         JSON.stringify({
             command: 'settings-get-full',
-            data: '',
         }),
     );
 });

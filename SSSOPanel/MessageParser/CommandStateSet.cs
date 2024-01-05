@@ -12,7 +12,10 @@ public class CommandStateSet: ICommand
         var screenManager = ScreenManager.ScreenManager.GetInstance();
         
         var dataItem = (JObject)data;
-        screenManager.State.Merge(dataItem);
+        screenManager.State.Merge(dataItem, new JsonMergeSettings
+        {
+            MergeArrayHandling = MergeArrayHandling.Replace
+        });
             
         MessageHandler.SendResponse(sender, new
         {

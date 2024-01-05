@@ -8,12 +8,22 @@
                 <div style="display: flex; gap: 10px">
                     <SpinButton
                         label="On"
-                        @click="setStreamsActive(true)"
+                        @click="
+                            () => {
+                                streamsActive = true;
+                                updateState();
+                            }
+                        "
                         :disabled="streamsActive"
                     />
                     <SpinButton
-                        @click="setStreamsActive(false)"
                         label="Off"
+                        @click="
+                            () => {
+                                streamsActive = false;
+                                updateState();
+                            }
+                        "
                         :disabled="!streamsActive"
                     />
                 </div>
@@ -25,12 +35,22 @@
                 <div style="display: flex; gap: 10px">
                     <SpinButton
                         label="Left Stream"
-                        @click="setAudioActive('left')"
+                        @click="
+                            () => {
+                                audioActive = 'left';
+                                updateState();
+                            }
+                        "
                         :disabled="audioActive === 'left'"
                     />
                     <SpinButton
                         label="Right Stream"
-                        @click="setAudioActive('right')"
+                        @click="
+                            () => {
+                                audioActive = 'right';
+                                updateState();
+                            }
+                        "
                         :disabled="audioActive === 'right'"
                     />
                 </div>
@@ -52,7 +72,7 @@
                         min="0"
                         :max="scoresSetsMax"
                         placeholder="Current"
-                        @change="updateScores"
+                        @change="updateState"
                         style="flex-grow: 0; max-width: 90px"
                     />
                     <input
@@ -61,7 +81,7 @@
                         :min="scoresSetsCurrent"
                         max="9"
                         placeholder="Max"
-                        @change="updateScores"
+                        @change="updateState"
                         style="flex-grow: 0; max-width: 90px"
                     />
                 </div>
@@ -76,7 +96,7 @@
                     type="number"
                     min="0"
                     :max="Math.ceil(scoresSetsMax / 2)"
-                    @change="updateScores"
+                    @change="updateState"
                 />
             </SpinInput>
             <SpinInput
@@ -89,7 +109,7 @@
                     type="number"
                     min="0"
                     :max="Math.ceil(scoresSetsMax / 2)"
-                    @change="updateScores"
+                    @change="updateState"
                 />
             </SpinInput>
         </SpinInputGroup>
@@ -127,7 +147,7 @@
                 <SpinButton
                     label="Update"
                     color="bright"
-                    @click="updatePlayers"
+                    @click="updateState"
                 />
             </SpinInput>
         </SpinInputGroup>
@@ -165,7 +185,7 @@
                 <SpinButton
                     label="Update"
                     color="bright"
-                    @click="updatePlayers"
+                    @click="updateState"
                 />
             </SpinInput>
         </SpinInputGroup>
@@ -185,7 +205,7 @@
                 @click="transition"
                 icon="record"
                 color="primary"
-                :disabled="loadedPlayer1 === null || loadedPlayer2 === null || loadedChart === null"
+                :disabled="loadedChart === null"
                 v-tooltip="'Transition to screen'"
             />
         </template>
@@ -216,9 +236,7 @@ const player1Region = ref('eu3');
 const player1Key = ref('');
 const player2Region = ref('eu3');
 const player2Key = ref('');
-const chartId = ref(null);
-const loadedPlayer1 = ref(null);
-const loadedPlayer2 = ref(null);
+const chartId = ref(0);
 const loadedChart = ref(null);
 const streamsActive = ref(true);
 const audioActive = ref('left');
@@ -228,111 +246,51 @@ const scoresScorePlayer1 = ref(0);
 const scoresScorePlayer2 = ref(0);
 
 const transition = () => {
-    const screenData = {
-        player1: {
-            ...loadedPlayer1.value,
-            region: player1Region.value,
-            key: player1Key.value,
-        },
-        player2: {
-            ...loadedPlayer2.value,
-            region: player2Region.value,
-            key: player2Key.value,
-        },
-        scores: {
-            sets: {
-                current: scoresSetsCurrent.value,
-                max: scoresSetsMax.value,
-            },
-            score: {
-                player1: scoresScorePlayer1.value,
-                player2: scoresScorePlayer2.value,
-            },
-        },
-        chart: loadedChart.value,
-        streamsActive: streamsActive.value,
-        audioActive: audioActive.value,
-    };
+    updateState();
 
     window.external.sendMessage(
         JSON.stringify({
             command: 'screen-navigate',
             data: {
                 path: 'match-ingame',
-                params: {},
-                query: {},
-                richData: screenData,
             },
         }),
     );
 };
 
-const updatePlayers = () => {
-    const screenData = {
-        player1: {
-            ...loadedPlayer1.value,
-            region: player1Region.value,
-            key: player1Key.value,
-        },
-        player2: {
-            ...loadedPlayer2.value,
-            region: player2Region.value,
-            key: player2Key.value,
-        },
-    };
-
-    window.external.sendMessage(
-        JSON.stringify({
-            command: 'screen-match-update',
-            data: screenData,
-        }),
-    );
-};
-
-const updateScores = () => {
-    const screenData = {
-        scores: {
-            sets: {
-                current: scoresSetsCurrent.value,
-                max: scoresSetsMax.value,
+const updateState = () => {
+    let screenData = {
+        currentMatch: {
+            players: {
+                player1: {
+                    region: player1Region.value,
+                    key: player1Key.value,
+                },
+                player2: {
+                    region: player2Region.value,
+                    key: player2Key.value,
+                },
             },
-            score: {
-                player1: scoresScorePlayer1.value,
-                player2: scoresScorePlayer2.value,
+            scores: {
+                sets: {
+                    current: scoresSetsCurrent.value,
+                    max: scoresSetsMax.value,
+                },
+                score: {
+                    player1: scoresScorePlayer1.value,
+                    player2: scoresScorePlayer2.value,
+                },
             },
+            chart: loadedChart.value,
+            streamsActive: streamsActive.value,
+            audioActive: audioActive.value,
         },
     };
 
     window.external.sendMessage(
         JSON.stringify({
-            command: 'screen-match-update',
+            command: 'state-set',
             data: screenData,
-        }),
-    );
-};
-
-const setStreamsActive = (active) => {
-    streamsActive.value = active;
-
-    window.external.sendMessage(
-        JSON.stringify({
-            command: 'screen-match-update',
-            data: {
-                streamsActive: streamsActive.value,
-            },
-        }),
-    );
-};
-
-const setAudioActive = (side) => {
-    audioActive.value = side;
-
-    window.external.sendMessage(
-        JSON.stringify({
-            command: 'screen-match-update',
-            data: {
-                audioActive: audioActive.value,
-            },
         }),
     );
 };
@@ -345,30 +303,34 @@ const loadChart = async () => {
 };
 
 onMounted(() => {
-    emitter.on('current-route-get-response', (data) => {
-        loadedPlayer1.value = data?.RichData?.player1 ?? null;
-        player1Key.value = data?.RichData?.player1.key ?? null;
-        player1Region.value = data?.RichData?.player1.region ?? null;
+    emitter.on('state-get-response', (state) => {
+        player1Key.value = state?.currentMatch?.players?.player1?.key ?? player1Key.value;
+        player1Region.value = state?.currentMatch?.players?.player1?.region ?? player1Region.value;
 
-        loadedPlayer2.value = data?.RichData?.player2 ?? null;
-        player2Key.value = data?.RichData?.player2.key ?? null;
-        player2Region.value = data?.RichData?.player2.region ?? null;
+        player2Key.value = state?.currentMatch?.players?.player2?.key ?? player2Key.value;
+        player2Region.value = state?.currentMatch?.players?.player2?.region ?? player2Region.value;
 
-        scoresSetsCurrent.value = data?.RichData?.scores?.sets?.current ?? 0;
-        scoresSetsMax.value = data?.RichData?.scores?.sets?.max ?? 0;
-        scoresScorePlayer1.value = data?.RichData?.scores?.score?.player1 ?? 0;
-        scoresScorePlayer2.value = data?.RichData?.scores?.score?.player2 ?? 0;
+        scoresSetsCurrent.value = state?.currentMatch?.scores?.sets?.current ?? scoresSetsCurrent.value;
+        scoresSetsMax.value = state?.currentMatch?.scores?.sets?.max ?? scoresSetsMax.value;
+        scoresScorePlayer1.value = state?.currentMatch?.scores?.score?.player1 ?? scoresScorePlayer1.value;
+        scoresScorePlayer2.value = state?.currentMatch?.scores?.score?.player2 ?? scoresScorePlayer2.value;
 
-        loadedChart.value = data?.RichData?.chart ?? null;
-        chartId.value = data?.RichData?.chart?.id ?? null;
+        loadedChart.value = state?.currentMatch?.chart ?? loadedChart.value;
+        chartId.value = state?.currentMatch?.chart?.id ?? chartId.value;
 
-        streamsActive.value = data?.RichData?.streamsActive ?? true;
-        audioActive.value = data?.RichData?.audioActive ?? 'left';
+        streamsActive.value = state?.currentMatch?.streamsActive ?? streamsActive.value;
+        audioActive.value = state?.currentMatch?.audioActive ?? audioActive.value;
     });
+
+    window.external.sendMessage(
+        JSON.stringify({
+            command: 'state-get',
+        }),
+    );
 });
 
 onUnmounted(() => {
-    emitter.off('current-route-get-response');
+    emitter.off('state-get-response');
 });
 </script>
 

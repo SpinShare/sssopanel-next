@@ -191,16 +191,17 @@ const emitter = inject('emitter');
 const streamConfig = {
     autoStart: true,
     showBigPlayButton: false,
-    mute: true,
     doubleTapToSeek: false,
     controls: false,
 };
 const stream1Ref = ref(null);
 const stream2Ref = ref(null);
 const stream1Config = {
+    mute: false,
     ...streamConfig,
 };
 const stream2Config = {
+    mute: true,
     ...streamConfig,
 };
 
@@ -258,43 +259,40 @@ const updateStreams = () => {
     }
 };
 
+const applyState = (state) => {
+    player1.value = state?.currentMatch?.players?.player1 ?? player1.value;
+    player2.value = state?.currentMatch?.players?.player2 ?? player2.value;
+    chart.value = state?.currentMatch?.chart ?? chart.value;
+    streamsActive.value = state?.currentMatch?.streamsActive ?? streamsActive.value;
+    audioActive.value = state?.currentMatch?.audioActive ?? audioActive.value;
+
+    scoresSetsCurrent.value = state?.currentMatch?.scores?.sets?.current ?? scoresSetsCurrent.value;
+    scoresSetsMax.value = state?.currentMatch?.scores?.sets?.max ?? scoresSetsMax.value;
+    scoresScorePlayer1.value = state?.currentMatch?.scores?.score?.player1 ?? scoresScorePlayer1.value;
+    scoresScorePlayer2.value = state?.currentMatch?.scores?.score?.player2 ?? scoresScorePlayer2.value;
+
+    updateAudioState();
+    updateStreamsState();
+    updateStreams();
+};
+
 onMounted(() => {
-    emitter.on('current-route-get-response', (data) => {
-        player1.value = data?.RichData?.player1 ?? null;
-        player2.value = data?.RichData?.player2 ?? null;
-        chart.value = data?.RichData?.chart ?? null;
-        streamsActive.value = data?.RichData?.streamsActive ?? true;
-        audioActive.value = data?.RichData?.audioActive ?? 'left';
-
-        scoresSetsCurrent.value = data?.RichData?.scores?.sets?.current ?? 0;
-        scoresSetsMax.value = data?.RichData?.scores?.sets?.max ?? 3;
-        scoresScorePlayer1.value = data?.RichData?.scores?.score?.player1 ?? 0;
-        scoresScorePlayer2.value = data?.RichData?.scores?.score?.player2 ?? 0;
-
-        updateAudioState();
-        updateStreamsState();
-        updateStreams();
+    emitter.on('state-get-response', (state) => {
+        applyState(state);
     });
-    emitter.on('screen-match-update-response', (data) => {
-        player1.value = data?.player1 ?? player1.value;
-        player2.value = data?.player2 ?? player2.value;
-        chart.value = data?.chart ?? chart.value;
-        streamsActive.value = data?.streamsActive ?? streamsActive.value;
-        audioActive.value = data?.audioActive ?? audioActive.value;
-
-        scoresSetsCurrent.value = data?.scores?.sets?.current ?? scoresSetsCurrent.value;
-        scoresSetsMax.value = data?.scores?.sets?.max ?? scoresSetsMax.value;
-        scoresScorePlayer1.value = data?.scores?.score?.player1 ?? scoresScorePlayer1.value;
-        scoresScorePlayer2.value = data?.scores?.score?.player2 ?? scoresScorePlayer2.value;
-
-        updateAudioState();
-        updateStreamsState();
-        updateStreams();
+    emitter.on('state-set-response', (state) => {
+        applyState(state);
     });
+
+    window.external.sendMessage(
+        JSON.stringify({
+            command: 'state-get',
+        }),
+    );
 });
 onUnmounted(() => {
-    emitter.off('current-route-get-response');
-    emitter.off('screen-match-update-response');
+    emitter.off('state-get-response');
+    emitter.off('state-set-response');
 });
 </script>
 

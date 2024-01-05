@@ -116,14 +116,20 @@ const phaseGroup = ref('');
 const matches = ref([]);
 
 onMounted(() => {
-    emitter.on('current-route-get-response', (data) => {
-        phase.value = data?.RichData?.phase ?? '';
-        phaseGroup.value = data?.RichData?.phaseGroup ?? '';
-        matches.value = data?.RichData?.matches ?? [];
+    emitter.on('state-get-response', (state) => {
+        phase.value = state?.brackets?.phase ?? phase.value;
+        phaseGroup.value = state?.brackets?.phaseGroup ?? phaseGroup.value;
+        matches.value = state?.brackets?.matches ?? matches.value;
     });
+
+    window.external.sendMessage(
+        JSON.stringify({
+            command: 'state-get',
+        }),
+    );
 });
 onUnmounted(() => {
-    emitter.off('current-route-get-response');
+    emitter.off('state-get-response');
 });
 </script>
 

@@ -88,13 +88,19 @@ const player1 = ref(null);
 const player2 = ref(null);
 
 onMounted(() => {
-    emitter.on('current-route-get-response', (data) => {
-        player1.value = data?.RichData?.player1 ?? null;
-        player2.value = data?.RichData?.player2 ?? null;
+    emitter.on('state-get-response', (state) => {
+        player1.value = state?.currentMatch?.players?.player1 ?? player1.value;
+        player2.value = state?.currentMatch?.players?.player2 ?? player2.value;
     });
+
+    window.external.sendMessage(
+        JSON.stringify({
+            command: 'state-get',
+        }),
+    );
 });
 onUnmounted(() => {
-    emitter.off('current-route-get-response');
+    emitter.off('state-get-response');
 });
 </script>
 

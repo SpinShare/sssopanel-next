@@ -71,16 +71,16 @@ const transition = () => {
 };
 
 onMounted(() => {
+    emitter.on('state-get-response', (state) => {
+        countdownActive.value = state?.countdown?.active ?? countdownActive.value;
+        countdownTime.value = state?.countdown?.time ?? countdownTime.value;
+    });
+
     window.external.sendMessage(
         JSON.stringify({
             command: 'state-get',
         }),
     );
-
-    emitter.on('state-get-response', (state) => {
-        countdownActive.value = state?.countdown?.active ?? countdownActive.value;
-        countdownTime.value = state?.countdown?.time ?? countdownTime.value;
-    });
 });
 
 onUnmounted(() => {

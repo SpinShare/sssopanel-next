@@ -17,7 +17,7 @@ public class CommandStateGet: ICommand
         
         MessageHandler.SendScreenResponse(new
         {
-            Command = "state-set-response",
+            Command = "state-get-response",
             Data = screenManager.State
         });
         
