@@ -85,8 +85,6 @@ const loadStartGGPhases = async () => {
     startGGPhases.value = await loadEventPhases(startGGEventId.value);
 
     phases.value = startGGPhases.value.map((phase) => {
-        console.log(phase);
-
         return {
             icon: 'tournament',
             label: phase.name,

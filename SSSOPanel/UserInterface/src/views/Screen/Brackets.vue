@@ -120,8 +120,6 @@ onMounted(() => {
         phase.value = data?.RichData?.phase ?? '';
         phaseGroup.value = data?.RichData?.phaseGroup ?? '';
         matches.value = data?.RichData?.matches ?? [];
-
-        console.log(matches.value);
     });
 });
 onUnmounted(() => {
@@ -214,7 +212,7 @@ onUnmounted(() => {
 
                     & header {
                         align-self: flex-start;
-                        background: #000;
+                        background: #111;
                         padding: 0.5vw 1.5vw;
                         font-weight: bold;
                         letter-spacing: 0.2vw;
@@ -224,7 +222,7 @@ onUnmounted(() => {
                     & .games {
                         letter-spacing: 0.1vw;
                         border-radius: 0 0.5vw 0.5vw 0.5vw;
-                        background: #000;
+                        background: #111;
                         font-size: 1.15vw;
                         padding: 0.75vw;
                         display: flex;
@@ -244,7 +242,7 @@ onUnmounted(() => {
                                 position: absolute;
                                 font-weight: bold;
                                 font-size: 1.5vw;
-                                background: #000;
+                                background: #111;
                                 border-radius: 0.25vw;
                                 color: #ededed;
                                 padding: 0.3vw 0 0.3vw 0.6vw;

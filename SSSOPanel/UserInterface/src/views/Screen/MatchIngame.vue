@@ -387,7 +387,7 @@ onUnmounted(() => {
             }
 
             & .stats {
-                background: #000;
+                background: #111;
                 padding: 1.25vw 2vw;
                 border-radius: 0.5vw;
                 display: flex;
@@ -415,7 +415,7 @@ onUnmounted(() => {
                 & .sets {
                     position: relative;
                     z-index: 10;
-                    color: #000;
+                    color: #111;
                     display: flex;
                     align-items: center;
                     gap: 0.5vw;
@@ -431,8 +431,8 @@ onUnmounted(() => {
                         font-weight: bold;
                         font-size: 1.15vw;
                         letter-spacing: 0.25vw;
-                        background: #000;
-                        color: #fff;
+                        background: #111;
+                        color: #ededed;
                         padding: 0.5vw 0.5vw;
                         border-radius: 0.25vw;
                     }
@@ -456,7 +456,7 @@ onUnmounted(() => {
                             border-radius: 0.25vw;
 
                             &.active {
-                                background: #000;
+                                background: #111;
                             }
                         }
                     }
@@ -470,7 +470,7 @@ onUnmounted(() => {
             height: 28vw;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            background: #000;
+            background: #111;
 
             & .stream {
                 position: relative;
@@ -480,7 +480,7 @@ onUnmounted(() => {
                     left: 0.5vw;
                     bottom: 0.5vw;
                     padding: 0.25vw 0.5vw;
-                    background: #000;
+                    background: #111;
                     color: #ededed;
                     border-radius: 0.5vw;
                     font-size: 1.5vw;
@@ -537,7 +537,7 @@ onUnmounted(() => {
             }
 
             & .banner {
-                background: #000;
+                background: #111;
                 padding: 1.25vw 2vw;
                 border-radius: 0.5vw;
                 display: flex;
@@ -575,7 +575,7 @@ onUnmounted(() => {
                         letter-spacing: 0.1vw;
                     }
                     & span:nth-child(2) {
-                        color: #000;
+                        color: #111;
                         font-size: 1.25vw;
                         font-weight: 600;
                     }
@@ -589,7 +589,7 @@ onUnmounted(() => {
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    color: #000;
+                    color: #111;
                 }
             }
         }

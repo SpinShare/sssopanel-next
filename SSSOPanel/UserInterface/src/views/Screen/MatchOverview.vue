@@ -157,7 +157,7 @@ onUnmounted(() => {
                 align-items: flex-start;
 
                 & header {
-                    background: #000;
+                    background: #111;
                     color: #ededed;
                     padding: 1vw 2vw;
                     border-radius: 0.5vw 0.5vw 0 0;
@@ -171,7 +171,7 @@ onUnmounted(() => {
                     display: flex;
                     flex-direction: column;
                     gap: 2vw;
-                    background: #000;
+                    background: #111;
                     color: #ededed;
                     padding: 2vw;
                     border-radius: 0 0.5vw 0.5vw 0.5vw;

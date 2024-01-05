@@ -105,7 +105,7 @@ setInterval(() => {
 
     & .noise {
         background: url('../../assets/noise.png');
-        background-size: 5em;
+        background-size: 5vw;
         position: absolute;
         left: 0;
         right: 0;
@@ -116,33 +116,33 @@ setInterval(() => {
 
     & .content {
         display: flex;
-        gap: 5em;
+        gap: 5vw;
         z-index: 10;
         align-items: center;
-        font-size: 0.8em;
+        font-size: 0.8vw;
 
         & .event-logo {
-            width: 25em;
-            height: 25em;
+            width: 25vw;
+            height: 25vw;
         }
         & .countdown {
             background: #111111;
             color: #dcdcdc;
-            padding: 0.5em 2.5em;
-            border-radius: 0 0.5em 0.5em 0.5em;
+            padding: 0.5vw 2.5vw;
+            border-radius: 0 0.5vw 0.5vw 0.5vw;
             position: relative;
 
             & .header {
-                font-size: 1em;
+                font-size: 1vw;
                 font-weight: 900;
-                letter-spacing: 0.15em;
+                letter-spacing: 0.15vw;
                 background: #111111;
                 position: absolute;
-                top: -1.45em;
+                top: -1.45vw;
                 left: 0;
-                padding: 0.5em 1em;
-                border-top-left-radius: 0.5em;
-                border-top-right-radius: 0.5em;
+                padding: 0.5vw 1vw;
+                border-top-left-radius: 0.5vw;
+                border-top-right-radius: 0.5vw;
             }
 
             & .time-left {
@@ -152,12 +152,12 @@ setInterval(() => {
                 align-items: flex-end;
 
                 & span:nth-child(1) {
-                    font-size: 5em;
+                    font-size: 5vw;
                 }
                 & span:nth-child(2) {
-                    font-size: 3em;
+                    font-size: 3vw;
                     font-weight: 600;
-                    transform: translateY(-0.1em);
+                    transform: translateY(-0.1vw);
                     opacity: 0.6;
                 }
             }
@@ -183,19 +183,19 @@ setInterval(() => {
     & .marquee {
         white-space: nowrap;
         display: flex;
-        gap: 1em;
+        gap: 2vw;
         position: absolute;
         overflow: hidden;
-        font-size: 1em;
+        font-size: 1.5vw;
         font-weight: 600;
 
         &.top {
-            top: 1.25em;
-            left: -15.26em;
+            top: 1.5vw;
+            left: -23.75vw;
             animation: marqueeLeft 10s infinite linear;
         }
         &.bottom {
-            bottom: 1.25em;
+            bottom: 1.5vw;
             left: 0;
             animation: marqueeRight 10s infinite linear;
         }
@@ -204,7 +204,7 @@ setInterval(() => {
 
 @keyframes marqueeLeft {
     from {
-        left: -15.26em;
+        left: -23.75vw;
     }
     to {
         left: 0;
@@ -216,7 +216,7 @@ setInterval(() => {
         left: 0;
     }
     to {
-        left: -15.26em;
+        left: -23.75vw;
     }
 }
 </style>
