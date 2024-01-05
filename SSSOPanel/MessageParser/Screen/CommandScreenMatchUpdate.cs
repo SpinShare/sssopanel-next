@@ -9,7 +9,10 @@ public class CommandScreenMatchUpdate: ICommand
     {
         if (data == null) return;
         
+        var screenManager = ScreenManager.ScreenManager.GetInstance();
+        
         var dataItem = (JObject)data;
+        screenManager.CurrentRoute.RichData.Merge(dataItem);
             
         MessageHandler.SendScreenResponse(new
         {

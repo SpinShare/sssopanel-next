@@ -1,7 +1,16 @@
+using Newtonsoft.Json.Linq;
 using PhotinoNET;
 using SSSOPanel.MessageParser;
 
 namespace SSSOPanel.ScreenManager;
+
+public class ScreenRoute
+{
+    public string Path = "/screen";
+    public JObject Parameters = new JObject();
+    public JObject Query = new JObject();
+    public JObject RichData = new JObject();
+}
 
 public class ScreenManager
 {
@@ -9,13 +18,7 @@ public class ScreenManager
     private static readonly object Lock = new();
 
     private List<PhotinoWindow> _screens = new();
-    public object CurrentRoute = new
-    {
-        Path = "/screen",
-        Parameters = new {},
-        Query = new {},
-        RichData = new {}
-    };
+    public ScreenRoute CurrentRoute = new();
     public string BaseUrl = "";
 
     public ScreenManager()

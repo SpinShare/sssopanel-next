@@ -27,7 +27,54 @@
                             </div>
                         </div>
                     </div>
-                    <div class="stats"></div>
+                    <div class="stats">
+                        <div class="tint winter"></div>
+                        <div class="noise"></div>
+
+                        <div class="sets">
+                            <transition
+                                name="promo"
+                                mode="out-in"
+                            >
+                                <span
+                                    class="current"
+                                    :key="scoresSetsCurrent"
+                                >
+                                    {{ scoresSetsCurrent }}
+                                </span>
+                            </transition>
+                            <span class="of">OF</span>
+                            <span class="max">{{ scoresSetsMax }}</span>
+                        </div>
+                        <div class="score">
+                            <div class="player">
+                                <transition
+                                    name="default"
+                                    mode="out-in"
+                                    v-for="n in Math.ceil(scoresSetsMax / 2)"
+                                >
+                                    <span
+                                        class="point"
+                                        :key="n + (n < scoresScorePlayer1 + 1)"
+                                        :class="{ active: n < scoresScorePlayer1 + 1 }"
+                                    ></span>
+                                </transition>
+                            </div>
+                            <div class="player">
+                                <transition
+                                    name="default"
+                                    mode="out-in"
+                                    v-for="n in Math.ceil(scoresSetsMax / 2)"
+                                >
+                                    <span
+                                        class="point"
+                                        :key="n + (n < scoresScorePlayer2 + 1)"
+                                        :class="{ active: n < scoresScorePlayer2 + 1 }"
+                                    ></span>
+                                </transition>
+                            </div>
+                        </div>
+                    </div>
                     <div
                         class="player"
                         v-show="!!player2"
@@ -50,42 +97,60 @@
                     </div>
                 </section>
                 <section class="streams">
-                    <div class="stream">
-                        <transition
-                            name="promo"
-                            mode="out-in"
+                    <transition
+                        name="default"
+                        mode="out-in"
+                    >
+                        <div
+                            class="stream"
+                            :style="{ opacity: streamsActive ? 1 : 0 }"
+                            :key="'stream1-' + streamsActive"
                         >
-                            <div
-                                class="audio-active"
-                                v-if="audioActive === 'left'"
+                            <transition
+                                name="promo"
+                                mode="out-in"
                             >
-                                <span class="mdi mdi-volume-high"></span>
-                            </div>
-                        </transition>
+                                <div
+                                    class="audio-active"
+                                    v-if="audioActive === 'left'"
+                                >
+                                    <span class="mdi mdi-volume-high"></span>
+                                </div>
+                            </transition>
 
-                        <OvenPlayerVue3
-                            ref="stream1Ref"
-                            :config="stream1Config"
-                        />
-                    </div>
-                    <div class="stream">
-                        <transition
-                            name="promo"
-                            mode="out-in"
+                            <OvenPlayerVue3
+                                ref="stream1Ref"
+                                :config="stream1Config"
+                            />
+                        </div>
+                    </transition>
+                    <transition
+                        name="default"
+                        mode="out-in"
+                    >
+                        <div
+                            class="stream"
+                            :style="{ opacity: streamsActive ? 1 : 0 }"
+                            :key="'stream2-' + streamsActive"
                         >
-                            <div
-                                class="audio-active"
-                                v-if="audioActive === 'right'"
+                            <transition
+                                name="promo"
+                                mode="out-in"
                             >
-                                <span class="mdi mdi-volume-high"></span>
-                            </div>
-                        </transition>
+                                <div
+                                    class="audio-active"
+                                    v-if="audioActive === 'right'"
+                                >
+                                    <span class="mdi mdi-volume-high"></span>
+                                </div>
+                            </transition>
 
-                        <OvenPlayerVue3
-                            ref="stream2Ref"
-                            :config="stream2Config"
-                        />
-                    </div>
+                            <OvenPlayerVue3
+                                ref="stream2Ref"
+                                :config="stream2Config"
+                            />
+                        </div>
+                    </transition>
                 </section>
                 <section
                     class="chart-info"
@@ -134,28 +199,64 @@ const stream1Ref = ref(null);
 const stream2Ref = ref(null);
 const stream1Config = {
     ...streamConfig,
-    sources: [
-        {
-            type: 'webrtc',
-            file: 'ws://eu3.rtmp.spinsha.re:3333/app/yJA4MQ98',
-        },
-    ],
 };
 const stream2Config = {
     ...streamConfig,
-    sources: [
-        {
-            type: 'webrtc',
-            file: 'ws://eu3.rtmp.spinsha.re:3333/app/yJA4MQ98',
-        },
-    ],
 };
 
 const player1 = ref(null);
 const player2 = ref(null);
 const chart = ref(null);
+const scoresSetsCurrent = ref(0);
+const scoresSetsMax = ref(3);
+const scoresScorePlayer1 = ref(0);
+const scoresScorePlayer2 = ref(0);
 const streamsActive = ref(true);
 const audioActive = ref('left');
+
+const updateAudioState = () => {
+    if (audioActive.value === 'left') {
+        stream1Ref.value.playerInstance.setMute(false);
+        stream2Ref.value.playerInstance.setMute(true);
+    } else {
+        stream1Ref.value.playerInstance.setMute(true);
+        stream2Ref.value.playerInstance.setMute(false);
+    }
+};
+
+const updateStreamsState = () => {
+    if (streamsActive.value) {
+        stream1Ref.value.playerInstance.play();
+        stream2Ref.value.playerInstance.play();
+    } else {
+        stream1Ref.value.playerInstance.stop();
+        stream2Ref.value.playerInstance.stop();
+    }
+};
+
+const updateStreams = () => {
+    if (!stream1Ref.value.playerInstance.getPlaylist()[0]?.sources[0]?.file?.includes(player1.value.key ?? 'unknown')) {
+        stream1Ref.value.playerInstance.stop();
+        stream1Ref.value.playerInstance.load([
+            {
+                type: 'webrtc',
+                file: `ws://${player1.value.region ?? 'unknown'}.rtmp.spinsha.re:3333/app/${player1.value.key ?? 'unknown'}`,
+            },
+        ]);
+        stream1Ref.value.playerInstance.play();
+    }
+
+    if (!stream2Ref.value.playerInstance.getPlaylist()[0]?.sources[0]?.file?.includes(player2.value.key ?? 'unknown')) {
+        stream2Ref.value.playerInstance.stop();
+        stream2Ref.value.playerInstance.load([
+            {
+                type: 'webrtc',
+                file: `ws://${player2.value.region ?? 'unknown'}.rtmp.spinsha.re:3333/app/${player2.value.key ?? 'unknown'}`,
+            },
+        ]);
+        stream2Ref.value.playerInstance.play();
+    }
+};
 
 onMounted(() => {
     emitter.on('current-route-get-response', (data) => {
@@ -164,6 +265,15 @@ onMounted(() => {
         chart.value = data?.RichData?.chart ?? null;
         streamsActive.value = data?.RichData?.streamsActive ?? true;
         audioActive.value = data?.RichData?.audioActive ?? 'left';
+
+        scoresSetsCurrent.value = data?.RichData?.scores?.sets?.current ?? 0;
+        scoresSetsMax.value = data?.RichData?.scores?.sets?.max ?? 3;
+        scoresScorePlayer1.value = data?.RichData?.scores?.score?.player1 ?? 0;
+        scoresScorePlayer2.value = data?.RichData?.scores?.score?.player2 ?? 0;
+
+        updateAudioState();
+        updateStreamsState();
+        updateStreams();
     });
     emitter.on('screen-match-update-response', (data) => {
         player1.value = data?.player1 ?? player1.value;
@@ -172,21 +282,14 @@ onMounted(() => {
         streamsActive.value = data?.streamsActive ?? streamsActive.value;
         audioActive.value = data?.audioActive ?? audioActive.value;
 
-        if (audioActive.value === 'left') {
-            stream1Ref.value.playerInstance.setMute(false);
-            stream2Ref.value.playerInstance.setMute(true);
-        } else {
-            stream1Ref.value.playerInstance.setMute(true);
-            stream2Ref.value.playerInstance.setMute(false);
-        }
+        scoresSetsCurrent.value = data?.scores?.sets?.current ?? scoresSetsCurrent.value;
+        scoresSetsMax.value = data?.scores?.sets?.max ?? scoresSetsMax.value;
+        scoresScorePlayer1.value = data?.scores?.score?.player1 ?? scoresScorePlayer1.value;
+        scoresScorePlayer2.value = data?.scores?.score?.player2 ?? scoresScorePlayer2.value;
 
-        if (streamsActive.value) {
-            stream1Ref.value.playerInstance.play();
-            stream2Ref.value.playerInstance.play();
-        } else {
-            stream1Ref.value.playerInstance.stop();
-            stream2Ref.value.playerInstance.stop();
-        }
+        updateAudioState();
+        updateStreamsState();
+        updateStreams();
     });
 });
 onUnmounted(() => {
@@ -279,6 +382,83 @@ onUnmounted(() => {
 
                     & .meta {
                         text-align: right;
+                    }
+                }
+            }
+
+            & .stats {
+                background: #000;
+                padding: 1.25vw 2vw;
+                border-radius: 0.5vw;
+                display: flex;
+                flex-direction: column;
+                gap: 1vw;
+                align-items: center;
+                position: relative;
+                overflow: hidden;
+
+                & .tint {
+                    background: url('../../assets/background.svg');
+                    background-size: cover;
+                    position: absolute;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    top: 0;
+                    z-index: 0;
+
+                    &.winter {
+                        filter: hue-rotate(160deg);
+                    }
+                }
+
+                & .sets {
+                    position: relative;
+                    z-index: 10;
+                    color: #000;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5vw;
+
+                    & .current,
+                    & .max {
+                        width: 2.5vw;
+                        font-size: 2vw;
+                        font-weight: bold;
+                        text-align: center;
+                    }
+                    & .of {
+                        font-weight: bold;
+                        font-size: 1.15vw;
+                        letter-spacing: 0.25vw;
+                        background: #000;
+                        color: #fff;
+                        padding: 0.5vw 0.5vw;
+                        border-radius: 0.25vw;
+                    }
+                }
+
+                & .score {
+                    display: flex;
+                    gap: 2vw;
+                    justify-items: center;
+                    align-items: center;
+                    z-index: 10;
+
+                    & .player {
+                        display: flex;
+                        gap: 0.5vw;
+
+                        & .point {
+                            border: 0.125vw solid rgba(0, 0, 0, 0.4);
+                            width: 1vw;
+                            height: 1vw;
+                            border-radius: 0.25vw;
+
+                            &.active {
+                                background: #000;
+                            }
+                        }
                     }
                 }
             }

@@ -1,5 +1,6 @@
 using Newtonsoft.Json.Linq;
 using PhotinoNET;
+using SSSOPanel.ScreenManager;
 
 namespace SSSOPanel.MessageParser;
 
@@ -34,12 +35,12 @@ public class CommandScreenNavigate: ICommand
             
         if (path != null)
         {
-            var newCurrentRoute = new
+            var newCurrentRoute = new ScreenRoute
             {
                 Path = "/screen/" + path,
                 Query = query,
-                Params = parameters,
-                RichData = richData
+                Parameters = parameters ?? new JObject(),
+                RichData = richData ?? new JObject()
             };
 
             screenManager.CurrentRoute = newCurrentRoute;
@@ -47,7 +48,7 @@ public class CommandScreenNavigate: ICommand
             MessageHandler.SendResponse(sender, new
             {
                 Command = "screen-navigate-response",
-                Data = newCurrentRoute,
+                Data = newCurrentRoute
             });
             
             MessageHandler.SendScreenResponse(new

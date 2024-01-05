@@ -37,6 +37,63 @@
             </SpinInput>
         </SpinInputGroup>
         <SpinInputGroup
+            header="Scores"
+            :collapsable="true"
+            :collapsed="true"
+        >
+            <SpinInput
+                label="Sets"
+                type="horizontal"
+            >
+                <div style="display: flex; gap: 10px">
+                    <input
+                        v-model="scoresSetsCurrent"
+                        type="number"
+                        min="0"
+                        :max="scoresSetsMax"
+                        placeholder="Current"
+                        @change="updateScores"
+                        style="flex-grow: 0; max-width: 90px"
+                    />
+                    <input
+                        v-model="scoresSetsMax"
+                        type="number"
+                        :min="scoresSetsCurrent"
+                        max="9"
+                        placeholder="Max"
+                        @change="updateScores"
+                        style="flex-grow: 0; max-width: 90px"
+                    />
+                </div>
+            </SpinInput>
+            <SpinInput
+                label="Score"
+                hint="Player 1"
+                type="horizontal"
+            >
+                <input
+                    v-model="scoresScorePlayer1"
+                    type="number"
+                    min="0"
+                    :max="Math.ceil(scoresSetsMax / 2)"
+                    @change="updateScores"
+                />
+            </SpinInput>
+            <SpinInput
+                label="Score"
+                hint="Player 2"
+                type="horizontal"
+            >
+                <input
+                    v-model="scoresScorePlayer2"
+                    type="number"
+                    min="0"
+                    :max="Math.ceil(scoresSetsMax / 2)"
+                    @change="updateScores"
+                />
+            </SpinInput>
+        </SpinInputGroup>
+        <SpinInputGroup
             header="Player 1 Setup"
             :collapsable="true"
             :collapsed="true"
@@ -128,6 +185,7 @@
                 @click="transition"
                 icon="record"
                 color="primary"
+                :disabled="loadedPlayer1 === null || loadedPlayer2 === null || loadedChart === null"
                 v-tooltip="'Transition to screen'"
             />
         </template>
@@ -164,6 +222,10 @@ const loadedPlayer2 = ref(null);
 const loadedChart = ref(null);
 const streamsActive = ref(true);
 const audioActive = ref('left');
+const scoresSetsCurrent = ref(0);
+const scoresSetsMax = ref(3);
+const scoresScorePlayer1 = ref(0);
+const scoresScorePlayer2 = ref(0);
 
 const transition = () => {
     const screenData = {
@@ -177,12 +239,20 @@ const transition = () => {
             region: player2Region.value,
             key: player2Key.value,
         },
+        scores: {
+            sets: {
+                current: scoresSetsCurrent.value,
+                max: scoresSetsMax.value,
+            },
+            score: {
+                player1: scoresScorePlayer1.value,
+                player2: scoresScorePlayer2.value,
+            },
+        },
         chart: loadedChart.value,
         streamsActive: streamsActive.value,
         audioActive: audioActive.value,
     };
-
-    console.log(screenData);
 
     window.external.sendMessage(
         JSON.stringify({
@@ -208,6 +278,28 @@ const updatePlayers = () => {
             ...loadedPlayer2.value,
             region: player2Region.value,
             key: player2Key.value,
+        },
+    };
+
+    window.external.sendMessage(
+        JSON.stringify({
+            command: 'screen-match-update',
+            data: screenData,
+        }),
+    );
+};
+
+const updateScores = () => {
+    const screenData = {
+        scores: {
+            sets: {
+                current: scoresSetsCurrent.value,
+                max: scoresSetsMax.value,
+            },
+            score: {
+                player1: scoresScorePlayer1.value,
+                player2: scoresScorePlayer2.value,
+            },
         },
     };
 
@@ -255,7 +347,23 @@ const loadChart = async () => {
 onMounted(() => {
     emitter.on('current-route-get-response', (data) => {
         loadedPlayer1.value = data?.RichData?.player1 ?? null;
+        player1Key.value = data?.RichData?.player1.key ?? null;
+        player1Region.value = data?.RichData?.player1.region ?? null;
+
         loadedPlayer2.value = data?.RichData?.player2 ?? null;
+        player2Key.value = data?.RichData?.player2.key ?? null;
+        player2Region.value = data?.RichData?.player2.region ?? null;
+
+        scoresSetsCurrent.value = data?.RichData?.scores?.sets?.current ?? 0;
+        scoresSetsMax.value = data?.RichData?.scores?.sets?.max ?? 0;
+        scoresScorePlayer1.value = data?.RichData?.scores?.score?.player1 ?? 0;
+        scoresScorePlayer2.value = data?.RichData?.scores?.score?.player2 ?? 0;
+
+        loadedChart.value = data?.RichData?.chart ?? null;
+        chartId.value = data?.RichData?.chart?.id ?? null;
+
+        streamsActive.value = data?.RichData?.streamsActive ?? true;
+        audioActive.value = data?.RichData?.audioActive ?? 'left';
     });
 });
 

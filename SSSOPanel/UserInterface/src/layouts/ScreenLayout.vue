@@ -21,7 +21,7 @@ onMounted(() => {
         router.push({
             path: data.Path,
             query: data.Query ?? '',
-            params: data.Params ?? '',
+            params: data.Parameters ?? '',
         });
     });
 
@@ -30,7 +30,7 @@ onMounted(() => {
         router.push({
             path: data.Path,
             query: data.Query ?? '',
-            params: data.Params ?? '',
+            params: data.Parameters ?? '',
         });
     });
 
