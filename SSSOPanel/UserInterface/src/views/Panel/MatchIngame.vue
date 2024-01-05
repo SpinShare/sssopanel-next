@@ -140,11 +140,12 @@ import SpinButton from '@/components/Common/SpinButton.vue';
 import SpinInput from '@/components/Common/SpinInput.vue';
 import SpinInputGroup from '@/components/Common/SpinInputGroup.vue';
 import SpinSelect from '@/components/Common/SpinSelect.vue';
-import { ref } from 'vue';
+import { onMounted, onUnmounted, ref, inject } from 'vue';
 import useCurrentScreen from '@/modules/useCurrentScreen';
 import useSpinShareApi from '@/modules/useSpinShareApi';
 
 const currentScreen = useCurrentScreen();
+const emitter = inject('emitter');
 
 const regions = [
     { icon: 'earth', label: 'EU3', value: 'eu3' },
@@ -181,6 +182,8 @@ const transition = () => {
         audioActive: audioActive.value,
     };
 
+    console.log(screenData);
+
     window.external.sendMessage(
         JSON.stringify({
             command: 'screen-navigate',
@@ -197,10 +200,12 @@ const transition = () => {
 const updatePlayers = () => {
     const screenData = {
         player1: {
+            ...loadedPlayer1.value,
             region: player1Region.value,
             key: player1Key.value,
         },
         player2: {
+            ...loadedPlayer2.value,
             region: player2Region.value,
             key: player2Key.value,
         },
@@ -246,6 +251,17 @@ const loadChart = async () => {
     const { loadChart } = useSpinShareApi();
     loadedChart.value = await loadChart(chartId.value);
 };
+
+onMounted(() => {
+    emitter.on('current-route-get-response', (data) => {
+        loadedPlayer1.value = data?.RichData?.player1 ?? null;
+        loadedPlayer2.value = data?.RichData?.player2 ?? null;
+    });
+});
+
+onUnmounted(() => {
+    emitter.off('current-route-get-response');
+});
 </script>
 
 <style lang="scss" scoped></style>
