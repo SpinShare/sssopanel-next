@@ -1,6 +1,6 @@
 {
-  "name": "photino-hellophotino-vue-ui",
-  "version": "0.0.0",
+  "name": "sssopanel-ui",
+  "version": "1.0.1",
   "scripts": {
     "dev": "vite",
     "build": "vite build --emptyOutDir",
