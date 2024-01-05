@@ -94,7 +94,7 @@ public class ScreenManager
         windowScreen.Load(new Uri($"http://localhost:5173/#/screen"));
 #else
         Console.WriteLine("Production Mode, starting built site");
-        windowScreen.Load($"{screenManager.BaseUrl}/index.html#/screen");
+        windowScreen.Load($"{BaseUrl}/index.html#/screen");
 #endif
         windowScreen.WaitForClose();
 
