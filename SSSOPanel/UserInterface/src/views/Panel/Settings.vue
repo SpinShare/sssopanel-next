@@ -7,7 +7,10 @@
                     hint="Version 1.0.0"
                     type="horizontal"
                 >
-                    <SpinButton label="Updates" />
+                    <SpinButton
+                        label="Updates"
+                        @click="openGithubReleases"
+                    />
                 </SpinInput>
                 <SpinInput
                     type="horizontal"
@@ -154,6 +157,15 @@ const saveSettings = () => {
         JSON.stringify({
             command: 'settings-set',
             data: settings,
+        }),
+    );
+};
+
+const openGithubReleases = () => {
+    window.external.sendMessage(
+        JSON.stringify({
+            command: 'open-in-browser',
+            data: 'https://github.com/SpinShare/sssopanel-next',
         }),
     );
 };
