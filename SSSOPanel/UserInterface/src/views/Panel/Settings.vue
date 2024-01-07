@@ -4,7 +4,7 @@
             <SpinInputGroup header="General">
                 <SpinInput
                     label="SSSOPanel Next"
-                    hint="Version 1.0.1"
+                    hint="Version 1.1.0"
                     type="horizontal"
                 >
                     <SpinButton
