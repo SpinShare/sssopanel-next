@@ -1,5 +1,22 @@
 <template>
     <AppLayout title="Match (Ingame)">
+        <SpinInput
+            label="Chart ID"
+            :hint="loadedChart === null ? 'Not loaded' : loadedChart?.title ?? 'Unknown chart ID'"
+        >
+            <input
+                v-model="chartId"
+                type="number"
+                @change="
+                    async () => {
+                        await loadChart();
+                        if (loadedChart.value !== null) {
+                            updateState();
+                        }
+                    }
+                "
+            />
+        </SpinInput>
         <SpinInputGroup header="Controls">
             <SpinInput
                 label="Streams"
@@ -119,6 +136,16 @@
             :collapsed="true"
         >
             <SpinInput
+                label="Player 1"
+                :hint="loadedPlayer1 === null ? 'None selected' : loadedPlayer1?.spinshareProfile?.username ?? 'Unknown user'"
+            >
+                <SpinSelect
+                    v-model="player1Id"
+                    :options="playerSelectOptions"
+                    @update:model-value="setPlayer1"
+                />
+            </SpinInput>
+            <SpinInput
                 label="Region"
                 hint="Livestream"
                 type="horizontal"
@@ -157,6 +184,16 @@
             :collapsed="true"
         >
             <SpinInput
+                label="Player 2"
+                :hint="loadedPlayer2 === null ? 'None selected' : loadedPlayer2?.spinshareProfile?.username ?? 'Unknown user'"
+            >
+                <SpinSelect
+                    v-model="player2Id"
+                    :options="playerSelectOptions"
+                    @update:model-value="setPlayer2"
+                />
+            </SpinInput>
+            <SpinInput
                 label="Region"
                 hint="Livestream"
                 type="horizontal"
@@ -189,16 +226,6 @@
                 />
             </SpinInput>
         </SpinInputGroup>
-        <SpinInput
-            label="Chart ID"
-            :hint="loadedChart === null ? 'Not loaded' : loadedChart?.title ?? 'Unknown chart ID'"
-        >
-            <input
-                v-model="chartId"
-                type="number"
-                @change="loadChart"
-            />
-        </SpinInput>
 
         <template #transition>
             <SpinButton
@@ -232,6 +259,13 @@ const regions = [
     { icon: 'earth', label: 'OCE', value: 'oce' },
 ];
 
+const playerMappings = ref([]);
+const playerSelectOptions = ref([]);
+const player1Id = ref(null);
+const player2Id = ref(null);
+
+const loadedPlayer1 = ref(null);
+const loadedPlayer2 = ref(null);
 const player1Region = ref('eu3');
 const player1Key = ref('');
 const player2Region = ref('eu3');
@@ -263,10 +297,12 @@ const updateState = () => {
         currentMatch: {
             players: {
                 player1: {
+                    ...loadedPlayer1.value,
                     region: player1Region.value,
                     key: player1Key.value,
                 },
                 player2: {
+                    ...loadedPlayer2.value,
                     region: player2Region.value,
                     key: player2Key.value,
                 },
@@ -302,11 +338,35 @@ const loadChart = async () => {
     loadedChart.value = await loadChart(chartId.value);
 };
 
+const loadPlayers = (newMappings) => {
+    playerMappings.value = newMappings;
+    playerSelectOptions.value = [];
+
+    playerMappings.value.forEach((mapping) => {
+        playerSelectOptions.value.push({
+            icon: 'account-box',
+            label: mapping.spinshareProfile.username,
+            value: mapping.id + '',
+        });
+    });
+};
+
+const setPlayer1 = () => {
+    loadedPlayer1.value = playerMappings.value.find((x) => x.id + '' === player1Id.value);
+};
+const setPlayer2 = () => {
+    loadedPlayer2.value = playerMappings.value.find((x) => x.id + '' === player2Id.value);
+};
+
 onMounted(() => {
     emitter.on('state-get-response', (state) => {
+        player1Id.value = state?.currentMatch?.players?.player1?.id ? state?.currentMatch?.players?.player1?.id + '' : player1Id.value;
+        loadedPlayer1.value = state?.currentMatch?.players?.player1 ?? loadedPlayer1.value;
         player1Key.value = state?.currentMatch?.players?.player1?.key ?? player1Key.value;
         player1Region.value = state?.currentMatch?.players?.player1?.region ?? player1Region.value;
 
+        player2Id.value = state?.currentMatch?.players?.player2?.id ? state?.currentMatch?.players?.player2?.id + '' : player2Id.value;
+        loadedPlayer2.value = state?.currentMatch?.players?.player2 ?? loadedPlayer2.value;
         player2Key.value = state?.currentMatch?.players?.player2?.key ?? player2Key.value;
         player2Region.value = state?.currentMatch?.players?.player2?.region ?? player2Region.value;
 
@@ -322,6 +382,16 @@ onMounted(() => {
         audioActive.value = state?.currentMatch?.audioActive ?? audioActive.value;
     });
 
+    emitter.on('settings-get-full-response', async (settings) => {
+        loadPlayers(settings['currentEvent.playerMapping'] ?? []);
+    });
+
+    window.external.sendMessage(
+        JSON.stringify({
+            command: 'settings-get-full',
+        }),
+    );
+
     window.external.sendMessage(
         JSON.stringify({
             command: 'state-get',
@@ -330,6 +400,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+    emitter.off('settings-get-full-response');
     emitter.off('state-get-response');
 });
 </script>
