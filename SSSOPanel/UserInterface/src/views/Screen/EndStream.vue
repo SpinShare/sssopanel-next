@@ -235,17 +235,19 @@ const formattedNextStreamDate = computed(() => {
 });
 const relativeDays = computed(() => {
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
     const streamingDay = new Date(nextStreamDate.value);
+    streamingDay.setHours(0, 0, 0, 0);
 
     const diffTime = streamingDay.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-    if (diffDays === 2) {
+    if (diffDays === 1) {
         return 'TOMORROW';
-    } else if (diffDays > 1) {
-        return `IN ${diffDays} DAYS`;
+    } else if (diffDays === 0) {
+        return 'TODAY';
     } else {
-        return 'IN 1 DAY';
+        return `IN ${diffDays} DAYS`;
     }
 });
 
