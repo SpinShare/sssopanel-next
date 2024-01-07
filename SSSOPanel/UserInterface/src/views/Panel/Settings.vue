@@ -128,6 +128,8 @@ const loadStartGGEvents = async () => {
     startGGTournamentName.value = '';
     startGGEvents.value = [];
 
+    if (startGGApiToken.value === '') return;
+
     const { loadTournamentEvents } = useTournamentAPI(startGGApiToken.value);
     const tournament = await loadTournamentEvents(startGGTournamentSlug.value);
 
