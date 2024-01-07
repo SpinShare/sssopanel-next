@@ -30,7 +30,7 @@
                                 class="scrolling-text"
                                 ref="creditsText"
                             >
-                                <h1>SSSO Winter 2023</h1>
+                                <h1>SSSO Winter 2024</h1>
                                 <h2>staff &amp; contributors</h2>
                                 <div class="lead">
                                     <span>Laura Sofia Heimann</span>
@@ -44,36 +44,73 @@
                                     <span>Michael Torres (TheWay123)</span>
                                     <span>Lead Events</span>
                                 </div>
+
                                 <div class="group">
-                                    <span>Tournament Organizers</span>
+                                    <span>tournament organizers</span>
                                     <span>Ricki</span>
-                                    <span>Michael Torres (TheWay123)</span>
+                                    <span>TheWay123</span>
                                 </div>
+
                                 <div class="group">
-                                    <span>Organisational Contributors</span>
-                                    <span>GaviGuy</span>
-                                    <span>HalloweenBaby</span>
+                                    <span>organizational contributors</span>
                                     <span>Aexus</span>
                                     <span>CarbonCarbon12</span>
+                                    <span>Gavi Guy</span>
+                                    <span>HalloweenBaby</span>
+                                    <span>Programmatic</span>
+                                    <span>snaphap</span>
                                 </div>
                                 <div class="group">
-                                    <span>IT &amp; backend resources</span>
+                                    <span>it &amp; backend resources</span>
                                     <span>Ellie "ellitedev" Leijten</span>
                                     <span>Ricki</span>
                                 </div>
                                 <div class="group">
-                                    <span>Broadcasters</span>
-                                    <span>GaviGuy</span>
+                                    <span>internal support</span>
+                                    <span>Gavi Guy</span>
+                                    <span>Ricki</span>
+                                </div>
+                                <div class="group">
+                                    <span>broadcasters</span>
+                                    <span>Axol</span>
+                                    <span>Gavi Guy</span>
                                     <span>Khromatical</span>
                                 </div>
                                 <div class="group">
-                                    <span>Commentators</span>
-                                    <span>Michael Torres (TheWay123)</span>
+                                    <span>commentators</span>
+                                    <span>Halflite</span>
+                                    <span>JammyDodger</span>
+                                    <span>Khromatical</span>
+                                    <span>Luna</span>
                                     <span>metalman20</span>
+                                    <span>rewardadrawer</span>
+                                    <span>TheWay123</span>
                                 </div>
                                 <div class="group">
-                                    <span>Referees</span>
-                                    <span>Michael Torres (TheWay123)</span>
+                                    <span>referees</span>
+                                    <span>Gavi Guy</span>
+                                    <span>Halflite</span>
+                                    <span>Khromatical</span>
+                                    <span>Luna</span>
+                                    <span>LuminaryCat</span>
+                                    <span>snaphap</span>
+                                    <span>TheWay123</span>
+                                </div>
+                                <div class="group">
+                                    <span>playtesters</span>
+                                    <span>CarbonCarbon12</span>
+                                    <span>Edge</span>
+                                    <span>Gavi Guy</span>
+                                    <span>Halflite</span>
+                                    <span>Kali</span>
+                                    <span>Kwazi</span>
+                                    <span>Luna</span>
+                                    <span>HalloweenBaby</span>
+                                    <span>MrCringe</span>
+                                    <span>Negative</span>
+                                    <span>PnOMader</span>
+                                    <span>snaphap</span>
+                                    <span>TheWay123</span>
                                 </div>
 
                                 <h2>players</h2>
@@ -96,73 +133,63 @@
 
                                 <h2>with charts created by</h2>
                                 <div class="group">
-                                    <span>Programmatic</span>
-                                    <span>Chloe</span>
-                                    <span>rewardadrawer</span>
-                                    <span>Steven of Astora</span>
-                                    <span>PickPig</span>
-                                    <span>HyperDash</span>
-                                    <span>haomakk</span>
-                                    <span>Ballinbino</span>
-                                    <span>TreXDer</span>
-                                    <span>TheWay123</span>
-                                    <span>Crooky</span>
-                                    <span>LuminaryCat &amp; swago</span>
-                                    <span>Gavi Guy</span>
-                                    <span>HalloweenBaby</span>
-                                    <span>swago</span>
-                                    <span>Theo</span>
-                                    <span>HalloweenBaby &amp; TheWay123</span>
-                                    <span>Kwazi</span>
-                                    <span>Axol &amp; Gavi Guy</span>
-                                    <span>Gamer97</span>
-                                    <span>CarbonCarbon12</span>
-                                    <span>Negative</span>
-                                    <span>Skillz Man</span>
-                                    <span>Luna</span>
-                                    <span>Loosiano</span>
-                                    <span>Dama</span>
-                                    <span>Halflite</span>
-                                    <span>一只某Y</span>
-                                    <span>sodapants</span>
-                                    <span>TheBlockiest</span>
-                                    <span>Animanic</span>
-                                    <span>Konomi</span>
-                                    <span>Ricki</span>
-                                    <span>Dr. Chicken</span>
-                                    <span>Schroeder</span>
-                                    <span>Stride</span>
-                                    <span>Axol</span>
-                                    <span>Lava &amp; CarbonCarbon12</span>
-                                    <span>snaphap</span>
-                                    <span>Edge</span>
+                                    <span></span>
                                     <span>A11right</span>
-                                    <span>LuminaryCat &amp; Fether</span>
-                                    <span>Snepped</span>
-                                    <span>smb</span>
-                                    <span>NOIN</span>
-                                    <span>Mapy (ft. Lava)</span>
-                                    <span>Dacey</span>
-                                    <span>LuminaryWerecat vs. swaghost</span>
-                                    <span>Airplane man &amp; skiera</span>
-                                    <span>skiera</span>
-                                    <span>C4veden</span>
-                                    <span>Eraser</span>
-                                    <span>[Darksphere XXXL SPHERICAL]</span>
-                                    <span>★MrCringe★</span>
-                                    <span>NEFirefox vs. 一只某Y</span>
-                                    <span>Velvet-. &amp; HyperDash</span>
-                                    <span>Reilmen</span>
-                                    <span>Luna ft. Halflite</span>
-                                    <span>TheBlockiest «Aimlessly Wandering»</span>
                                     <span>Airplane man</span>
-                                    <span>jane</span>
-                                    <span>see, trans cat</span>
-                                    <span>kyuquu</span>
-                                    <span>SignatureMPX</span>
+                                    <span>Animanic</span>
+                                    <span>Axol</span>
+                                    <span>Ballinbino</span>
+                                    <span>C4veden</span>
+                                    <span>CarbonCarbon12</span>
+                                    <span>Crooky</span>
+                                    <span>Dacey</span>
+                                    <span>Dama</span>
+                                    <span>Dr. Chicken</span>
+                                    <span>Edge</span>
+                                    <span>Eraser</span>
+                                    <span>Fether</span>
+                                    <span>Gamer97</span>
+                                    <span>Gavi Guy</span>
+                                    <span>Halflite</span>
+                                    <span>HalloweenBaby</span>
+                                    <span>haomakk</span>
+                                    <span>HyperDash</span>
+                                    <span>Jane</span>
                                     <span>Kali</span>
-                                    <span>Gavi Guy &amp; Animanic</span>
-                                    <span>Animanic &amp; Gavi Guy</span>
+                                    <span>Konomi</span>
+                                    <span>Kwazi</span>
+                                    <span>kyuquu</span>
+                                    <span>Lava</span>
+                                    <span>Loosiano</span>
+                                    <span>LuminaryCat</span>
+                                    <span>Luna</span>
+                                    <span>Mapy</span>
+                                    <span>★MrCringe★</span>
+                                    <span>NEFirefox</span>
+                                    <span>Negative</span>
+                                    <span>NOIN</span>
+                                    <span>Programmatic</span>
+                                    <span>PickPig</span>
+                                    <span>Reilmen</span>
+                                    <span>rewardadrawer</span>
+                                    <span>Ricki</span>
+                                    <span>Schroeder</span>
+                                    <span>SignatureMPX</span>
+                                    <span>skiera</span>
+                                    <span>Skillz Man</span>
+                                    <span>smb</span>
+                                    <span>snaphap</span>
+                                    <span>Snepped</span>
+                                    <span>sodapants</span>
+                                    <span>Steven of Astora</span>
+                                    <span>Stride</span>
+                                    <span>swago</span>
+                                    <span>TheBlockiest</span>
+                                    <span>Theo</span>
+                                    <span>TheWay123</span>
+                                    <span>TreXDer</span>
+                                    <span>一只某Y</span>
+                                    <span>Velvet-.</span>
                                 </div>
                             </div>
                         </div>
