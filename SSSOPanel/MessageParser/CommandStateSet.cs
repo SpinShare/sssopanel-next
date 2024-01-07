@@ -14,7 +14,8 @@ public class CommandStateSet: ICommand
         var dataItem = (JObject)data;
         screenManager.State.Merge(dataItem, new JsonMergeSettings
         {
-            MergeArrayHandling = MergeArrayHandling.Replace
+            MergeArrayHandling = MergeArrayHandling.Replace,
+            MergeNullValueHandling = MergeNullValueHandling.Merge
         });
             
         MessageHandler.SendResponse(sender, new
