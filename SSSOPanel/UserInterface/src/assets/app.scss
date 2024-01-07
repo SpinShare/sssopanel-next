@@ -172,6 +172,18 @@ a {
     opacity: 0;
 }
 
+.screen-enter-active {
+    transition: all 1s ease-out;
+}
+.screen-leave-active {
+    transition: all 1s cubic-bezier(1, 0, 0, 1);
+}
+.screen-enter-from,
+.screen-leave-to {
+    transform: scale(1.15);
+    opacity: 0;
+}
+
 .promo-enter-active {
     transition: all 0.15s ease-out;
 }

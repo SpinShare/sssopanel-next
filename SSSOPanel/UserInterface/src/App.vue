@@ -1,7 +1,7 @@
 <template>
     <router-view v-slot="{ Component, route }">
         <transition
-            name="default"
+            :name="route.path.startsWith('/screen') ? 'screen' : 'default'"
             mode="out-in"
         >
             <component
