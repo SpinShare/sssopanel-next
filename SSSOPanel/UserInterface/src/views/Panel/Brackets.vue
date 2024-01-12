@@ -115,7 +115,7 @@ const updateSelectedPhaseGroup = async () => {
     // Matches: 0 = Match A, 1 = Match B, 2 = Match C, 3 = Match D, 4 = Match F, 5 = Match G
     const matches = [];
     phaseGroupData.sets.nodes.forEach((set) => {
-        let match = { players: [] };
+        let match = { players: [], identifier: set.identifier };
 
         set.slots.forEach((slot) => {
             const entrant = playerMappings.value.filter((x) => x?.id === slot.entrant?.id)[0];

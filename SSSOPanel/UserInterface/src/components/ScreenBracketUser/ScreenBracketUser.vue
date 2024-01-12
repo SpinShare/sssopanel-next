@@ -39,14 +39,14 @@ defineProps({
 
         & span.pronouns {
             font-weight: bold;
-            font-size: 0.8vw;
-            letter-spacing: 0;
+            font-size: 0.65vw;
+            letter-spacing: 0.025vw;
         }
         & span.username {
             flex-grow: 1;
-            font-size: 1vw;
+            font-size: 0.9vw;
             font-weight: bold;
-            letter-spacing: 0.05vw;
+            letter-spacing: 0.025vw;
         }
     }
     & span.score {
@@ -55,6 +55,8 @@ defineProps({
         padding: 0.25vw;
         border-radius: 0.25vw;
         font-weight: bold;
+        width: 2vw;
+        text-align: center;
     }
     &.winner {
         background: #7fe794;

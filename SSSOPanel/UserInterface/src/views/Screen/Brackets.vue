@@ -12,7 +12,10 @@
                     </div>
                     <div class="bars"></div>
                 </header>
-                <div class="bracket">
+                <div
+                    class="bracket"
+                    :class="{ 'has-reset': matches?.find((x) => x.identifier === 'E') }"
+                >
                     <section>
                         <div class="upper">
                             <header>Semi-Final</header>
@@ -20,7 +23,7 @@
                                 <div class="game game-a">
                                     <span class="game-tag">A</span>
                                     <template
-                                        v-for="(player, i) in matches[0]?.players"
+                                        v-for="(player, i) in matches?.find((x) => x.identifier === 'A')?.players"
                                         :key="i"
                                     >
                                         <ScreenBracketUser :player="player" />
@@ -29,7 +32,7 @@
                                 <div class="game game-b">
                                     <span class="game-tag">B</span>
                                     <template
-                                        v-for="(player, i) in matches[1]?.players"
+                                        v-for="(player, i) in matches?.find((x) => x.identifier === 'B')?.players"
                                         :key="i"
                                     >
                                         <ScreenBracketUser :player="player" />
@@ -43,7 +46,7 @@
                                 <div class="game game-f">
                                     <span class="game-tag">F</span>
                                     <template
-                                        v-for="(player, i) in matches[2]?.players"
+                                        v-for="(player, i) in matches?.find((x) => x.identifier === 'F')?.players"
                                         :key="i"
                                     >
                                         <ScreenBracketUser :player="player" />
@@ -59,7 +62,7 @@
                                 <div class="game game-c">
                                     <span class="game-tag">C</span>
                                     <template
-                                        v-for="(player, i) in matches[3]?.players"
+                                        v-for="(player, i) in matches?.find((x) => x.identifier === 'C')?.players"
                                         :key="i"
                                     >
                                         <ScreenBracketUser :player="player" />
@@ -73,7 +76,7 @@
                                 <div class="game game-g">
                                     <span class="game-tag">G</span>
                                     <template
-                                        v-for="(player, i) in matches[4]?.players"
+                                        v-for="(player, i) in matches?.find((x) => x.identifier === 'G')?.players"
                                         :key="i"
                                     >
                                         <ScreenBracketUser :player="player" />
@@ -89,7 +92,23 @@
                                 <div class="game game-d">
                                     <span class="game-tag">D</span>
                                     <template
-                                        v-for="(player, i) in matches[5]?.players"
+                                        v-for="(player, i) in matches?.find((x) => x.identifier === 'D')?.players"
+                                        :key="i"
+                                    >
+                                        <ScreenBracketUser :player="player" />
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <section v-if="matches?.find((x) => x.identifier === 'E')">
+                        <div class="upper">
+                            <header>Grand Final Reset</header>
+                            <div class="games">
+                                <div class="game game-e">
+                                    <span class="game-tag">E</span>
+                                    <template
+                                        v-for="(player, i) in matches?.find((x) => x.identifier === 'E')?.players"
                                         :key="i"
                                     >
                                         <ScreenBracketUser :player="player" />
@@ -204,6 +223,10 @@ onUnmounted(() => {
             grid-template-columns: 1fr 1fr 1fr;
             gap: 2vw;
 
+            &.has-reset {
+                grid-template-columns: 1fr 1fr 1fr 1fr;
+            }
+
             & > section {
                 display: flex;
                 gap: 2.5vw;
@@ -247,14 +270,14 @@ onUnmounted(() => {
                             & .game-tag {
                                 position: absolute;
                                 font-weight: bold;
-                                font-size: 1.5vw;
+                                font-size: 1vw;
                                 background: #111;
                                 border-radius: 0.25vw;
                                 color: #ededed;
                                 padding: 0.3vw 0 0.3vw 0.6vw;
                                 letter-spacing: 0;
                                 top: 2.25vw;
-                                left: -2.5vw;
+                                left: -2vw;
                             }
                         }
                     }

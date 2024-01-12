@@ -155,6 +155,7 @@ export default function useTournamentAPI(apiToken) {
                 displayIdentifier
                 sets(page: 1, perPage: 32, sortType: CALL_ORDER) {
                   nodes {
+                    identifier
                     slots {
                       entrant {
                         id
