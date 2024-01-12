@@ -31,6 +31,7 @@ nupkg/
 [Dd]ebugPublic/
 [Rr]elease/
 [Rr]eleases/
+UserInterface/dist/
 x64/
 x86/
 build/
