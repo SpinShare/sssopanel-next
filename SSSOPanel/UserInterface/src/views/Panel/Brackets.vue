@@ -124,7 +124,7 @@ const updateSelectedPhaseGroup = async () => {
                 entrantId: slot.entrant?.id,
                 entrant: entrant ?? null,
                 placement: slot.standing?.placement ?? null,
-                score: slot.standing?.stats?.score?.value ?? 0,
+                score: (slot.standing?.stats?.score?.value < 0) ? "X" : slot.standing?.stats?.score?.value ?? 0,
             });
         });
 

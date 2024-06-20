@@ -6,7 +6,7 @@
             type="horizontal"
         >
             <input
-                type="date"
+                type="datetime-local"
                 v-model="nextStreamDate"
             />
         </SpinInput>

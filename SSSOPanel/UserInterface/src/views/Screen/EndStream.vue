@@ -1,7 +1,7 @@
 <template>
     <ScreenLayout>
         <section class="screen-end-stream">
-            <div class="tint winter"></div>
+            <div class="tint summer"></div>
             <div class="noise"></div>
 
             <div class="content">
@@ -26,11 +26,9 @@
                     <div class="credits">
                         <header>CREDITS</header>
                         <div class="box">
-                            <div
-                                class="scrolling-text"
-                                ref="creditsText"
-                            >
-                                <h1>SSSO Winter 2024</h1>
+                            <div class="scrolling-text"
+                                 ref="creditsText">
+                                <h1>SSSO Summer 2024</h1>
                                 <h2>staff &amp; contributors</h2>
                                 <div class="lead">
                                     <span>Laura Sofia Heimann</span>
@@ -49,16 +47,15 @@
                                     <span>tournament organizers</span>
                                     <span>Ricki</span>
                                     <span>TheWay123</span>
+                                    <span>Gavi Guy</span>
                                 </div>
 
                                 <div class="group">
                                     <span>organizational contributors</span>
-                                    <span>Aexus</span>
-                                    <span>CarbonCarbon12</span>
-                                    <span>Gavi Guy</span>
-                                    <span>HalloweenBaby</span>
+                                    <span>kyu!</span>
+                                    <span>LuminaryCat</span>
                                     <span>Programmatic</span>
-                                    <span>snaphap</span>
+                                    <span>Satan</span>
                                 </div>
                                 <div class="group">
                                     <span>it &amp; backend resources</span>
@@ -69,18 +66,25 @@
                                     <span>internal support</span>
                                     <span>Gavi Guy</span>
                                     <span>Ricki</span>
+                                    <span>TheWay123</span>
                                 </div>
                                 <div class="group">
                                     <span>broadcasters</span>
-                                    <span>Axol</span>
                                     <span>Gavi Guy</span>
                                     <span>Khromatical</span>
+                                    <span>Luna</span>
+                                    <span>Ricki</span>
+                                    <span>smb</span>
                                 </div>
                                 <div class="group">
                                     <span>commentators</span>
+                                    <span>Airplane Man</span>
+                                    <span>Dama</span>
+                                    <span>Gavi Guy</span>
                                     <span>Halflite</span>
                                     <span>JammyDodger</span>
                                     <span>Khromatical</span>
+                                    <span>kyu!</span>
                                     <span>Luna</span>
                                     <span>metalman20</span>
                                     <span>rewardadrawer</span>
@@ -91,6 +95,7 @@
                                     <span>Gavi Guy</span>
                                     <span>Halflite</span>
                                     <span>Khromatical</span>
+                                    <span>kyu!</span>
                                     <span>Luna</span>
                                     <span>LuminaryCat</span>
                                     <span>snaphap</span>
@@ -98,31 +103,29 @@
                                 </div>
                                 <div class="group">
                                     <span>playtesters</span>
+                                    <span>Aexus</span>
                                     <span>CarbonCarbon12</span>
-                                    <span>Edge</span>
+                                    <span>Dama</span>
                                     <span>Gavi Guy</span>
                                     <span>Halflite</span>
-                                    <span>Kali</span>
-                                    <span>Kwazi</span>
-                                    <span>Luna</span>
-                                    <span>HalloweenBaby</span>
+                                    <span>Satan</span>
+                                    <span>kyu!</span>
+                                    <span>LuminaryCat</span>
+                                    <span>lunarmoron</span>
                                     <span>MrCringe</span>
                                     <span>Negative</span>
                                     <span>PnOMader</span>
-                                    <span>snaphap</span>
+                                    <span>smb</span>
+                                    <span>theo</span>
                                     <span>TheWay123</span>
                                 </div>
 
                                 <h2>players</h2>
                                 <div class="players">
-                                    <span
-                                        v-for="player in players"
-                                        :key="player.id"
-                                    >
-                                        <span
-                                            class="pronouns"
-                                            v-if="player.spinshareProfile.pronouns"
-                                        >
+                                    <span v-for="player in players"
+                                          :key="player.id">
+                                        <span class="pronouns"
+                                              v-if="player.spinshareProfile.pronouns">
                                             {{ player.spinshareProfile.pronouns }}
                                         </span>
                                         <span>
@@ -135,61 +138,60 @@
                                 <div class="group">
                                     <span></span>
                                     <span>A11right</span>
-                                    <span>Airplane man</span>
+                                    <span>Airplane Man</span>
                                     <span>Animanic</span>
-                                    <span>Axol</span>
-                                    <span>Ballinbino</span>
+                                    <span>Avery</span>
+                                    <span>Baby_Jimbo</span>
                                     <span>C4veden</span>
                                     <span>CarbonCarbon12</span>
-                                    <span>Crooky</span>
-                                    <span>Dacey</span>
+                                    <span>Cerberus</span>
+                                    <span>CrookyCumbles</span>
+                                    <span>Dace</span>
                                     <span>Dama</span>
                                     <span>Dr. Chicken</span>
+                                    <span>echeerie</span>
                                     <span>Edge</span>
+                                    <span>Enynine</span>
                                     <span>Eraser</span>
-                                    <span>Fether</span>
-                                    <span>Gamer97</span>
+                                    <span>Fysh</span>
                                     <span>Gavi Guy</span>
                                     <span>Halflite</span>
-                                    <span>HalloweenBaby</span>
-                                    <span>haomakk</span>
                                     <span>HyperDash</span>
-                                    <span>Jane</span>
-                                    <span>Kali</span>
+                                    <span>MrCringe</span>
+                                    <span>jane</span>
                                     <span>Konomi</span>
                                     <span>Kwazi</span>
-                                    <span>kyuquu</span>
-                                    <span>Lava</span>
+                                    <span>kyu!</span>
+                                    <span>Lena</span>
                                     <span>Loosiano</span>
                                     <span>LuminaryCat</span>
-                                    <span>Luna</span>
-                                    <span>Mapy</span>
-                                    <span>★MrCringe★</span>
+                                    <span>lunarmoron</span>
+                                    <span>Maffoe</span>
                                     <span>NEFirefox</span>
                                     <span>Negative</span>
+                                    <span>Niepo</span>
                                     <span>NOIN</span>
-                                    <span>Programmatic</span>
-                                    <span>PickPig</span>
-                                    <span>Reilmen</span>
-                                    <span>rewardadrawer</span>
+                                    <span>Pick</span>
+                                    <span>PnOMader</span>
                                     <span>Ricki</span>
+                                    <span>Satan</span>
                                     <span>Schroeder</span>
-                                    <span>SignatureMPX</span>
-                                    <span>skiera</span>
                                     <span>Skillz Man</span>
                                     <span>smb</span>
                                     <span>snaphap</span>
                                     <span>Snepped</span>
                                     <span>sodapants</span>
+                                    <span>Stella</span>
                                     <span>Steven of Astora</span>
                                     <span>Stride</span>
                                     <span>swago</span>
-                                    <span>TheBlockiest</span>
-                                    <span>Theo</span>
+                                    <span>theo</span>
+                                    <span>The Blockiest</span>
                                     <span>TheWay123</span>
-                                    <span>TreXDer</span>
-                                    <span>一只某Y</span>
-                                    <span>Velvet-.</span>
+                                    <span>Trexder</span>
+                                    <span>TypeY</span>
+                                    <span>Ungyy</span>
+                                    <span>Velvet</span>
                                 </div>
                             </div>
                         </div>
@@ -221,7 +223,7 @@
 
 <script setup>
 import ScreenLayout from '../../layouts/ScreenLayout.vue';
-import EventLogo from '@/assets/eventlogo-winter-2023.svg';
+import EventLogo from '@/assets/eventlogo-summer-2024.svg';
 import { onMounted, onUnmounted, inject, ref, computed } from 'vue';
 const emitter = inject('emitter');
 
@@ -304,6 +306,10 @@ onUnmounted(() => {
 
         &.winter {
             filter: hue-rotate(160deg);
+        }
+
+        &.summer {
+            filter: hue-rotate(0deg);
         }
     }
 
