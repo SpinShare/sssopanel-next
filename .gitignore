@@ -119,3 +119,7 @@ fabric.properties
 
 # Build UI
 SSSOPanel/Resources/wwwroot/
+
+# stuff from gav's setup
+StartServer.bat
+StartPanel.bat
