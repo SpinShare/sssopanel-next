@@ -64,14 +64,14 @@ const buttons = [
         panelPath: '/panel/end-stream',
         screenPath: '/screen/end-stream',
     },
-    /*
+    
     // TODO: DESIGN END OF TOURNAMENT PAGE
     {
         label: 'End (Tournament)',
         icon: 'flag-checkered',
         panelPath: '/panel/end-tournament',
         screenPath: '/screen/end-tournament',
-    }, */
+    }, 
 ];
 </script>
 

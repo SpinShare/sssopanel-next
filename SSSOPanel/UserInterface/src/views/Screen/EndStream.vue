@@ -28,7 +28,7 @@
                         <div class="box">
                             <div class="scrolling-text"
                                  ref="creditsText">
-                                <h1>SSSO Summer 2024</h1>
+                                <h1>SSSO Summer 2025</h1>
                                 <h2>staff &amp; contributors</h2>
                                 <div class="lead">
                                     <span>Laura Sofia Heimann</span>
@@ -71,23 +71,20 @@
                                 <div class="group">
                                     <span>broadcasters</span>
                                     <span>Gavi Guy</span>
-                                    <span>Khromatical</span>
-                                    <span>Luna</span>
-                                    <span>Ricki</span>
                                     <span>smb</span>
+                                    <span>TheWay123</span>
+
                                 </div>
                                 <div class="group">
                                     <span>commentators</span>
                                     <span>Airplane Man</span>
                                     <span>Dama</span>
+                                    <span>earth://</span>
                                     <span>Gavi Guy</span>
                                     <span>Halflite</span>
-                                    <span>JammyDodger</span>
-                                    <span>Khromatical</span>
                                     <span>kyu!</span>
                                     <span>Luna</span>
                                     <span>metalman20</span>
-                                    <span>rewardadrawer</span>
                                     <span>TheWay123</span>
                                 </div>
                                 <div class="group">
@@ -98,25 +95,23 @@
                                     <span>kyu!</span>
                                     <span>Luna</span>
                                     <span>LuminaryCat</span>
+                                    <span>Ricki</span>
                                     <span>snaphap</span>
                                     <span>TheWay123</span>
                                 </div>
                                 <div class="group">
                                     <span>playtesters</span>
-                                    <span>Aexus</span>
-                                    <span>CarbonCarbon12</span>
+                                    <span>Blyenn</span>
+                                    <span>C4veden</span>
                                     <span>Dama</span>
-                                    <span>Gavi Guy</span>
-                                    <span>Halflite</span>
-                                    <span>Satan</span>
+                                    <span>earth://</span>
+                                    <span>Gav</span>
                                     <span>kyu!</span>
                                     <span>LuminaryCat</span>
-                                    <span>lunarmoron</span>
                                     <span>MrCringe</span>
-                                    <span>Negative</span>
-                                    <span>PnOMader</span>
-                                    <span>smb</span>
-                                    <span>theo</span>
+                                    <span>Satan</span>
+                                    <span>Ricki</span>
+                                    <span>snaphap</span>
                                     <span>TheWay123</span>
                                 </div>
 
@@ -138,60 +133,59 @@
                                 <div class="group">
                                     <span></span>
                                     <span>A11right</span>
-                                    <span>Airplane Man</span>
-                                    <span>Animanic</span>
-                                    <span>Avery</span>
-                                    <span>Baby_Jimbo</span>
+                                    <span>Adiale</span>
+                                    <span>airplane_man</span>
+                                    <span>Ballinbino</span>
+                                    <span>Blyenn</span>
                                     <span>C4veden</span>
-                                    <span>CarbonCarbon12</span>
-                                    <span>Cerberus</span>
                                     <span>CrookyCumbles</span>
-                                    <span>Dace</span>
+                                    <span>cubthecube</span>
                                     <span>Dama</span>
-                                    <span>Dr. Chicken</span>
-                                    <span>echeerie</span>
+                                    <span>Danicchi</span>
+                                    <span>earth://</span>
                                     <span>Edge</span>
                                     <span>Enynine</span>
                                     <span>Eraser</span>
-                                    <span>Fysh</span>
-                                    <span>Gavi Guy</span>
+                                    <span>Gav</span>
+                                    <span>groggo_froggo</span>
                                     <span>Halflite</span>
                                     <span>HyperDash</span>
-                                    <span>MrCringe</span>
-                                    <span>jane</span>
+                                    <span>ivor_mazar</span>
+                                    <span>katzandboxez</span>
                                     <span>Konomi</span>
                                     <span>Kwazi</span>
-                                    <span>kyu!</span>
-                                    <span>Lena</span>
+                                    <span>Kyu!</span>
+                                    <span>listae.</span>
                                     <span>Loosiano</span>
                                     <span>LuminaryCat</span>
                                     <span>lunarmoron</span>
                                     <span>Maffoe</span>
-                                    <span>NEFirefox</span>
-                                    <span>Negative</span>
+                                    <span>MrCringe</span>
+                                    <span>neFirefox</span>
                                     <span>Niepo</span>
                                     <span>NOIN</span>
-                                    <span>Pick</span>
-                                    <span>PnOMader</span>
+                                    <span>pea_nut_butt_er</span>
+                                    <span>PickPig</span>
+                                    <span>PnoMader</span>
+                                    <span>Programmatic</span>
+                                    <span>Quu</span>
                                     <span>Ricki</span>
+                                    <span>sanko4322</span>
                                     <span>Satan</span>
+                                    <span>saya_kanzaki</span>
                                     <span>Schroeder</span>
-                                    <span>Skillz Man</span>
                                     <span>smb</span>
                                     <span>snaphap</span>
-                                    <span>Snepped</span>
-                                    <span>sodapants</span>
-                                    <span>Stella</span>
-                                    <span>Steven of Astora</span>
+                                    <span>Sodapants</span>
+                                    <span>StevenofAstora</span>
                                     <span>Stride</span>
                                     <span>swago</span>
-                                    <span>theo</span>
-                                    <span>The Blockiest</span>
+                                    <span>theblockiest</span>
                                     <span>TheWay123</span>
-                                    <span>Trexder</span>
                                     <span>TypeY</span>
-                                    <span>Ungyy</span>
-                                    <span>Velvet</span>
+                                    <span>unholy_synthetix</span>
+                                    <span>void_dd</span>
+                                    <span>zxcv-01</span>
                                 </div>
                             </div>
                         </div>
@@ -223,7 +217,7 @@
 
 <script setup>
 import ScreenLayout from '../../layouts/ScreenLayout.vue';
-import EventLogo from '@/assets/eventlogo-summer-2024.svg';
+import EventLogo from '@/assets/eventlogo-summer-2025.svg';
 import { onMounted, onUnmounted, inject, ref, computed } from 'vue';
 const emitter = inject('emitter');
 
@@ -288,209 +282,217 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.screen-end-stream {
-    color: #222;
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    & .tint {
-        background: url('../../assets/background.svg');
-        background-size: cover;
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        top: 0;
-
-        &.winter {
-            filter: hue-rotate(160deg);
-        }
-
-        &.summer {
-            filter: hue-rotate(0deg);
-        }
-    }
-
-    & .noise {
-        background: url('../../assets/noise.png');
-        background-size: 5vw;
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        top: 0;
-        mix-blend-mode: soft-light;
-    }
-
-    & .content {
-        position: absolute;
-        top: 5vw;
-        left: 5vw;
-        right: 5vw;
-        bottom: 5vw;
-        display: grid;
-        grid-template-columns: 1fr auto 1fr;
-        gap: 5vw;
-        z-index: 10;
+    .screen-end-stream {
+        color: #222;
+        position: relative;
+        display: flex;
         justify-content: center;
         align-items: center;
-        font-size: 0.8vw;
 
-        & .left {
-            display: grid;
-            align-self: stretch;
-            grid-template-rows: 1fr auto;
-            gap: 2vw;
+        & .tint {
+            background: url('../../assets/background.svg');
+            background-size: cover;
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            top: 0;
 
-            & .logo {
-                display: flex;
-                justify-content: center;
-                align-items: center;
-
-                & .event-logo {
-                    width: 20vw;
-                    height: 20vw;
-                }
+            &.winter {
+                filter: hue-rotate(160deg);
             }
 
-            & .next-stream {
-                display: flex;
-                flex-direction: column;
-                align-items: flex-start;
-
-                & header {
-                    font-size: 1vw;
-                    font-weight: 900;
-                    letter-spacing: 0.15vw;
-                    background: #111111;
-                    color: #ededed;
-                    padding: 0.5vw 1vw;
-                    border-top-left-radius: 0.5vw;
-                    border-top-right-radius: 0.5vw;
-                }
-                & .box {
-                    align-self: stretch;
-                    text-align: center;
-                    background: #111111;
-                    color: #ededed;
-                    padding: 2vw 0;
-                    border-radius: 0 0.5vw 0.5vw 0.5vw;
-                    font-family: 'JetBrains Mono', monospace;
-                    font-weight: 900;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    gap: 0.5vw;
-
-                    & span:nth-child(1) {
-                        font-size: 2.5vw;
-                    }
-                    & span:nth-child(2) {
-                        font-size: 1.25vw;
-                        font-weight: 600;
-                        opacity: 0.6;
-                    }
-                }
+            &.summer {
+                filter: hue-rotate(-25deg); // Default Summer: 0deg, Adjusted for late SSSO: -25deg
             }
         }
 
-        & .right {
-            align-self: stretch;
+        & .noise {
+            background: url('../../assets/noise.png');
+            background-size: 5vw;
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            top: 0;
+            mix-blend-mode: soft-light;
+        }
+
+        & .content {
+            position: absolute;
+            top: 5vw;
+            left: 5vw;
+            right: 5vw;
+            bottom: 5vw;
             display: grid;
-            overflow: hidden;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 5vw;
+            z-index: 10;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.8vw;
 
-            & .credits {
-                display: flex;
-                flex-direction: column;
-                align-items: flex-start;
-                overflow: hidden;
+            & .left {
+                display: grid;
+                align-self: stretch;
+                grid-template-rows: 1fr auto;
+                gap: 2vw;
 
-                & header {
-                    font-size: 1vw;
-                    font-weight: 900;
-                    letter-spacing: 0.15vw;
-                    background: #111111;
-                    color: #ededed;
-                    padding: 0.5vw 1vw;
-                    border-top-left-radius: 0.5vw;
-                    border-top-right-radius: 0.5vw;
+                & .logo {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+
+                    & .event-logo {
+                        width: 20vw;
+                        height: 20vw;
+                    }
                 }
-                & .box {
-                    align-self: stretch;
-                    flex-grow: 1;
-                    text-align: center;
-                    background: #111111;
-                    color: #ededed;
-                    padding: 1.5vw 0;
-                    border-radius: 0 0.5vw 0.5vw 0.5vw;
-                    overflow: hidden;
-                    position: relative;
 
-                    & .scrolling-text {
+                & .next-stream {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: flex-start;
+
+                    & header {
+                        font-size: 1vw;
+                        font-weight: 900;
+                        letter-spacing: 0.15vw;
+                        background: #111111;
+                        color: #ededed;
+                        padding: 0.5vw 1vw;
+                        border-top-left-radius: 0.5vw;
+                        border-top-right-radius: 0.5vw;
+                    }
+
+                    & .box {
+                        align-self: stretch;
+                        text-align: center;
+                        background: #111111;
+                        color: #ededed;
+                        padding: 2vw 0;
+                        border-radius: 0 0.5vw 0.5vw 0.5vw;
+                        font-family: 'JetBrains Mono', monospace;
+                        font-weight: 900;
                         display: flex;
                         flex-direction: column;
                         align-items: center;
-                        gap: 2.5vw;
-                        font-size: 1vw;
-                        animation: scroll 90s linear infinite;
-                        position: absolute;
-                        width: 100%;
-                        height: 100%;
+                        gap: 0.5vw;
 
-                        & h1 {
-                            margin: 0;
+                        & span:nth-child(1) {
                             font-size: 2.5vw;
-                            font-weight: bold;
                         }
-                        & h2 {
-                            margin: 0;
-                            font-size: 1.75vw;
-                            font-weight: bold;
+
+                        & span:nth-child(2) {
+                            font-size: 1.25vw;
+                            font-weight: 600;
+                            opacity: 0.6;
                         }
-                        & > div {
+                    }
+                }
+            }
+
+            & .right {
+                align-self: stretch;
+                display: grid;
+                overflow: hidden;
+
+                & .credits {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: flex-start;
+                    overflow: hidden;
+
+                    & header {
+                        font-size: 1vw;
+                        font-weight: 900;
+                        letter-spacing: 0.15vw;
+                        background: #111111;
+                        color: #ededed;
+                        padding: 0.5vw 1vw;
+                        border-top-left-radius: 0.5vw;
+                        border-top-right-radius: 0.5vw;
+                    }
+
+                    & .box {
+                        align-self: stretch;
+                        flex-grow: 1;
+                        text-align: center;
+                        background: #111111;
+                        color: #ededed;
+                        padding: 1.5vw 0;
+                        border-radius: 0 0.5vw 0.5vw 0.5vw;
+                        overflow: hidden;
+                        position: relative;
+
+                        & .scrolling-text {
                             display: flex;
                             flex-direction: column;
                             align-items: center;
+                            gap: 2.5vw;
+                            font-size: 1vw;
+                            animation: scroll 90s linear infinite;
+                            position: absolute;
+                            width: 100%;
+                            height: 100%;
 
-                            &.lead {
-                                gap: 0.75vw;
-
-                                & span:nth-child(1) {
-                                    font-weight: bold;
-                                    font-size: 1.15vw;
-                                    letter-spacing: 0.1vw;
-                                }
-                                & span:nth-child(2) {
-                                    color: rgba(255, 255, 255, 0.6);
-                                }
+                            & h1 {
+                                margin: 0;
+                                font-size: 2.5vw;
+                                font-weight: bold;
                             }
 
-                            &.group {
-                                gap: 0.5vw;
-
-                                & span:nth-child(1) {
-                                    font-weight: bold;
-                                    letter-spacing: 0.1vw;
-                                }
-                                & span:not(:nth-child(1)) {
-                                    color: rgba(255, 255, 255, 0.6);
-                                }
+                            & h2 {
+                                margin: 0;
+                                font-size: 1.75vw;
+                                font-weight: bold;
                             }
 
-                            &.players {
-                                gap: 0.5vw;
+                            & > div {
                                 display: flex;
                                 flex-direction: column;
                                 align-items: center;
 
-                                & > span {
-                                    display: flex;
-                                    gap: 1vw;
+                                &.lead {
+                                    gap: 0.75vw;
 
-                                    & .pronouns {
+                                    & span:nth-child(1) {
+                                        font-weight: bold;
+                                        font-size: 1.15vw;
+                                        letter-spacing: 0.1vw;
+                                    }
+
+                                    & span:nth-child(2) {
                                         color: rgba(255, 255, 255, 0.6);
+                                    }
+                                }
+
+                                &.group {
+                                    gap: 0.5vw;
+
+                                    & span:nth-child(1) {
+                                        font-weight: bold;
+                                        letter-spacing: 0.1vw;
+                                    }
+
+                                    & span:not(:nth-child(1)) {
+                                        color: rgba(255, 255, 255, 0.6);
+                                    }
+                                }
+
+                                &.players {
+                                    gap: 0.5vw;
+                                    display: flex;
+                                    flex-direction: column;
+                                    align-items: center;
+
+                                    & > span {
+                                        display: flex;
+                                        gap: 1vw;
+
+                                        & .pronouns {
+                                            color: rgba(255, 255, 255, 0.6);
+                                        }
                                     }
                                 }
                             }
@@ -498,48 +500,48 @@ onUnmounted(() => {
                     }
                 }
             }
+
+            & .dots {
+                width: 4vw;
+                height: 100%;
+                background-size: 1.5vw 1.5vw;
+                background-image: radial-gradient(circle, #000 10%, transparent 12%), radial-gradient(circle, #000 10%, transparent 12%);
+            }
         }
 
-        & .dots {
-            width: 4vw;
-            height: 100%;
-            background-size: 1.5vw 1.5vw;
-            background-image: radial-gradient(circle, #000 10%, transparent 12%), radial-gradient(circle, #000 10%, transparent 12%);
-        }
-    }
-
-    & .marquees {
-        transform: rotate(-4deg) scale(1.15);
-        position: absolute;
-        top: 4vw;
-        bottom: 4vw;
-        left: 0;
-        right: 0;
-        z-index: 3;
-
-        & .marquee {
-            white-space: nowrap;
-            display: flex;
-            gap: 1em;
+        & .marquees {
+            transform: rotate(-4deg) scale(1.15);
             position: absolute;
-            overflow: hidden;
-            font-size: 3vw;
-            font-weight: 800;
-            color: rgba(0, 0, 0, 0.2);
+            top: 4vw;
+            bottom: 4vw;
+            left: 0;
+            right: 0;
+            z-index: 3;
 
-            &.top {
-                top: 0;
-                left: -18.5vw;
-                animation: marqueeLeft 10s infinite linear;
-            }
-            &.bottom {
-                bottom: 0;
-                left: 0;
-                animation: marqueeRight 10s infinite linear;
+            & .marquee {
+                white-space: nowrap;
+                display: flex;
+                gap: 1em;
+                position: absolute;
+                overflow: hidden;
+                font-size: 3vw;
+                font-weight: 800;
+                color: rgba(0, 0, 0, 0.2);
+
+                &.top {
+                    top: 0;
+                    left: -18.5vw;
+                    animation: marqueeLeft 10s infinite linear;
+                }
+
+                &.bottom {
+                    bottom: 0;
+                    left: 0;
+                    animation: marqueeRight 10s infinite linear;
+                }
             }
         }
     }
-}
 
 @keyframes marqueeLeft {
     from {

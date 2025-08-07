@@ -315,6 +315,14 @@ onUnmounted(() => {
             filter: contrast(1) brightness(0.125) grayscale(2);
         }
 
+        &.winter {
+            filter: hue-rotate(160deg);
+        }
+
+        &.summer {
+            filter: hue-rotate(-25deg); // Default Summer: 0deg, Adjusted for late SSSO: -25deg
+        }
+
         & .noise {
             background: url('../../assets/noise.png');
             background-size: 5em;
@@ -412,7 +420,7 @@ onUnmounted(() => {
                         }
 
                         &.summer {
-                            filter: hue-rotate(0deg);
+                            filter: hue-rotate(-25deg); // Default Summer: 0deg, Adjusted for late SSSO: -25deg
                         }
                     }
 
@@ -568,7 +576,7 @@ onUnmounted(() => {
                         }
 
                         &.summer {
-                            filter: hue-rotate(0deg);
+                            filter: hue-rotate(-25deg); // Default Summer: 0deg, Adjusted for late SSSO: -25deg
                         }
                     }
 

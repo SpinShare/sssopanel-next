@@ -75,6 +75,7 @@ const routes = [
     },
     {
         path: '/screen/countdown',
+        name: 'ViewScreenCountdown',
         component: ViewScreenCountdown,
     },
     {

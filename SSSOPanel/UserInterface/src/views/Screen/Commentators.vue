@@ -81,7 +81,7 @@ onUnmounted(() => {
             }
 
             &.summer {
-                filter: hue-rotate(0deg);
+                filter: hue-rotate(-25deg); // Default Summer: 0deg, Adjusted for late SSSO: -25deg
             }
         }
 

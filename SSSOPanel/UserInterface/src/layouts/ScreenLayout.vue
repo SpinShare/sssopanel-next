@@ -1,6 +1,8 @@
 <template>
     <AspectLayout>
-        <main class="layout-screen">
+        <main class="layout-screen" :style="{ gridTemplateRows }">
+            <ScreenVCHeader v-if="showHeader" />
+
             <slot />
 
             <ScreenFooter />
@@ -9,12 +11,23 @@
 </template>
 
 <script setup>
-import { inject, onMounted, onUnmounted } from 'vue';
+import { inject, onMounted, onUnmounted, computed } from 'vue';
+import { useRoute } from 'vue-router';
 import router from '@/router';
 import AspectLayout from '@/layouts/AspectLayout.vue';
 import ScreenFooter from '@/components/ScreenFooter/ScreenFooter.vue';
+import ScreenVCHeader from '../components/ScreenVCHeader/ScreenVCHeader.vue';
 
 const emitter = inject('emitter');
+const route = useRoute();
+
+const showHeader = computed(() => {
+    return route.name !== 'ViewScreenCountdown';
+});
+
+const gridTemplateRows = computed(() => {
+    return showHeader.value ? 'auto 1fr auto' : '1fr auto';
+});
 
 onMounted(() => {
     emitter.on('screen-navigate-response', (data) => {
@@ -52,7 +65,7 @@ onUnmounted(() => {
     width: 100%;
     height: 100%;
     display: grid;
-    grid-template-rows: 1fr auto;
+    //grid-template-rows: auto 1fr auto;
     background: #222;
     font-family: 'Orbitron', sans-serif;
 }
