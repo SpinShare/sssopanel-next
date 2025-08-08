@@ -1,6 +1,7 @@
 <template>
     <div class="voice-status-bar">
         <div class="header">Commentary Team</div>
+        <!-- Move all connect and disconnect logic to panel!!! -->
         <div
             v-if="!isConnected"
             class="connection-form"
@@ -248,10 +249,6 @@ export default {
     white-space: nowrap;
 }
 
-.member:hover {
-    background: rgba(255, 255, 255, 0.15);
-}
-
 .member.speaking {
     border-color: #43b581;
     background: rgba(67, 181, 129, 0.2);
@@ -264,100 +261,6 @@ export default {
     }
     to {
         box-shadow: 0 0 0.8vw rgba(67, 181, 129, 0.8);
-    }
-}
-
-.member.muted {
-    opacity: 0.6;
-}
-
-.member.deafened {
-    opacity: 0.4;
-}
-
-.avatar {
-    width: 2.5vw;
-    height: 2.5vw;
-    border-radius: 50%;
-    border: 0.1vw solid rgba(255, 255, 255, 0.3);
-    transition: all 0.3s ease;
-    flex-shrink: 0;
-}
-
-.speaking .avatar {
-    border-color: #43b581;
-    animation: avatar-glow 1s ease-in-out infinite alternate;
-}
-
-@keyframes avatar-glow {
-    from {
-        box-shadow: 0 0 0.2vw rgba(67, 181, 129, 0.5);
-    }
-    to {
-        box-shadow: 0 0 0.6vw rgba(67, 181, 129, 1);
-    }
-}
-
-.member-info {
-    display: flex;
-    flex-direction: column;
-    gap: 0vw;
-    min-width: 0;
-}
-
-.username {
-    font-size: 0.8vw;
-    font-weight: 600;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    max-width: 8vw;
-    white-space: nowrap;
-}
-
-.status-indicators {
-    display: flex;
-    gap: 0.2vw;
-    align-items: center;
-}
-
-.indicator {
-    font-size: 0.6vw;
-    padding: 0.1vw 0.3vw;
-    border-radius: 0.3vw;
-    background: rgba(0, 0, 0, 0.3);
-    line-height: 1;
-}
-
-.speaking-indicator {
-    background: rgba(67, 181, 129, 0.8);
-    animation: indicator-pulse 0.8s ease-in-out infinite alternate;
-}
-
-@keyframes indicator-pulse {
-    from {
-        transform: scale(1);
-    }
-    to {
-        transform: scale(1.1);
-    }
-}
-
-.muted-indicator {
-    background: rgba(240, 71, 71, 0.8);
-}
-
-.deafened-indicator {
-    background: rgba(153, 170, 181, 0.8);
-}
-
-/* Very small screens */
-@media (max-width: 1024px) {
-    .form-input {
-        width: 10vw;
-    }
-
-    .username {
-        max-width: 6vw;
     }
 }
 </style>
