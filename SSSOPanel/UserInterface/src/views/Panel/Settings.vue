@@ -4,7 +4,7 @@
             <SpinInputGroup header="General">
                 <SpinInput
                     label="SSSOPanel Next"
-                    hint="Version 1.2.0"
+                    hint="Version 1.3.0"
                     type="horizontal"
                 >
                     <SpinButton
@@ -130,16 +130,20 @@ const loadStartGGEvents = async () => {
 
     if (startGGApiToken.value === '') return;
 
-    const { loadTournamentEvents } = useTournamentAPI(startGGApiToken.value);
-    const tournament = await loadTournamentEvents(startGGTournamentSlug.value);
+    try {
+        const {loadTournamentEvents} = useTournamentAPI(startGGApiToken.value);
+        const tournament = await loadTournamentEvents(startGGTournamentSlug.value);
 
-    startGGTournamentId.value = tournament.id;
-    startGGTournamentName.value = tournament.name;
-    startGGEvents.value = tournament.events.map((event) => ({
-        value: event.id.toString(),
-        label: event.name,
-        icon: 'tournament',
-    }));
+        startGGTournamentId.value = tournament.id;
+        startGGTournamentName.value = tournament.name;
+        startGGEvents.value = tournament.events.map((event) => ({
+            value: event.id.toString(),
+            label: event.name,
+            icon: 'tournament',
+        }));
+    } catch(e) {
+        console.error(e.message);
+    }
 };
 
 const saveSettings = () => {

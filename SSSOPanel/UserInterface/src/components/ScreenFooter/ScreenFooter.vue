@@ -42,8 +42,12 @@ const promos = ref([
         subtitle: 'Support our team for a fancy profile badge!',
     },
     {
-        title: 'twitter.com/WeAreSpinShare',
-        subtitle: 'Follow us for high quality memes and updates!',
+        title: 'bsky.app/profile/spinsha.re',
+        subtitle: 'Follow us for updates, statistics and announcements!',
+    },
+    {
+        title: 'spinsha.re/client-next',
+        subtitle: 'Download the new desktop client and receive a profile card!',
     },
     {
         title: 'discord.io/SpinShare',

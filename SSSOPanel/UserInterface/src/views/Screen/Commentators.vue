@@ -7,7 +7,7 @@
             <div class="content">
                 <header>COMMENTATORS</header>
                 <div class="streams">
-                    <iframe :src="`https://vdo.ninja/?scene&room=${roomId}&password=${roomPassword}&clean&transparent&noheader&&sl=skype&style=2&na`"></iframe>
+                    <iframe style="padding-top: 4.5vh" :src="`https://vdo.ninja/?scene&room=${roomId}&password=${roomPassword}&clean&transparent&noheader&&sl=skype&style=2&na`"></iframe>
                 </div>
             </div>
 

@@ -31,7 +31,7 @@
                                 <h1>SSSO Summer 2025</h1>
                                 <h2>staff &amp; contributors</h2>
                                 <div class="lead">
-                                    <span>Laura Sofia Heimann</span>
+                                    <span>Laura Sofia (thatanimeweirdo)</span>
                                     <span>Lead Developer &amp; UI/Branding Design</span>
                                 </div>
                                 <div class="lead">
@@ -77,24 +77,28 @@
                                 </div>
                                 <div class="group">
                                     <span>commentators</span>
-                                    <span>Airplane Man</span>
+                                    <span>Ellite</span>
                                     <span>Dama</span>
                                     <span>earth://</span>
                                     <span>Gavi Guy</span>
                                     <span>Halflite</span>
+                                    <span>Khromatical</span>
                                     <span>kyu!</span>
-                                    <span>Luna</span>
                                     <span>metalman20</span>
+                                    <span>moonlight.</span>
                                     <span>TheWay123</span>
                                 </div>
                                 <div class="group">
                                     <span>referees</span>
+                                    <span>Blyenn</span>
+                                    <span>C4veden</span>
+                                    <span>Echeerie</span>
                                     <span>Gavi Guy</span>
                                     <span>Halflite</span>
                                     <span>Khromatical</span>
                                     <span>kyu!</span>
-                                    <span>Luna</span>
                                     <span>LuminaryCat</span>
+                                    <span>moonlight.</span>
                                     <span>Ricki</span>
                                     <span>snaphap</span>
                                     <span>TheWay123</span>
@@ -106,6 +110,7 @@
                                     <span>Dama</span>
                                     <span>earth://</span>
                                     <span>Gav</span>
+                                    <span>Gavi Guy</span>
                                     <span>kyu!</span>
                                     <span>LuminaryCat</span>
                                     <span>MrCringe</span>
@@ -134,19 +139,19 @@
                                     <span></span>
                                     <span>A11right</span>
                                     <span>Adiale</span>
-                                    <span>airplane_man</span>
+                                    <span>Airplane_man</span>
                                     <span>Ballinbino</span>
                                     <span>Blyenn</span>
                                     <span>C4veden</span>
                                     <span>CrookyCumbles</span>
-                                    <span>cubthecube</span>
+                                    <span>CubTheCube</span>
                                     <span>Dama</span>
                                     <span>Danicchi</span>
                                     <span>earth://</span>
                                     <span>Edge</span>
                                     <span>Enynine</span>
                                     <span>Eraser</span>
-                                    <span>Gav</span>
+                                    <span>Gavi Guy</span>
                                     <span>groggo_froggo</span>
                                     <span>Halflite</span>
                                     <span>HyperDash</span>
@@ -158,17 +163,17 @@
                                     <span>listae.</span>
                                     <span>Loosiano</span>
                                     <span>LuminaryCat</span>
-                                    <span>lunarmoron</span>
+                                    <span>moonlight.</span>
                                     <span>Maffoe</span>
                                     <span>MrCringe</span>
-                                    <span>neFirefox</span>
+                                    <span>NEFirefox</span>
                                     <span>Niepo</span>
                                     <span>NOIN</span>
-                                    <span>pea_nut_butt_er</span>
+                                    <span>Pea_nut_Butt_er</span>
                                     <span>PickPig</span>
                                     <span>PnoMader</span>
                                     <span>Programmatic</span>
-                                    <span>Quu</span>
+                                    <span>quuqirjain</span>
                                     <span>Ricki</span>
                                     <span>sanko4322</span>
                                     <span>Satan</span>
@@ -176,11 +181,11 @@
                                     <span>Schroeder</span>
                                     <span>smb</span>
                                     <span>snaphap</span>
-                                    <span>Sodapants</span>
+                                    <span>sodapants</span>
                                     <span>StevenofAstora</span>
                                     <span>Stride</span>
                                     <span>swago</span>
-                                    <span>theblockiest</span>
+                                    <span>TheBlockiest</span>
                                     <span>TheWay123</span>
                                     <span>TypeY</span>
                                     <span>unholy_synthetix</span>
