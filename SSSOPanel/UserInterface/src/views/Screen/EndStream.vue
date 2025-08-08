@@ -77,6 +77,7 @@
                                 </div>
                                 <div class="group">
                                     <span>commentators</span>
+                                    <span>Carbon</span>
                                     <span>Ellite</span>
                                     <span>Dama</span>
                                     <span>earth://</span>
@@ -93,6 +94,7 @@
                                     <span>Blyenn</span>
                                     <span>C4veden</span>
                                     <span>Echeerie</span>
+                                    <span>Ellite</span>
                                     <span>Gavi Guy</span>
                                     <span>Halflite</span>
                                     <span>Khromatical</span>
@@ -109,7 +111,6 @@
                                     <span>C4veden</span>
                                     <span>Dama</span>
                                     <span>earth://</span>
-                                    <span>Gav</span>
                                     <span>Gavi Guy</span>
                                     <span>kyu!</span>
                                     <span>LuminaryCat</span>
@@ -152,7 +153,7 @@
                                     <span>Enynine</span>
                                     <span>Eraser</span>
                                     <span>Gavi Guy</span>
-                                    <span>groggo_froggo</span>
+                                    <span>groggo</span>
                                     <span>Halflite</span>
                                     <span>HyperDash</span>
                                     <span>ivor_mazar</span>
