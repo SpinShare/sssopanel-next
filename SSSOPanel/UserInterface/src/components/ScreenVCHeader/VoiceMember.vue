@@ -25,7 +25,6 @@ export default {
 <style scoped>
 .member {
     background: rgba(255, 255, 255, 0);
-    border-radius: 0.4vw;
     padding: 0.3vw 0.6vw;
     margin-right: 2vw;
     display: flex;
@@ -36,11 +35,13 @@ export default {
     min-width: max-content;
     white-space: nowrap;
     font-family: 'Orbitron', sans-serif;
+    color: rgba(255, 255, 255, 75%);
 }
 
 .member.speaking {
     border-color: #43b581;
     background: rgba(67, 181, 129, 0.2);
+    color: rgba(255, 255, 255, 100%);
     animation: speaking-pulse 1s ease-in-out infinite alternate;
 }
 

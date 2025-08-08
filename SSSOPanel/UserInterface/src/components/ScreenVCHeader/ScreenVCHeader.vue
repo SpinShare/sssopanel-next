@@ -236,8 +236,7 @@ export default {
 }
 
 .member {
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 0.4vw;
+    background: rgba(255, 255, 255, 0);
     padding: 0.3vw 0.6vw;
     display: flex;
     align-items: center;
