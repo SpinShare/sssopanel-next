@@ -1,7 +1,13 @@
 <template>
     <div :class="memberClass">
         <div class="member-info">
-            <div class="username">{{ member.display_name }}</div>
+            <div class="username">{{ displayName }}</div>
+            <div
+                v-if="pronouns"
+                class="pronouns"
+            >
+                {{ pronouns }}
+            </div>
         </div>
     </div>
 </template>
@@ -18,6 +24,15 @@ export default {
             if (this.member.is_speaking) classes.push('speaking');
             return classes.join(' ');
         },
+        displayName() {
+            // Remove the pronoun part from the display name if it exists
+            return this.member.display_name.replace(/\(([^)]+)\)$/, '').trim();
+        },
+        pronouns() {
+            // Extract text within parentheses at the end of the name
+            const match = this.member.display_name.match(/\(([^)]+)\)$/);
+            return match ? match[1] : null;
+        },
     },
 };
 </script>
@@ -25,8 +40,6 @@ export default {
 <style scoped>
 .member {
     background: rgba(255, 255, 255, 0);
-    padding: 0.3vw 0.6vw;
-    margin-right: 2vw;
     display: flex;
     align-items: center;
     gap: 0.5vw;
@@ -66,7 +79,16 @@ export default {
     font-weight: 500;
     text-overflow: ellipsis;
     overflow: hidden;
-    max-width: 10vw;
     white-space: nowrap;
+}
+
+.pronouns {
+    font-size: 0.8vw;
+    opacity: 0.7;
+    font-weight: 400;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    color: rgba(255, 255, 255, 0.8);
 }
 </style>
