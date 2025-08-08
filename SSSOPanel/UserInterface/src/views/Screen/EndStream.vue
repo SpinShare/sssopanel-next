@@ -31,7 +31,7 @@
                                 <h1>SSSO Summer 2025</h1>
                                 <h2>staff &amp; contributors</h2>
                                 <div class="lead">
-                                    <span>Laura Sofia Heimann</span>
+                                    <span>Laura Sofia (thatanimeweirdo)</span>
                                     <span>Lead Developer &amp; UI/Branding Design</span>
                                 </div>
                                 <div class="lead">
@@ -81,6 +81,7 @@
                                     <span>Dama</span>
                                     <span>earth://</span>
                                     <span>Gavi Guy</span>
+                                    <span>Halflite</span>
                                     <span>Khromatical</span>
                                     <span>kyu!</span>
                                     <span>metalman20</span>
@@ -108,6 +109,7 @@
                                     <span>C4veden</span>
                                     <span>Dama</span>
                                     <span>earth://</span>
+                                    <span>Gav</span>
                                     <span>Gavi Guy</span>
                                     <span>kyu!</span>
                                     <span>LuminaryCat</span>
