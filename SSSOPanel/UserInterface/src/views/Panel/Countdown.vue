@@ -27,6 +27,12 @@
 
         <template #transition>
             <SpinButton
+                @click="toggleRefDen"
+                :icon="refDenIsVisible ? 'comment-text-multiple' : 'comment-text-multiple-outline'"
+                :color="refDenIsVisible ? 'primary' : 'default'"
+                v-tooltip="'Toggle Ref Den'"
+            />
+            <SpinButton
                 @click="transition"
                 icon="record"
                 color="primary"
@@ -43,9 +49,27 @@ import SpinButton from '@/components/Common/SpinButton.vue';
 import SpinInput from '@/components/Common/SpinInput.vue';
 import SpinSwitch from '@/components/Common/SpinSwitch.vue';
 const emitter = inject('emitter');
-
+const refDenIsVisible = ref(false);
 const countdownActive = ref(false);
 const countdownTime = ref(new Date());
+
+const toggleRefDen = () => {
+    refDenIsVisible.value = !refDenIsVisible.value;
+    window.external.sendMessage(
+        JSON.stringify({
+            command: 'state-set',
+            data: {
+                refDenIsVisible: refDenIsVisible.value,
+            },
+        }),
+    );
+    window.external.sendMessage(
+        JSON.stringify({
+            command: 'state-get',
+        }),
+    );
+    console.log('[PANEL-COUNTDOWN] refDenIsVisible toggled:', refDenIsVisible.value);
+};
 
 const transition = () => {
     window.external.sendMessage(
@@ -74,6 +98,7 @@ onMounted(() => {
     emitter.on('state-get-response', (state) => {
         countdownActive.value = state?.countdown?.active ?? countdownActive.value;
         countdownTime.value = state?.countdown?.time ?? countdownTime.value;
+        refDenIsVisible.value = state?.refDenIsVisible ?? false;
     });
 
     window.external.sendMessage(

@@ -25,6 +25,12 @@
 
         <template #transition>
             <SpinButton
+                @click="toggleRefDen"
+                :icon="refDenIsVisible ? 'comment-text-multiple' : 'comment-text-multiple-outline'"
+                :color="refDenIsVisible ? 'primary' : 'default'"
+                v-tooltip="'Toggle Ref Den'"
+            />
+            <SpinButton
                 @click="transition"
                 icon="record"
                 color="primary"
@@ -41,9 +47,28 @@ import SpinInputGroup from '@/components/Common/SpinInputGroup.vue';
 import SpinInput from '@/components/Common/SpinInput.vue';
 import { onMounted, onUnmounted, ref, inject } from 'vue';
 const emitter = inject('emitter');
+const refDenIsVisible = ref(false);
 
 const roomId = ref('');
 const roomPassword = ref('');
+
+const toggleRefDen = () => {
+    refDenIsVisible.value = !refDenIsVisible.value;
+    window.external.sendMessage(
+        JSON.stringify({
+            command: 'state-set',
+            data: {
+                refDenIsVisible: refDenIsVisible.value,
+            },
+        }),
+    );
+    window.external.sendMessage(
+        JSON.stringify({
+            command: 'state-get',
+        }),
+    );
+    console.log('[PANEL-COMMENTATORS] refDenIsVisible toggled:', refDenIsVisible.value);
+};
 
 const transition = () => {
     window.external.sendMessage(
@@ -72,6 +97,7 @@ onMounted(() => {
     emitter.on('state-get-response', (state) => {
         roomId.value = state?.commentators?.roomId ?? roomId.value;
         roomPassword.value = state?.commentators?.roomPassword ?? roomPassword.value;
+        refDenIsVisible.value = state?.refDenIsVisible ?? false;
     });
 
     window.external.sendMessage(

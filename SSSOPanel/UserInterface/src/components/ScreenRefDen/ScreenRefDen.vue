@@ -1,8 +1,9 @@
 <template>
     <div
         class="container"
-        :class="{ hidden: !showContainer }"
+        :class="{ hidden: !refDenIsVisible }"
     >
+        <h1 class="title">#referee-den</h1>
         <div
             v-for="(message, index) in messages"
             :key="index"
@@ -22,79 +23,66 @@
     </div>
 </template>
 
-<script>
+<script setup>
+import { ref, computed, onMounted, onUnmounted, inject } from 'vue';
 import VoiceBotService from '../../modules/VoiceBotService';
 
-export default {
-    name: 'MessageNotification',
-    data() {
-        return {
-            maxMessages: 5,
-            localMessages: [],
-            showContainer: false,
-            hideTimeout: null,
-            lastMessageTime: null,
-        };
-    },
-    computed: {
-        state() {
-            return VoiceBotService.state;
-        },
-        isConnected() {
-            return this.state.isConnected;
-        },
-        messages() {
-            return this.localMessages.slice(0, this.maxMessages);
-        },
-    },
-    methods: {
-        formatTimestamp(timestamp) {
-            const date = new Date(timestamp);
-            return date.toLocaleTimeString();
-        },
-        handleIncomingMessage(message) {
-            if (message.command === 'message-received') {
-                this.localMessages.unshift(message.data);
+// --- State and Services ---
+const emitter = inject('emitter');
+const refDenIsVisible = ref(false); // Now correctly declared for template access
+const maxMessages = ref(5);
+const localMessages = ref([]);
 
-                if (this.localMessages.length > this.maxMessages) {
-                    this.localMessages.pop();
-                }
+console.log('[SCREEN-REFDEN] Component initialized');
 
-                // Show container and reset hide timer
-                this.showContainer = true;
-                this.resetHideTimer();
+// --- Computed Properties ---
+const messages = computed(() => {
+    return localMessages.value.slice(0, maxMessages.value);
+});
 
-                // Auto-remove message after timeout
-                setTimeout(() => {
-                    this.localMessages = this.localMessages.filter((msg) => msg.messageId !== message.data.messageId);
-                    // If no more messages, start hide timer
-                    if (this.localMessages.length === 0) {
-                        this.resetHideTimer();
-                    }
-                }, 120000);
-            }
-        },
-        resetHideTimer() {
-            // Clear existing timeout
-            if (this.hideTimeout) {
-                clearTimeout(this.hideTimeout);
-            }
-            // Set new timeout to hide after 2 minutes
-            this.hideTimeout = setTimeout(() => {
-                this.showContainer = false;
-            }, 120000); // 2 minutes = 120,000ms
-        },
-    },
-    mounted() {
-        VoiceBotService.addMessageHandler(this.handleIncomingMessage);
-    },
-    beforeUnmount() {
-        VoiceBotService.removeMessageHandler(this.handleIncomingMessage);
-        if (this.hideTimeout) {
-            clearTimeout(this.hideTimeout);
-        }
-    },
+// --- Methods ---
+const formatTimestamp = (timestamp) => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString();
 };
+
+const handleIncomingMessage = (message) => {
+    // Only process messages with the correct command
+    if (message.command === 'message-received') {
+        // Add new message to the top of the list
+        localMessages.value.unshift(message.data);
+        // If the list is too long, remove the oldest message
+        if (localMessages.value.length > maxMessages.value) {
+            localMessages.value.pop();
+        }
+        window.external.sendMessage(
+            JSON.stringify({
+                command: 'state-set',
+                data: {
+                    refDenMessages: localMessages.value,
+                },
+            }),
+        );
+    }
+};
+
+// --- Lifecycle Hooks ---
+onMounted(() => {
+    // Listen for state updates to toggle visibility
+    emitter.on('state-get-response', (state) => {
+        refDenIsVisible.value = state?.refDenIsVisible ?? false;
+        localMessages.value = state?.refDenMessages ?? [];
+    });
+    window.external.sendMessage(JSON.stringify({ command: 'state-get' }));
+    // Set up the message handler from the VoiceBotService
+    VoiceBotService.addMessageHandler(handleIncomingMessage);
+});
+
+onUnmounted(() => {
+    // Clean up event listeners to prevent memory leaks
+    emitter.off('state-get-response');
+    VoiceBotService.removeMessageHandler(handleIncomingMessage);
+});
 </script>
 
 <style scoped>
@@ -121,9 +109,20 @@ export default {
     pointer-events: none;
 }
 
+.title {
+    font-size: 0.65em;
+    color: rgba(255, 255, 255, 0.7);
+    font-style: italic;
+    font-weight: 500;
+    width: 100%;
+    padding-bottom: 0.2em;
+    margin-bottom: 0.2em;
+    border-bottom: solid 1px rgba(255, 255, 255, 0.2);
+}
+
 .message {
-    margin-bottom: 0.5em;
-    padding-bottom: 0.3em;
+    margin-bottom: 0.3em;
+    padding-bottom: 0.2em;
     border-bottom: 1px solid #333;
     animation: slideIn 0.3s ease-out;
 }
@@ -131,9 +130,9 @@ export default {
 .message-header {
     display: flex;
     align-items: center;
-    gap: 0.5em;
-    font-size: 0.7em;
-    margin-bottom: 0.2em;
+    gap: 0.4em;
+    font-size: 0.65em;
+    margin-bottom: 0.1em;
 }
 
 .author {
@@ -142,7 +141,7 @@ export default {
 
 .role {
     background: #333;
-    padding: 0.1em 0.3em;
+    padding: 0.1em 0.2em;
     border-radius: 0.2em;
     font-size: 0.6em;
 }
@@ -154,7 +153,7 @@ export default {
 }
 
 .content {
-    font-size: 0.6em;
+    font-size: 0.55em;
     word-wrap: break-word;
 }
 

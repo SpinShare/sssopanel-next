@@ -32,6 +32,12 @@
 
         <template #transition>
             <SpinButton
+                @click="toggleRefDen"
+                :icon="refDenIsVisible ? 'comment-text-multiple' : 'comment-text-multiple-outline'"
+                :color="refDenIsVisible ? 'primary' : 'default'"
+                v-tooltip="'Toggle Ref Den'"
+            />
+            <SpinButton
                 @click="transition"
                 icon="record"
                 color="primary"
@@ -47,10 +53,12 @@ import AppLayout from '../../layouts/AppLayout.vue';
 import SpinButton from '@/components/Common/SpinButton.vue';
 import SpinInput from '@/components/Common/SpinInput.vue';
 import { onMounted, ref, inject, onUnmounted } from 'vue';
-const emitter = inject('emitter');
 import SpinSelect from '@/components/Common/SpinSelect.vue';
 import useTournamentAPI from '@/modules/useStartGGApi';
 import SpinLoader from '@/components/Common/SpinLoader.vue';
+
+const emitter = inject('emitter');
+const refDenIsVisible = ref(false);
 
 const loading = ref(false);
 const phases = ref([]);
@@ -65,6 +73,24 @@ const screenData = ref(null);
 const startGGApiToken = ref('');
 const startGGEventId = ref('-1');
 const startGGPhases = ref(null);
+
+const toggleRefDen = () => {
+    refDenIsVisible.value = !refDenIsVisible.value;
+    window.external.sendMessage(
+        JSON.stringify({
+            command: 'state-set',
+            data: {
+                refDenIsVisible: refDenIsVisible.value,
+            },
+        }),
+    );
+    window.external.sendMessage(
+        JSON.stringify({
+            command: 'state-get',
+        }),
+    );
+    console.log('[PANEL-BRACKETS] refDenIsVisible toggled:', refDenIsVisible.value);
+};
 
 const transition = () => {
     window.external.sendMessage(
@@ -151,6 +177,10 @@ onMounted(() => {
         }
 
         loading.value = false;
+    });
+
+    emitter.on('state-get-response', (state) => {
+        refDenIsVisible.value = state?.refDenIsVisible ?? false;
     });
 
     window.external.sendMessage(

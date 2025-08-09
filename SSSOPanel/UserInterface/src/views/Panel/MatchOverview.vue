@@ -23,6 +23,12 @@
 
         <template #transition>
             <SpinButton
+                @click="toggleRefDen"
+                :icon="refDenIsVisible ? 'comment-text-multiple' : 'comment-text-multiple-outline'"
+                :color="refDenIsVisible ? 'primary' : 'default'"
+                v-tooltip="'Toggle Ref Den'"
+            />
+            <SpinButton
                 @click="transition"
                 icon="record"
                 color="primary"
@@ -38,7 +44,6 @@ import SpinButton from '@/components/Common/SpinButton.vue';
 import SpinInput from '@/components/Common/SpinInput.vue';
 import SpinSelect from '@/components/Common/SpinSelect.vue';
 import { ref, inject, onMounted, onUnmounted } from 'vue';
-import useSpinShareApi from '@/modules/useSpinShareApi';
 const emitter = inject('emitter');
 
 const playerMappings = ref([]);
@@ -48,6 +53,8 @@ const player2Id = ref(null);
 
 const loadedPlayer1 = ref(null);
 const loadedPlayer2 = ref(null);
+
+const refDenIsVisible = ref(false);
 
 const transition = () => {
     window.external.sendMessage(
@@ -72,6 +79,24 @@ const transition = () => {
             },
         }),
     );
+};
+
+const toggleRefDen = () => {
+    refDenIsVisible.value = !refDenIsVisible.value;
+    window.external.sendMessage(
+        JSON.stringify({
+            command: 'state-set',
+            data: {
+                refDenIsVisible: refDenIsVisible.value,
+            },
+        }),
+    );
+    window.external.sendMessage(
+        JSON.stringify({
+            command: 'state-get',
+        }),
+    );
+    console.log('[PANEL-MATCHOVERVIEW] refDenIsVisible toggled:', refDenIsVisible.value);
 };
 
 const loadPlayers = (newMappings) => {
@@ -100,6 +125,7 @@ onMounted(() => {
         player2Id.value = state?.currentMatch?.players?.player2?.id ? state?.currentMatch?.players?.player2?.id + '' : player2Id.value;
         loadedPlayer1.value = state?.currentMatch?.players?.player1 ?? loadedPlayer1.value;
         loadedPlayer2.value = state?.currentMatch?.players?.player2 ?? loadedPlayer2.value;
+        refDenIsVisible.value = state?.refDenIsVisible ?? false;
     });
 
     emitter.on('settings-get-full-response', async (settings) => {
