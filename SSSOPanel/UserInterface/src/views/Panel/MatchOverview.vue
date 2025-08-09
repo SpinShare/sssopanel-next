@@ -43,9 +43,7 @@ import AppLayout from '../../layouts/AppLayout.vue';
 import SpinButton from '@/components/Common/SpinButton.vue';
 import SpinInput from '@/components/Common/SpinInput.vue';
 import SpinSelect from '@/components/Common/SpinSelect.vue';
-import ScreenRefDen from '@/components/ScreenRefDen/ScreenRefDen.vue';
 import { ref, inject, onMounted, onUnmounted } from 'vue';
-import useSpinShareApi from '@/modules/useSpinShareApi';
 const emitter = inject('emitter');
 
 const playerMappings = ref([]);
