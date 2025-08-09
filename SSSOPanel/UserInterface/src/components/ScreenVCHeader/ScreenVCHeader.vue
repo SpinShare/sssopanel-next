@@ -76,7 +76,7 @@ export default {
     },
     data() {
         return {
-            serverUrl: 'ws://100.104.94.41:8765',
+            serverUrl: 'ws://207.180.220.125:8765',
             channelId: '747601413172887552',
         };
     },

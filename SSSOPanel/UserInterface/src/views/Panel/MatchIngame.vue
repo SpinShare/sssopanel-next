@@ -229,6 +229,13 @@
 
         <template #transition>
             <SpinButton
+                @click="toggleRefDen"
+                :icon="refDenIsVisible ? 'comment-text-multiple' : 'comment-text-multiple-outline'"
+                :color="refDenIsVisible ? 'primary' : 'default'"
+                v-tooltip="'Toggle Ref Den'"
+            />
+            
+            <SpinButton
                 @click="transition"
                 icon="record"
                 color="primary"
@@ -358,6 +365,26 @@ const setPlayer2 = () => {
     loadedPlayer2.value = playerMappings.value.find((x) => x.id + '' === player2Id.value);
 };
 
+const refDenIsVisible = ref(false);
+
+const toggleRefDen = () => {
+    refDenIsVisible.value = !refDenIsVisible.value;
+    window.external.sendMessage(
+        JSON.stringify({
+            command: 'state-set',
+            data: {
+                refDenIsVisible: refDenIsVisible.value,
+            },
+        }),
+    );
+    window.external.sendMessage(
+        JSON.stringify({
+            command: 'state-get',
+        }),
+    );
+    console.log('[PANEL-MATCHOVERVIEW] refDenIsVisible toggled:', refDenIsVisible.value);
+};
+
 onMounted(() => {
     emitter.on('state-get-response', (state) => {
         player1Id.value = state?.currentMatch?.players?.player1?.id ? state?.currentMatch?.players?.player1?.id + '' : player1Id.value;
@@ -380,6 +407,8 @@ onMounted(() => {
 
         streamsActive.value = state?.currentMatch?.streamsActive ?? streamsActive.value;
         audioActive.value = state?.currentMatch?.audioActive ?? audioActive.value;
+
+        refDenIsVisible.value = state?.refDenIsVisible ?? false;
     });
 
     emitter.on('settings-get-full-response', async (settings) => {

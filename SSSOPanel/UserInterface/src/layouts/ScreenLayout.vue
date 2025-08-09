@@ -1,7 +1,11 @@
 <template>
     <AspectLayout>
-        <main class="layout-screen" :style="{ gridTemplateRows }">
+        <main
+            class="layout-screen"
+            :style="{ gridTemplateRows }"
+        >
             <ScreenVCHeader v-if="showHeader" />
+            <ScreenRefDen />
 
             <slot />
 
@@ -17,6 +21,7 @@ import router from '@/router';
 import AspectLayout from '@/layouts/AspectLayout.vue';
 import ScreenFooter from '@/components/ScreenFooter/ScreenFooter.vue';
 import ScreenVCHeader from '../components/ScreenVCHeader/ScreenVCHeader.vue';
+import ScreenRefDen from '../components/ScreenRefDen/ScreenRefDen.vue';
 
 const emitter = inject('emitter');
 const route = useRoute();

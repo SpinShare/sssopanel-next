@@ -166,6 +166,8 @@
                             <span class="artist">{{ chart.artist }} &bull; {{ chart.charter }}</span>
                         </div>
                     </div>
+
+
                     <div class="banner">
                         <div class="tint summer"></div>
                         <div class="noise"></div>
@@ -297,323 +299,323 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-    .screen-match-ingame {
-        color: #222;
-        position: relative;
-        display: flex;
-        justify-content: center;
+.screen-match-ingame {
+    color: #222;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    & .tint {
+        background: url('../../assets/background.svg');
+        background-size: cover;
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        top: 0;
+        filter: contrast(1) brightness(0.125) grayscale(2);
+    }
+
+    &.winter {
+        filter: hue-rotate(160deg);
+    }
+
+    &.summer {
+        filter: hue-rotate(-25deg); // Default Summer: 0deg, Adjusted for late SSSO: -25deg
+    }
+
+    & .noise {
+        background: url('../../assets/noise.png');
+        background-size: 5em;
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        top: 0;
+        opacity: 0.4;
+        mix-blend-mode: soft-light;
+    }
+
+    & .content {
+        display: grid;
+        grid-template-rows: 1fr auto 1fr;
         align-items: center;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        font-size: 1vw;
+        z-index: 10;
+        color: #eee;
 
-        & .tint {
-            background: url('../../assets/background.svg');
-            background-size: cover;
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            top: 0;
-            filter: contrast(1) brightness(0.125) grayscale(2);
-        }
-
-        &.winter {
-            filter: hue-rotate(160deg);
-        }
-
-        &.summer {
-            filter: hue-rotate(-25deg); // Default Summer: 0deg, Adjusted for late SSSO: -25deg
-        }
-
-        & .noise {
-            background: url('../../assets/noise.png');
-            background-size: 5em;
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            top: 0;
-            opacity: 0.4;
-            mix-blend-mode: soft-light;
-        }
-
-        & .content {
+        & .match-info {
             display: grid;
-            grid-template-rows: 1fr auto 1fr;
-            align-items: center;
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            font-size: 1vw;
-            z-index: 10;
-            color: #eee;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 2vw;
+            padding: 0 4vw;
 
-            & .match-info {
-                display: grid;
-                grid-template-columns: 1fr auto 1fr;
-                gap: 2vw;
-                padding: 0 4vw;
+            & .player {
+                display: flex;
+                align-items: center;
+                gap: 1.5vw;
 
-                & .player {
+                & .avatar {
+                    background-position: center;
+                    background-size: cover;
+                    width: 6vw;
+                    height: 6vw;
+                    border-radius: 100%;
+                }
+
+                & .meta {
                     display: flex;
-                    align-items: center;
-                    gap: 1.5vw;
+                    flex-direction: column;
+                    gap: 0.5vw;
 
-                    & .avatar {
-                        background-position: center;
-                        background-size: cover;
-                        width: 6vw;
-                        height: 6vw;
-                        border-radius: 100%;
+                    & .pronouns {
+                        color: rgba(255, 255, 255, 0.6);
+                        font-size: 1.25vw;
+                        font-weight: 600;
                     }
 
-                    & .meta {
-                        display: flex;
-                        flex-direction: column;
-                        gap: 0.5vw;
-
-                        & .pronouns {
-                            color: rgba(255, 255, 255, 0.6);
-                            font-size: 1.25vw;
-                            font-weight: 600;
-                        }
-
-                        & .username {
-                            font-weight: 600;
-                            font-size: 1.75vw;
-                            letter-spacing: 0.1vw;
-                        }
-                    }
-
-                    &:nth-child(3) {
-                        justify-content: flex-end;
-
-                        & .meta {
-                            text-align: right;
-                        }
+                    & .username {
+                        font-weight: 600;
+                        font-size: 1.75vw;
+                        letter-spacing: 0.1vw;
                     }
                 }
 
-                & .stats {
-                    background: #111;
-                    padding: 1.25vw 2vw;
-                    border-radius: 0.5vw;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 1vw;
-                    align-items: center;
-                    position: relative;
-                    overflow: hidden;
+                &:nth-child(3) {
+                    justify-content: flex-end;
 
-                    & .tint {
-                        background: url('../../assets/background.svg');
-                        background-size: cover;
-                        position: absolute;
-                        left: 0;
-                        right: 0;
-                        bottom: 0;
-                        top: 0;
-                        z-index: 0;
+                    & .meta {
+                        text-align: right;
+                    }
+                }
+            }
 
-                        &.winter {
-                            filter: hue-rotate(160deg);
-                        }
+            & .stats {
+                background: #111;
+                padding: 1.25vw 2vw;
+                border-radius: 0.5vw;
+                display: flex;
+                flex-direction: column;
+                gap: 1vw;
+                align-items: center;
+                position: relative;
+                overflow: hidden;
 
-                        &.summer {
-                            filter: hue-rotate(-25deg); // Default Summer: 0deg, Adjusted for late SSSO: -25deg
-                        }
+                & .tint {
+                    background: url('../../assets/background.svg');
+                    background-size: cover;
+                    position: absolute;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    top: 0;
+                    z-index: 0;
+
+                    &.winter {
+                        filter: hue-rotate(160deg);
                     }
 
-                    & .sets {
-                        position: relative;
-                        z-index: 10;
-                        color: #111;
+                    &.summer {
+                        filter: hue-rotate(-25deg); // Default Summer: 0deg, Adjusted for late SSSO: -25deg
+                    }
+                }
+
+                & .sets {
+                    position: relative;
+                    z-index: 10;
+                    color: #111;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5vw;
+
+                    & .current,
+                    & .max {
+                        width: 2.5vw;
+                        font-size: 2vw;
+                        font-weight: bold;
+                        text-align: center;
+                    }
+
+                    & .of {
+                        font-weight: bold;
+                        font-size: 1.15vw;
+                        letter-spacing: 0.25vw;
+                        background: #111;
+                        color: #ededed;
+                        padding: 0.5vw 0.5vw;
+                        border-radius: 0.25vw;
+                    }
+                }
+
+                & .score {
+                    display: flex;
+                    gap: 2vw;
+                    justify-items: center;
+                    align-items: center;
+                    z-index: 10;
+
+                    & .player {
                         display: flex;
-                        align-items: center;
                         gap: 0.5vw;
 
-                        & .current,
-                        & .max {
-                            width: 2.5vw;
-                            font-size: 2vw;
-                            font-weight: bold;
-                            text-align: center;
-                        }
-
-                        & .of {
-                            font-weight: bold;
-                            font-size: 1.15vw;
-                            letter-spacing: 0.25vw;
-                            background: #111;
-                            color: #ededed;
-                            padding: 0.5vw 0.5vw;
+                        & .point {
+                            border: 0.125vw solid rgba(0, 0, 0, 0.4);
+                            width: 1vw;
+                            height: 1vw;
                             border-radius: 0.25vw;
-                        }
-                    }
 
-                    & .score {
-                        display: flex;
-                        gap: 2vw;
-                        justify-items: center;
-                        align-items: center;
-                        z-index: 10;
-
-                        & .player {
-                            display: flex;
-                            gap: 0.5vw;
-
-                            & .point {
-                                border: 0.125vw solid rgba(0, 0, 0, 0.4);
-                                width: 1vw;
-                                height: 1vw;
-                                border-radius: 0.25vw;
-
-                                &.active {
-                                    background: #111;
-                                }
+                            &.active {
+                                background: #111;
                             }
                         }
                     }
                 }
             }
+        }
 
-            & .streams {
+        & .streams {
+            position: relative;
+            width: 100%;
+            height: 28vw;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background: #111;
+
+            & .stream {
                 position: relative;
-                width: 100%;
-                height: 28vw;
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                background: #111;
 
-                & .stream {
-                    position: relative;
+                & .audio-active {
+                    position: absolute;
+                    left: 0.5vw;
+                    bottom: 0.5vw;
+                    padding: 0.25vw 0.5vw;
+                    background: #111;
+                    color: #ededed;
+                    border-radius: 0.5vw;
+                    font-size: 1.5vw;
+                    z-index: 500;
+                }
+            }
+        }
 
-                    & .audio-active {
-                        position: absolute;
-                        left: 0.5vw;
-                        bottom: 0.5vw;
-                        padding: 0.25vw 0.5vw;
-                        background: #111;
-                        color: #ededed;
-                        border-radius: 0.5vw;
+        & .chart-info {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 2vw;
+            padding: 0 4vw;
+            align-items: center;
+
+            & .chart {
+                display: flex;
+                gap: 2vw;
+                align-items: center;
+
+                .cover {
+                    width: 7vw;
+                    height: 7vw;
+                    border-radius: 1vw;
+                    flex-shrink: 0;
+                    background-position: center;
+                    background-size: cover;
+                }
+
+                & .meta {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.5vw;
+
+                    & .title {
+                        font-weight: 600;
                         font-size: 1.5vw;
-                        z-index: 500;
+                        letter-spacing: 0.1vw;
+                        overflow: hidden;
+                        word-break: break-all;
+                        max-width: 50vw;
+                        white-space: nowrap;
+                        text-overflow: ellipsis;
+                    }
+
+                    & .artist {
+                        color: rgba(255, 255, 255, 0.6);
+                        font-size: 1vw;
+                        overflow: hidden;
+                        word-break: break-all;
+                        max-width: 50vw;
+                        white-space: nowrap;
+                        text-overflow: ellipsis;
                     }
                 }
             }
 
-            & .chart-info {
-                display: grid;
-                grid-template-columns: 1fr auto;
-                gap: 2vw;
-                padding: 0 4vw;
+            & .banner {
+                background: #111;
+                padding: 1.25vw 2vw;
+                border-radius: 0.5vw;
+                display: flex;
+                gap: 1vw;
                 align-items: center;
+                position: relative;
+                overflow: hidden;
 
-                & .chart {
-                    display: flex;
-                    gap: 2vw;
-                    align-items: center;
+                & .tint {
+                    background: url('../../assets/background.svg');
+                    background-size: cover;
+                    position: absolute;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    top: 0;
+                    z-index: 0;
 
-                    .cover {
-                        width: 7vw;
-                        height: 7vw;
-                        border-radius: 1vw;
-                        flex-shrink: 0;
-                        background-position: center;
-                        background-size: cover;
+                    &.winter {
+                        filter: hue-rotate(160deg);
                     }
 
-                    & .meta {
-                        display: flex;
-                        flex-direction: column;
-                        gap: 0.5vw;
-
-                        & .title {
-                            font-weight: 600;
-                            font-size: 1.5vw;
-                            letter-spacing: 0.1vw;
-                            overflow: hidden;
-                            word-break: break-all;
-                            max-width: 50vw;
-                            white-space: nowrap;
-                            text-overflow: ellipsis;
-                        }
-
-                        & .artist {
-                            color: rgba(255, 255, 255, 0.6);
-                            font-size: 1vw;
-                            overflow: hidden;
-                            word-break: break-all;
-                            max-width: 50vw;
-                            white-space: nowrap;
-                            text-overflow: ellipsis;
-                        }
+                    &.summer {
+                        filter: hue-rotate(-25deg); // Default Summer: 0deg, Adjusted for late SSSO: -25deg
                     }
                 }
 
-                & .banner {
-                    background: #111;
-                    padding: 1.25vw 2vw;
-                    border-radius: 0.5vw;
+                & .text {
                     display: flex;
-                    gap: 1vw;
-                    align-items: center;
+                    gap: 0.5vw;
+                    flex-direction: column;
+                    text-align: right;
                     position: relative;
-                    overflow: hidden;
+                    z-index: 10;
 
-                    & .tint {
-                        background: url('../../assets/background.svg');
-                        background-size: cover;
-                        position: absolute;
-                        left: 0;
-                        right: 0;
-                        bottom: 0;
-                        top: 0;
-                        z-index: 0;
-
-                        &.winter {
-                            filter: hue-rotate(160deg);
-                        }
-
-                        &.summer {
-                            filter: hue-rotate(-25deg); // Default Summer: 0deg, Adjusted for late SSSO: -25deg
-                        }
+                    & span:nth-child(1) {
+                        font-size: 0.9vw;
+                        color: rgba(0, 0, 0, 0.75);
+                        letter-spacing: 0.1vw;
                     }
 
-                    & .text {
-                        display: flex;
-                        gap: 0.5vw;
-                        flex-direction: column;
-                        text-align: right;
-                        position: relative;
-                        z-index: 10;
-
-                        & span:nth-child(1) {
-                            font-size: 0.9vw;
-                            color: rgba(0, 0, 0, 0.75);
-                            letter-spacing: 0.1vw;
-                        }
-
-                        & span:nth-child(2) {
-                            color: #111;
-                            font-size: 1.25vw;
-                            font-weight: 600;
-                        }
-                    }
-
-                    & .mdi {
-                        position: relative;
-                        z-index: 10;
-                        width: 3vw;
-                        height: 3vw;
-                        font-size: 2.5vw;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
+                    & span:nth-child(2) {
                         color: #111;
+                        font-size: 1.25vw;
+                        font-weight: 600;
                     }
+                }
+
+                & .mdi {
+                    position: relative;
+                    z-index: 10;
+                    width: 3vw;
+                    height: 3vw;
+                    font-size: 2.5vw;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: #111;
                 }
             }
         }
     }
+}
 </style>
