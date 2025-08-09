@@ -3,6 +3,7 @@
         class="container"
         :class="{ hidden: !refDenIsVisible }"
     >
+        <h1 class="title">#referee-den</h1>
         <div
             v-for="(message, index) in messages"
             :key="index"
@@ -54,12 +55,14 @@ const handleIncomingMessage = (message) => {
         if (localMessages.value.length > maxMessages.value) {
             localMessages.value.pop();
         }
-        window.external.sendMessage(JSON.stringify({
-            command: 'state-set',
-            data: {
-                refDenMessages: localMessages.value
-            }
-        }));
+        window.external.sendMessage(
+            JSON.stringify({
+                command: 'state-set',
+                data: {
+                    refDenMessages: localMessages.value,
+                },
+            }),
+        );
     }
 };
 
@@ -106,9 +109,20 @@ onUnmounted(() => {
     pointer-events: none;
 }
 
+.title {
+    font-size: 0.65em;
+    color: rgba(255, 255, 255, 0.7);
+    font-style: italic;
+    font-weight: 500;
+    width: 100%;
+    padding-bottom: 0.2em;
+    margin-bottom: 0.2em;
+    border-bottom: solid 1px rgba(255, 255, 255, 0.2);
+}
+
 .message {
-    margin-bottom: 0.5em;
-    padding-bottom: 0.3em;
+    margin-bottom: 0.3em;
+    padding-bottom: 0.2em;
     border-bottom: 1px solid #333;
     animation: slideIn 0.3s ease-out;
 }
@@ -116,9 +130,9 @@ onUnmounted(() => {
 .message-header {
     display: flex;
     align-items: center;
-    gap: 0.5em;
-    font-size: 0.7em;
-    margin-bottom: 0.2em;
+    gap: 0.4em;
+    font-size: 0.65em;
+    margin-bottom: 0.1em;
 }
 
 .author {
@@ -127,7 +141,7 @@ onUnmounted(() => {
 
 .role {
     background: #333;
-    padding: 0.1em 0.3em;
+    padding: 0.1em 0.2em;
     border-radius: 0.2em;
     font-size: 0.6em;
 }
@@ -139,7 +153,7 @@ onUnmounted(() => {
 }
 
 .content {
-    font-size: 0.6em;
+    font-size: 0.55em;
     word-wrap: break-word;
 }
 
