@@ -88,7 +88,7 @@ onUnmounted(() => {
 <style scoped>
 .container {
     width: 40vw;
-    height: 9em;
+    height: 9.4em;
     position: fixed;
     background: rgba(17, 17, 17, 0.9);
     border-radius: 0.3em;
