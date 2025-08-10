@@ -11,8 +11,8 @@ const state = reactive({
 
 let websocket = null;
 let reconnectAttempts = 0;
-const maxReconnectAttempts = 5;
-const reconnectDelay = 3000;
+const maxReconnectAttempts = 100;
+const reconnectDelay = 5000;
 const maxStoredMessages = 20;
 
 function connect(serverUrl, channelId) {
