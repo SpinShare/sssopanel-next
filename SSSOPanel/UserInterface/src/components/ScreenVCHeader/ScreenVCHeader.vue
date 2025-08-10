@@ -1,36 +1,16 @@
 <template>
     <div class="voice-status-bar">
-        <div class="header">Commentary Team</div>
+        <div 
+            v-if="isConnected"
+            class="header">
+            Commentary Team
+        </div>
         <!-- Move all connect and disconnect logic to panel!!! -->
         <div
             v-if="!isConnected"
-            class="connection-form"
+            class="no-members"
         >
-            <h2>Connect</h2>
-            <div class="form-group">
-                <label>Server:</label>
-                <input
-                    v-model="serverUrl"
-                    type="text"
-                    placeholder="ws://localhost:8765"
-                    class="form-input"
-                />
-            </div>
-            <div class="form-group">
-                <label>Channel ID:</label>
-                <input
-                    v-model="channelId"
-                    type="text"
-                    placeholder="Channel ID"
-                    class="form-input"
-                />
-            </div>
-            <button
-                @click="connectToBot"
-                class="connect-btn"
-            >
-                Connect
-            </button>
+            Bot is not connected. Reconnect in progress...
         </div>
 
         <div
@@ -225,6 +205,7 @@ export default {
     font-size: 0.9vw;
     color: rgba(255, 255, 255, 0.7);
     white-space: nowrap;
+    margin-left:2vh;
 }
 
 .members-container {
