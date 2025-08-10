@@ -123,3 +123,4 @@ SSSOPanel/Resources/wwwroot/
 # stuff from gav's setup
 StartServer.bat
 StartPanel.bat
+SSSOPanel/Resources/wwwroot/index.html
