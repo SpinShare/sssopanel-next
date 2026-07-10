@@ -1,5 +1,5 @@
+using ElectronNET.API;
 using Newtonsoft.Json.Linq;
-using PhotinoNET;
 
 namespace SSSOPanel.MessageParser;
 
@@ -10,7 +10,7 @@ public class CommandSettingsGet : ICommand
 {
     private SettingsManager.SettingsManager? _settingsManager;
     
-    public async Task Execute(PhotinoWindow? sender, object? data)
+    public async Task Execute(BrowserWindow? sender, object? data)
     {
         if (data == null) return;
         _settingsManager = SettingsManager.SettingsManager.GetInstance();

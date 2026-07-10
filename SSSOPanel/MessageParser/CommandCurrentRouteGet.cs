@@ -1,10 +1,10 @@
-using PhotinoNET;
+using ElectronNET.API;
 
 namespace SSSOPanel.MessageParser;
 
 public class CommandCurrentRouteGet : ICommand
 {
-    public async Task Execute(PhotinoWindow? sender, object? data)
+    public async Task Execute(BrowserWindow? sender, object? data)
     {
         var screenManager = ScreenManager.ScreenManager.GetInstance();
         

@@ -1,11 +1,11 @@
 using System.Diagnostics;
-using PhotinoNET;
+using ElectronNET.API;
 
 namespace SSSOPanel.MessageParser;
 
 public class CommandOpenInExplorer : ICommand
 {
-    public async Task Execute(PhotinoWindow? sender, object? data)
+    public async Task Execute(BrowserWindow? sender, object? data)
     {
         if (data == null) return;
         var path = data.ToString();

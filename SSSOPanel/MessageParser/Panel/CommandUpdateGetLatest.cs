@@ -1,5 +1,5 @@
+using ElectronNET.API;
 using Newtonsoft.Json;
-using PhotinoNET;
 
 namespace SSSOPanel.MessageParser;
 
@@ -7,7 +7,7 @@ using UpdateManager;
 
 public class CommandUpdateGetLatest : ICommand
 {
-    public async Task Execute(PhotinoWindow? sender, object? data)
+    public async Task Execute(BrowserWindow? sender, object? data)
     {
         var updateManager = UpdateManager.GetInstance();
         Console.WriteLine("Getting latest Version");

@@ -1,11 +1,11 @@
+using ElectronNET.API;
 using Newtonsoft.Json.Linq;
-using PhotinoNET;
 
 namespace SSSOPanel.MessageParser;
 
 public class CommandStateGet: ICommand
 {
-    public async Task Execute(PhotinoWindow? sender, object? data)
+    public async Task Execute(BrowserWindow? sender, object? data)
     {
         var screenManager = ScreenManager.ScreenManager.GetInstance();
             

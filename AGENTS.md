@@ -10,7 +10,7 @@ This project is migrating from **Photino.NET** to **Electron.NET**. Follow these
 2. ✅ **Phase 1: C# Project Setup** — Edit `SSSOPanel.csproj`: swap SDK to `Microsoft.NET.Sdk.Web`, remove Photino packages, add `ElectronNET.API`, add Electron config properties
 3. ✅ **Phase 2: New Files** — Create `preload.js` and `custom_main.js` in `SSSOPanel/`
 4. ✅ **Phase 3: C# Core** — Rewrite `Program.cs`, `ScreenManager.cs`, `MessageHandler.cs`, `ICommand.cs`
-5. **Phase 4: C# Commands** — Update all 17 `Command*.cs` files (`PhotinoWindow?` → `BrowserWindow?`)
+5. ✅ **Phase 4: C# Commands** — Update all 17 `Command*.cs` files (`PhotinoWindow?` → `BrowserWindow?`)
 6. **Phase 5: Vue Frontend** — Update all 22 files using `window.external.*` → `window.electronAPI.*`
 7. **Phase 6: Build & CI** — Create `electron.manifest.json`, update GitHub Actions, update dev script
 8. **Verify** — `npm run lint` (0 errors), `dotnet build` (0 errors), `electronize start` launches both windows

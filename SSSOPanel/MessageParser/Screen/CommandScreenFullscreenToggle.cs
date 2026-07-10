@@ -1,10 +1,10 @@
-using PhotinoNET;
+using ElectronNET.API;
 
 namespace SSSOPanel.MessageParser;
 
 public class CommandScreenFullscreenToggle: ICommand
 {
-    public async Task Execute(PhotinoWindow? sender, object? data)
+    public async Task Execute(BrowserWindow? sender, object? data)
     {
         if (sender == null) return;
         

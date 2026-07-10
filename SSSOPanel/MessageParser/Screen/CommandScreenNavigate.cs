@@ -1,12 +1,12 @@
+using ElectronNET.API;
 using Newtonsoft.Json.Linq;
-using PhotinoNET;
 using SSSOPanel.ScreenManager;
 
 namespace SSSOPanel.MessageParser;
 
 public class CommandScreenNavigate: ICommand
 {
-    public async Task Execute(PhotinoWindow? sender, object? data)
+    public async Task Execute(BrowserWindow? sender, object? data)
     {
         if (data == null) return;
 
