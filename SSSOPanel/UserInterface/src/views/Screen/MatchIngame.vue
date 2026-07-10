@@ -118,9 +118,10 @@
                                 </div>
                             </transition>
 
-                            <OvenPlayerVue3
-                                ref="stream1Ref"
-                                :config="stream1Config"
+                            <WhepPlayer
+                                :url="stream1Url"
+                                :muted="stream1Muted"
+                                :active="streamsActive"
                             />
                         </div>
                     </transition>
@@ -145,9 +146,10 @@
                                 </div>
                             </transition>
 
-                            <OvenPlayerVue3
-                                ref="stream2Ref"
-                                :config="stream2Config"
+                            <WhepPlayer
+                                :url="stream2Url"
+                                :muted="stream2Muted"
+                                :active="streamsActive"
                             />
                         </div>
                     </transition>
@@ -184,27 +186,15 @@
 </template>
 
 <script setup>
-import OvenPlayerVue3 from 'ovenplayer-vue3';
+import WhepPlayer from '@/components/Common/WhepPlayer.vue';
 import ScreenLayout from '../../layouts/ScreenLayout.vue';
 import { ref, inject, onMounted, onUnmounted } from 'vue';
 const emitter = inject('emitter');
 
-const streamConfig = {
-    autoStart: true,
-    showBigPlayButton: false,
-    doubleTapToSeek: false,
-    controls: false,
-};
-const stream1Ref = ref(null);
-const stream2Ref = ref(null);
-const stream1Config = {
-    mute: false,
-    ...streamConfig,
-};
-const stream2Config = {
-    mute: true,
-    ...streamConfig,
-};
+const stream1Url = ref('');
+const stream2Url = ref('');
+const stream1Muted = ref(false);
+const stream2Muted = ref(true);
 
 const player1 = ref(null);
 const player2 = ref(null);
@@ -218,45 +208,30 @@ const audioActive = ref('left');
 
 const updateAudioState = () => {
     if (audioActive.value === 'left') {
-        stream1Ref.value.playerInstance.setMute(false);
-        stream2Ref.value.playerInstance.setMute(true);
+        stream1Muted.value = false;
+        stream2Muted.value = true;
     } else {
-        stream1Ref.value.playerInstance.setMute(true);
-        stream2Ref.value.playerInstance.setMute(false);
+        stream1Muted.value = true;
+        stream2Muted.value = false;
     }
 };
 
 const updateStreamsState = () => {
-    if (streamsActive.value) {
-        stream1Ref.value.playerInstance.play();
-        stream2Ref.value.playerInstance.play();
-    } else {
-        stream1Ref.value.playerInstance.stop();
-        stream2Ref.value.playerInstance.stop();
-    }
+    // The WhepPlayer `active` prop is bound to `streamsActive` directly,
+    // so pausing / resuming is handled by the component. Nothing to do here.
 };
 
 const updateStreams = () => {
-    if (!stream1Ref.value.playerInstance.getPlaylist()[0]?.sources[0]?.file?.includes(player1.value.key ?? 'unknown')) {
-        stream1Ref.value.playerInstance.stop();
-        stream1Ref.value.playerInstance.load([
-            {
-                type: 'webrtc',
-                file: `ws://${player1.value.region ?? 'unknown'}.rtmp.spinsha.re:3333/app/${player1.value.key ?? 'unknown'}`,
-            },
-        ]);
-        stream1Ref.value.playerInstance.play();
-    }
+    const key1 = player1.value?.key ?? '';
+    const key2 = player2.value?.key ?? '';
+    const url1 = key1 ? `https://mtx.raibu.stream/${key1}/whep` : '';
+    const url2 = key2 ? `https://mtx.raibu.stream/${key2}/whep` : '';
 
-    if (!stream2Ref.value.playerInstance.getPlaylist()[0]?.sources[0]?.file?.includes(player2.value.key ?? 'unknown')) {
-        stream2Ref.value.playerInstance.stop();
-        stream2Ref.value.playerInstance.load([
-            {
-                type: 'webrtc',
-                file: `ws://${player2.value.region ?? 'unknown'}.rtmp.spinsha.re:3333/app/${player2.value.key ?? 'unknown'}`,
-            },
-        ]);
-        stream2Ref.value.playerInstance.play();
+    if (stream1Url.value !== url1) {
+        stream1Url.value = url1;
+    }
+    if (stream2Url.value !== url2) {
+        stream2Url.value = url2;
     }
 };
 

@@ -9,12 +9,12 @@
     "prettier": "prettier"
   },
   "dependencies": {
+    "@eyevinn/webrtc-player": "^0.13.0",
     "@imengyu/vue3-context-menu": "^1.2.10",
     "@mdi/font": "^7.2.96",
     "floating-vue": "^2.0.0-beta.20",
     "mitt": "^3.0.0",
     "moment": "^2.29.4",
-    "ovenplayer-vue3": "^1.0.0-beta.2",
     "sass": "^1.62.1",
     "vue": "^3.2.38",
     "vue-router": "^4.2.0"

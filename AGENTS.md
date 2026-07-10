@@ -31,6 +31,75 @@ This project is migrating from **Photino.NET** to **Electron.NET**. Follow these
 
 Detailed instructions for each phase are in the **Electron.NET Migration Plan** section below. If the project is already migrated, skip to the **Coding Standards** and **Commands** sections for daily development.
 
+## WHEP Stream Playback Migration
+
+Migrate from **OvenPlayer + OvenMediaEngine WebRTC-over-WebSocket** to **WHEP** (WebRTC-HTTP Egress Protocol) via `@eyevinn/webrtc-player`.
+
+### Decision summary
+
+- **Player:** `@eyevinn/webrtc-player` with `type: 'whep'`
+- **Endpoint:** `https://mtx.raibu.stream/{key}/whep`
+- **Per-stream mute:** yes, via the underlying `<video>` element
+- **UI simplification:** drop the `Region` dropdown everywhere
+
+### Files to change
+
+1. **`SSSOPanel/UserInterface/package.json`**
+   - Remove: `ovenplayer-vue3`
+   - Add: `@eyevinn/webrtc-player`
+
+2. **New: `SSSOPanel/UserInterface/src/components/Common/WhepPlayer.vue`**
+   - Thin wrapper around `@eyevinn/webrtc-player`
+   - Props: `url` (string), `muted` (boolean), `active` (boolean)
+   - Renders a `<video autoplay playsinline>` that fills its container
+   - On mount / `url` change: calls `player.load(new URL(props.url))`
+   - On `active` false: pauses the video
+   - On `active` true: re-loads / plays
+   - On `muted` change: sets `video.muted`
+   - On unmount: tears down the player / closes the peer connection
+   - ICE config: `[{ urls: 'stun:stun.l.google.com:19302' }]`
+
+3. **`SSSOPanel/UserInterface/src/views/Screen/MatchIngame.vue`**
+   - Replace `OvenPlayerVue3` with the new `WhepPlayer`
+   - Remove `ovenplayer-vue3` import
+   - Remove `streamConfig`, `stream1Config`, `stream2Config`
+   - Add refs for the two WHEP URLs and two muted flags
+   - Build URLs:
+     ```js
+     `https://mtx.raibu.stream/${player1.value.key}/whep`
+     `https://mtx.raibu.stream/${player2.value.key}/whep`
+     ```
+   - `updateAudioState()` → set `stream1Muted` / `stream2Muted`
+   - `updateStreamsState()` → set `stream1Active` / `stream2Active`
+   - `updateStreams()` → only update the URL refs when the key changes
+
+4. **`SSSOPanel/UserInterface/src/views/Panel/MatchIngame.vue`**
+   - Remove the `regions` array
+   - Remove `player1Region` / `player2Region` refs
+   - Remove the two "Region" `SpinSelect` inputs
+   - Keep the "Key" inputs (hint → "WHEP stream key")
+   - Update `updateState()` so `player1` / `player2` objects contain only `...loadedPlayer`, `key`
+   - Update the `state-get-response` handler so it reads only `key`, not `region`
+   - Backward compat: old saved state containing `region` is ignored gracefully
+
+5. **`SSSOPanel/UserInterface/src/assets/third-party-licenses.md`**
+   - Remove the `ovenplayer-vue3` and `ovenplayer` entries
+
+### Verification
+
+1. `cd SSSOPanel/UserInterface && npm install`
+2. `npm run lint`
+3. `cd SSSOPanel && ./dev.sh`
+4. Smoke test:
+
+**IMPORTANT**: After adding/removing npm dependencies, the Vite dev server (`npm run dev`) must be restarted to re-optimize. Otherwise the stale `node_modules/.vite/deps/` cache will be missing the new package's optimized bundle, causing a silent import failure → blank/white screen. If you get a white screen after changing dependencies, stop Vite, delete `node_modules/.vite/deps/`, and restart `npm run dev`.
+   - Open Panel → Match (Ingame)
+   - Set two stream keys
+   - Transition to screen
+   - Confirm both WHEP streams load
+   - Toggle audio left/right
+   - Toggle streams off/on
+
 ## Project Overview
 
 Desktop streaming overlay application for SpinShare SpeenOpen (Spin Rhythm XD tournaments). Two-window desktop app: **Panel** (operator controls) and **Screen** (livestream overlay).

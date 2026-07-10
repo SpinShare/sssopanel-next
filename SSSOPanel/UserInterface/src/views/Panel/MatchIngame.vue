@@ -146,18 +146,8 @@
                 />
             </SpinInput>
             <SpinInput
-                label="Region"
-                hint="Livestream"
-                type="horizontal"
-            >
-                <SpinSelect
-                    v-model="player1Region"
-                    :options="regions"
-                />
-            </SpinInput>
-            <SpinInput
                 label="Key"
-                hint="Livestream"
+                hint="WHEP stream key"
                 type="horizontal"
             >
                 <input
@@ -194,18 +184,8 @@
                 />
             </SpinInput>
             <SpinInput
-                label="Region"
-                hint="Livestream"
-                type="horizontal"
-            >
-                <SpinSelect
-                    v-model="player2Region"
-                    :options="regions"
-                />
-            </SpinInput>
-            <SpinInput
                 label="Key"
-                hint="Livestream"
+                hint="WHEP stream key"
                 type="horizontal"
             >
                 <input
@@ -259,13 +239,6 @@ import useSpinShareApi from '@/modules/useSpinShareApi';
 const currentScreen = useCurrentScreen();
 const emitter = inject('emitter');
 
-const regions = [
-    { icon: 'earth', label: 'EU3', value: 'eu3' },
-    { icon: 'earth', label: 'USE', value: 'use' },
-    { icon: 'earth', label: 'USW', value: 'usw' },
-    { icon: 'earth', label: 'OCE', value: 'oce' },
-];
-
 const playerMappings = ref([]);
 const playerSelectOptions = ref([]);
 const player1Id = ref(null);
@@ -273,9 +246,7 @@ const player2Id = ref(null);
 
 const loadedPlayer1 = ref(null);
 const loadedPlayer2 = ref(null);
-const player1Region = ref('eu3');
 const player1Key = ref('');
-const player2Region = ref('eu3');
 const player2Key = ref('');
 const chartId = ref(0);
 const loadedChart = ref(null);
@@ -306,12 +277,10 @@ const updateState = () => {
             players: {
                 player1: {
                     ...loadedPlayer1.value,
-                    region: player1Region.value,
                     key: player1Key.value,
                 },
                 player2: {
                     ...loadedPlayer2.value,
-                    region: player2Region.value,
                     key: player2Key.value,
                 },
             },
@@ -394,12 +363,10 @@ onMounted(() => {
         player1Id.value = state?.currentMatch?.players?.player1?.id ? state?.currentMatch?.players?.player1?.id + '' : player1Id.value;
         loadedPlayer1.value = state?.currentMatch?.players?.player1 ?? loadedPlayer1.value;
         player1Key.value = state?.currentMatch?.players?.player1?.key ?? player1Key.value;
-        player1Region.value = state?.currentMatch?.players?.player1?.region ?? player1Region.value;
 
         player2Id.value = state?.currentMatch?.players?.player2?.id ? state?.currentMatch?.players?.player2?.id + '' : player2Id.value;
         loadedPlayer2.value = state?.currentMatch?.players?.player2 ?? loadedPlayer2.value;
         player2Key.value = state?.currentMatch?.players?.player2?.key ?? player2Key.value;
-        player2Region.value = state?.currentMatch?.players?.player2?.region ?? player2Region.value;
 
         scoresSetsCurrent.value = state?.currentMatch?.scores?.sets?.current ?? scoresSetsCurrent.value;
         scoresSetsMax.value = state?.currentMatch?.scores?.sets?.max ?? scoresSetsMax.value;
