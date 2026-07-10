@@ -12,6 +12,7 @@
 		<UseAppRoot>true</UseAppRoot>
 		<ElectronMainJs>custom_main.js</ElectronMainJs>
 		<ElectronPreloadJs>preload.js</ElectronPreloadJs>
+		<RollForward>LatestMajor</RollForward>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">
