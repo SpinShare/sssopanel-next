@@ -8,28 +8,29 @@ A modern desktop streaming overlay for SpinShare SpeenOpen
 ### Setup
 #### Installing all dependencies
 ```sh
-cd UserInterface && npm install
+cd SSSOPanel/UserInterface && npm install
 ```
 
 #### Running a dev server
 ```sh
-cd UserInterface && npm run dev
+cd SSSOPanel/UserInterface && npm run dev
 ```
 
 #### Starting the client
+In a seperate terminal
 ```sh
-dotnet run
+cd SSSOPanel && dotnet run
 ```
 
 ### Building
 #### Building the UI
 ```sh
-cd UserInterface && npm run build
+cd SSSOPanel/UserInterface && npm run build
 ```
 
 #### Building the application
 ```sh
-dotnet build --configuration Release
+cd SSSOPanel && dotnet build --configuration Release
 ```
 
  
