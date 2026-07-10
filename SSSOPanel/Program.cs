@@ -96,7 +96,7 @@ public class Program
         };
 
         // Register IPC handler
-        Electron.IpcMain.On("message", async (args) =>
+        _ = Electron.IpcMain.On("message", async (args) =>
         {
             var msg = args.ToString();
             if (string.IsNullOrEmpty(msg)) return;

@@ -8,6 +8,7 @@
 		<Nullable>enable</Nullable>
 		<Version>1.3.0</Version>
 		<RollForward>LatestMajor</RollForward>
+		<NoWarn>$(NoWarn);ELECTRON001</NoWarn>
 	</PropertyGroup>
 
 	<PropertyGroup Label="ElectronNetCommon">

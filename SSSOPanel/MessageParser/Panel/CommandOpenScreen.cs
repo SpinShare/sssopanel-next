@@ -11,7 +11,7 @@ public class CommandOpenScreen: ICommand
         var screenManager = ScreenManager.ScreenManager.GetInstance();
 
         var dataItem = (JObject)data;
-        screenManager.CreateNewScreen(dataItem.GetValue("fullscreen")?.ToObject<bool>() ?? false);
+        await screenManager.CreateNewScreen(dataItem.GetValue("fullscreen")?.ToObject<bool>() ?? false);
         
         await Task.Yield();
     }
