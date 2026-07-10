@@ -80,6 +80,7 @@ public class Program
                 Height = Convert.ToInt32(750 * ScreenScaleFactor.Get()),
                 Resizable = false,
                 Show = false,
+                AutoHideMenuBar = true,
                 WebPreferences = new WebPreferences
                 {
                     DevTools = true,

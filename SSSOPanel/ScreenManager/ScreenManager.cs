@@ -75,6 +75,7 @@ public class ScreenManager
         var windowScreen = await Electron.WindowManager.CreateWindowAsync(
             new BrowserWindowOptions
             {
+                AutoHideMenuBar = true,
                 WebPreferences = new WebPreferences
                 {
                     DevTools = true,
