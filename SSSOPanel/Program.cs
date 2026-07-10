@@ -34,11 +34,21 @@ public class Program
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error: {ex.Message}");
-            await runtimeController.Stop().ConfigureAwait(false);
-            await runtimeController.WaitStoppedTask
-                .WaitAsync(TimeSpan.FromSeconds(2))
-                .ConfigureAwait(false);
+            Console.WriteLine($"Error: {ex}");
+            if (runtimeController != null)
+            {
+                try
+                {
+                    await runtimeController.Stop().ConfigureAwait(false);
+                    await runtimeController.WaitStoppedTask
+                        .WaitAsync(TimeSpan.FromSeconds(2))
+                        .ConfigureAwait(false);
+                }
+                catch (Exception stopEx)
+                {
+                    Console.WriteLine($"Error during shutdown: {stopEx.Message}");
+                }
+            }
         }
     }
 
