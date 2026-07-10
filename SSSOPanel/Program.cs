@@ -26,15 +26,24 @@ public class Program
         var screenManager = ScreenManager.ScreenManager.GetInstance();
 
         // Register IPC handler
-        Electron.IpcMain.On("message", async (message) =>
+        Electron.IpcMain.On("message", async (evt, message) =>
         {
             var msg = message.ToString();
             if (string.IsNullOrEmpty(msg)) return;
             
-            // Get the sender window from the event
-            // Note: In Electron.NET, we need to handle this differently
-            // The message handler will need to determine the sender
-            await messageHandler.HandleMessageAsync(null, msg);
+            // Resolve the sender BrowserWindow from the event's webContentsId
+            BrowserWindow? sender = null;
+            var allWindows = Electron.WindowManager.GetAllWindows();
+            foreach (var w in allWindows)
+            {
+                if (w.WebContents.Id == evt.Sender.Id)
+                {
+                    sender = w;
+                    break;
+                }
+            }
+            
+            await messageHandler.HandleMessageAsync(sender, msg);
         });
 
         Console.WriteLine("Creating Panel Window");
@@ -93,15 +102,13 @@ public class Program
 
         try
         {
-            using(_lockFile = new FileStream(
+            _lockFile = new FileStream(
                 lockFileName,
                 FileMode.OpenOrCreate,
                 FileAccess.ReadWrite,
                 FileShare.None
-            )) 
-            {
-                return true;
-            }
+            );
+            return true;
         }
         catch (IOException)
         {
