@@ -1,5 +1,5 @@
+using ElectronNET.API;
 using Newtonsoft.Json;
-using PhotinoNET;
 
 namespace SSSOPanel.MessageParser;
 
@@ -7,12 +7,11 @@ public class MessageHandler
 {
     private readonly CommandFactory _commandFactory = new();
 
-    public async void RegisterWebMessageReceivedHandler(object? sender, string message)
+    public async Task HandleMessageAsync(BrowserWindow? window, string message)
     {
-        var window = (PhotinoWindow?)sender;
         if (window == null)
         {
-            throw new ArgumentNullException($"[MessageHandler] {nameof(sender)} must be of type PhotinoWindow");
+            throw new ArgumentNullException($"[MessageHandler] window must be of type BrowserWindow");
         }
         
         var msg = JsonConvert.DeserializeObject<Message>(message);
@@ -27,14 +26,14 @@ public class MessageHandler
         await command.Execute(window, msg.Data);
     }
 
-    public static void SendResponse(PhotinoWindow? sender, object result)
+    public static void SendResponse(BrowserWindow? sender, object result)
     {
         if (sender == null) return;
 
         try
         {
             var resultJson = JsonConvert.SerializeObject(result);
-            sender.SendWebMessage(resultJson);
+            Electron.IpcMain.Send(sender, "message", resultJson);
         }
         catch (Exception)
         {
@@ -51,7 +50,7 @@ public class MessageHandler
             try
             {
                 var resultJson = JsonConvert.SerializeObject(result);
-                screen.SendWebMessage(resultJson);
+                Electron.IpcMain.Send(screen, "message", resultJson);
             }
             catch (Exception)
             {

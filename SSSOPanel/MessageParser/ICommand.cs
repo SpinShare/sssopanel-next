@@ -1,9 +1,9 @@
-using PhotinoNET;
+using ElectronNET.API;
 
 namespace SSSOPanel.MessageParser;
 using System.Threading.Tasks;
 
 public interface ICommand
 {
-    Task Execute(PhotinoWindow? sender, object? data);
+    Task Execute(BrowserWindow? sender, object? data);
 }
