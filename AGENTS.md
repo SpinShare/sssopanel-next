@@ -12,7 +12,7 @@ This project is migrating from **Photino.NET** to **Electron.NET**. Follow these
 4. ✅ **Phase 3: C# Core** — Rewrite `Program.cs`, `ScreenManager.cs`, `MessageHandler.cs`, `ICommand.cs`
 5. ✅ **Phase 4: C# Commands** — Update all 17 `Command*.cs` files (`PhotinoWindow?` → `BrowserWindow?`)
 6. ✅ **Phase 5: Vue Frontend** — Update all 22 files using `window.external.*` → `window.electronAPI.*`
-7. **Phase 6: Build & CI** — Create `electron.manifest.json`, update GitHub Actions, update dev script
+7. ✅ **Phase 6: Build & CI** — Create `electron.manifest.json`, update GitHub Actions, update dev script
 8. **Verify** — `npm run lint` (0 errors), `dotnet build` (0 errors), `electronize start` launches both windows
 
 Detailed instructions for each phase are in the **Electron.NET Migration Plan** section below. If the project is already migrated, skip to the **Coding Standards** and **Commands** sections for daily development.

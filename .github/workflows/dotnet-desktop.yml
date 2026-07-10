@@ -27,19 +27,19 @@ jobs:
         run: dotnet restore
       - name: Run tests
         run: dotnet test --no-restore --verbosity normal
-      - name: Build & Publish
-        run: |
-          mkdir -p build
-          dotnet publish ./SSSOPanel/SSSOPanel.csproj --no-restore --configuration Release --runtime win-x64 --output ./build
-        shell: bash
+      - name: Install Electron.NET CLI
+        run: dotnet tool install --global Electron.CLI
+      - name: Build with Electron
+        working-directory: SSSOPanel
+        run: electronize build /target win-x64
       - name: Archive build artifacts
         uses: vimtor/action-zip@v1
         with:
-          files: build
+          files: SSSOPanel/bin/Release/net7.0/win-x64/publish
           dest: build.zip
       - name: List Files
         run: |
-          ls -lp build
+          ls -lp SSSOPanel/bin/Release/net7.0/win-x64/publish
       - name: Save Release Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -68,4 +68,3 @@ jobs:
           name: Release ${{ github.event.repository.updated_at }}
           draft: true
           prerelease: true
-    

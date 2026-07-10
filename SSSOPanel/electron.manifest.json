@@ -1,0 +1,21 @@
+{
+    "executable": "SSSOPanel",
+    "singleInstance": true,
+    "build": {
+        "appId": "com.spinshare.sssopanel",
+        "productName": "SSSOPanel",
+        "publish": {
+            "provider": "github",
+            "owner": "SpinShare",
+            "repo": "SSSOPanel-Next"
+        }
+    },
+    "author": "SpinSha.re",
+    "description": "Desktop streaming overlay for SpinShare SpeenOpen tournaments",
+    "setEnvironmentVariables": true,
+    "mainProjectDir": ".",
+    "wwwroot": "Resources/wwwroot",
+    "preloadJs": "preload.js",
+    "customMainJs": "custom_main.js",
+    "aspCoreBackendPort": 0
+}
