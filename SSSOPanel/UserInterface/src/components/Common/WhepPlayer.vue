@@ -1,15 +1,26 @@
 <template>
-    <video
-        ref="videoRef"
-        autoplay
-        playsinline
-        :style="{ width: '100%', height: '100%', objectFit: 'cover' }"
-    ></video>
+    <div class="whep-player">
+        <video
+            ref="videoRef"
+            autoplay
+            playsinline
+            @loadeddata="onVideoReady"
+            @playing="onVideoReady"
+            :style="{ width: '100%', height: '100%', objectFit: 'cover' }"
+        ></video>
+        <div
+            class="loading-overlay"
+            v-if="isLoading"
+        >
+            <SpinLoader />
+        </div>
+    </div>
 </template>
 
 <script setup>
 import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { WebRTCPlayer } from '@eyevinn/webrtc-player';
+import SpinLoader from '@/components/Common/SpinLoader.vue';
 
 const props = defineProps({
     url: {
@@ -27,17 +38,24 @@ const props = defineProps({
 });
 
 const videoRef = ref(null);
+const isLoading = ref(false);
 let player = null;
 let loadedUrl = '';
+
+const onVideoReady = () => {
+    isLoading.value = false;
+};
 
 const load = async () => {
     if (!player || !props.url || !props.active) return;
     if (loadedUrl === props.url) return;
     loadedUrl = props.url;
+    isLoading.value = true;
     try {
         await player.load(new URL(props.url));
     } catch (err) {
         console.error('[WhepPlayer] load failed', props.url, err);
+        isLoading.value = false;
     }
 };
 
@@ -53,6 +71,7 @@ const ensurePlayer = () => {
     });
     player.on('media-recovered', () => {
         console.log('[WhepPlayer] media-recovered', props.url);
+        isLoading.value = false;
     });
 };
 
@@ -99,3 +118,21 @@ onUnmounted(() => {
     if (videoRef.value) videoRef.value.srcObject = null;
 });
 </script>
+
+<style lang="scss" scoped>
+.whep-player {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.loading-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+}
+</style>
