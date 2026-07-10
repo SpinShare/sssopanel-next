@@ -1,4 +1,4 @@
-using System.Diagnostics;
+using Process = System.Diagnostics.Process;
 using ElectronNET.API;
 
 namespace SSSOPanel.MessageParser;

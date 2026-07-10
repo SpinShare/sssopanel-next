@@ -1,3 +1,4 @@
+using ElectronNET;
 using ElectronNET.API;
 using ElectronNET.API.Entities;
 using SSSOPanel.ScreenManager;
@@ -10,17 +11,39 @@ public class Program
 {
     private static FileStream? _lockFile;
     private static BrowserWindow? _panelWindow;
-    
+
     public static async Task Main(string[] args)
     {
-        // Single Instance Lock
-        AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
-        if (!IsSingleInstance())
+        var runtimeController = ElectronNetRuntime.RuntimeController;
+
+        try
         {
-            Console.WriteLine("Single Instance Check failed");
-            return;
+            AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
+            if (!IsSingleInstance())
+            {
+                Console.WriteLine("Single Instance Check failed");
+                return;
+            }
+
+            await runtimeController.Start();
+            await runtimeController.WaitReadyTask;
+
+            await ElectronBootstrap();
+
+            await runtimeController.WaitStoppedTask;
         }
-        
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+            await runtimeController.Stop().ConfigureAwait(false);
+            await runtimeController.WaitStoppedTask
+                .WaitAsync(TimeSpan.FromSeconds(2))
+                .ConfigureAwait(false);
+        }
+    }
+
+    private static async Task ElectronBootstrap()
+    {
         var messageHandler = new MessageHandler();
         var updateManager = UpdateManager.UpdateManager.GetInstance();
         var settingsManager = SettingsManager.SettingsManager.GetInstance();
@@ -34,19 +57,24 @@ public class Program
                 Width = Convert.ToInt32(400 * ScreenScaleFactor.Get()),
                 Height = Convert.ToInt32(750 * ScreenScaleFactor.Get()),
                 Resizable = false,
-#if DEBUG
-                WebPreferences = new WebPreferences { DevTools = true },
-#endif
+                Show = false,
+                WebPreferences = new WebPreferences
+                {
+                    DevTools = true,
+                    Preload = Path.GetFullPath("preload.js"),
+                },
             }
         );
 
 #if DEBUG
         Console.WriteLine("Debug Mode, starting dev site");
-        _panelWindow.LoadURL($"http://localhost:5173/#/panel");
+        await _panelWindow.WebContents.LoadURLAsync("http://localhost:5173/#/panel");
 #else
         Console.WriteLine("Production Mode, starting built site");
-        _panelWindow.LoadURL($"{screenManager.BaseUrl}/index.html#/panel");
+        await _panelWindow.WebContents.LoadURLAsync($"{screenManager.BaseUrl}/index.html#/panel");
 #endif
+
+        _panelWindow.OnReadyToShow += () => _panelWindow.Show();
 
         _panelWindow.OnClosed += () =>
         {
@@ -62,28 +90,25 @@ public class Program
         {
             var msg = args.ToString();
             if (string.IsNullOrEmpty(msg)) return;
-            
+
             var jObj = Newtonsoft.Json.Linq.JObject.Parse(msg);
             var senderType = jObj.GetValue("__sender")?.ToString();
             jObj.Remove("__sender");
-            
+
             BrowserWindow? sender = senderType == "panel" ? _panelWindow : null;
-            
+
             await messageHandler.HandleMessageAsync(sender, jObj.ToString(Newtonsoft.Json.Formatting.None));
         });
-
-        // Keep the app running
-        await Task.Delay(-1);
     }
 
     private static void OnProcessExit(object? sender, EventArgs e)
     {
         if (_lockFile is null) return;
-        
+
         _lockFile.Close();
         _lockFile = null;
     }
-    
+
     static bool IsSingleInstance()
     {
         string appFolder = SettingsManager.SettingsManager.GetAppFolder();
