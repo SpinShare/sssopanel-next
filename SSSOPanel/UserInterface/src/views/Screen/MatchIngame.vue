@@ -167,7 +167,6 @@
                         </div>
                     </div>
 
-
                     <div class="banner">
                         <div class="tint summer"></div>
                         <div class="noise"></div>
@@ -286,7 +285,8 @@ onMounted(() => {
         applyState(state);
     });
 
-    window.electronAPI.send('message',
+    window.electronAPI.send(
+        'message',
         JSON.stringify({
             command: 'state-get',
         }),
@@ -322,7 +322,7 @@ onUnmounted(() => {
     }
 
     &.summer {
-		filter: hue-rotate(195deg);
+        filter: hue-rotate(195deg);
     }
 
     & .noise {
@@ -422,7 +422,7 @@ onUnmounted(() => {
                     }
 
                     &.summer {
-						filter: hue-rotate(195deg);
+                        filter: hue-rotate(195deg);
                     }
                 }
 
@@ -578,7 +578,7 @@ onUnmounted(() => {
                     }
 
                     &.summer {
-						filter: hue-rotate(195deg);
+                        filter: hue-rotate(195deg);
                     }
                 }
 

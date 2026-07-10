@@ -55,7 +55,8 @@ const countdownTime = ref(new Date());
 
 const toggleRefDen = () => {
     refDenIsVisible.value = !refDenIsVisible.value;
-    window.electronAPI.send('message',
+    window.electronAPI.send(
+        'message',
         JSON.stringify({
             command: 'state-set',
             data: {
@@ -63,7 +64,8 @@ const toggleRefDen = () => {
             },
         }),
     );
-    window.electronAPI.send('message',
+    window.electronAPI.send(
+        'message',
         JSON.stringify({
             command: 'state-get',
         }),
@@ -72,7 +74,8 @@ const toggleRefDen = () => {
 };
 
 const transition = () => {
-    window.electronAPI.send('message',
+    window.electronAPI.send(
+        'message',
         JSON.stringify({
             command: 'state-set',
             data: {
@@ -84,7 +87,8 @@ const transition = () => {
         }),
     );
 
-    window.electronAPI.send('message',
+    window.electronAPI.send(
+        'message',
         JSON.stringify({
             command: 'screen-navigate',
             data: {
@@ -101,7 +105,8 @@ onMounted(() => {
         refDenIsVisible.value = state?.refDenIsVisible ?? false;
     });
 
-    window.electronAPI.send('message',
+    window.electronAPI.send(
+        'message',
         JSON.stringify({
             command: 'state-get',
         }),

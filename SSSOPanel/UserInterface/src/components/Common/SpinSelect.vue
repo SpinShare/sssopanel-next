@@ -10,17 +10,9 @@
             @click="toggleDropdown"
             class="button"
         >
-            <span
-                :class="`mdi mdi-${
-                    options.find((x) => x.value === modelValue)?.icon
-                }`"
-            ></span>
-            <span class="value">{{
-                options.find((x) => x.value === modelValue)?.label || 'Select'
-            }}</span>
-            <span
-                :class="`mdi mdi-menu-${showDropdown ? 'up' : 'down'}`"
-            ></span>
+            <span :class="`mdi mdi-${options.find((x) => x.value === modelValue)?.icon}`"></span>
+            <span class="value">{{ options.find((x) => x.value === modelValue)?.label || 'Select' }}</span>
+            <span :class="`mdi mdi-menu-${showDropdown ? 'up' : 'down'}`"></span>
         </div>
         <transition name="default">
             <div
@@ -31,9 +23,7 @@
                     v-for="option in options"
                     :key="option.value"
                     @click="selectOption(option.value)"
-                    :class="`option ${
-                        modelValue === option.value ? 'selected' : ''
-                    }`"
+                    :class="`option ${modelValue === option.value ? 'selected' : ''}`"
                 >
                     <span :class="`mdi mdi-${option.icon}`"></span>
                     <span class="label">{{ option.label }}</span>

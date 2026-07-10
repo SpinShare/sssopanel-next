@@ -131,7 +131,7 @@ const loadStartGGEvents = async () => {
     if (startGGApiToken.value === '') return;
 
     try {
-        const {loadTournamentEvents} = useTournamentAPI(startGGApiToken.value);
+        const { loadTournamentEvents } = useTournamentAPI(startGGApiToken.value);
         const tournament = await loadTournamentEvents(startGGTournamentSlug.value);
 
         startGGTournamentId.value = tournament.id;
@@ -141,7 +141,7 @@ const loadStartGGEvents = async () => {
             label: event.name,
             icon: 'tournament',
         }));
-    } catch(e) {
+    } catch (e) {
         console.error(e.message);
     }
 };
@@ -159,7 +159,8 @@ const saveSettings = () => {
         { key: 'currentEvent.startgg.eventId', value: startGGEventId.value },
     ];
 
-    window.electronAPI.send('message',
+    window.electronAPI.send(
+        'message',
         JSON.stringify({
             command: 'settings-set',
             data: settings,
@@ -168,7 +169,8 @@ const saveSettings = () => {
 };
 
 const openGithubReleases = () => {
-    window.electronAPI.send('message',
+    window.electronAPI.send(
+        'message',
         JSON.stringify({
             command: 'open-in-browser',
             data: 'https://github.com/SpinShare/sssopanel-next',
@@ -195,7 +197,8 @@ onMounted(() => {
         settingsState.value = SETTING_STATE_IDLE;
     });
 
-    window.electronAPI.send('message',
+    window.electronAPI.send(
+        'message',
         JSON.stringify({
             command: 'settings-get-full',
             data: '',

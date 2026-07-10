@@ -1,6 +1,5 @@
 <template>
     <ScreenLayout>
-
         <section class="screen-match-overview">
             <div class="tint summer"></div>
             <div class="noise"></div>
@@ -94,7 +93,8 @@ onMounted(() => {
         player2.value = state?.currentMatch?.players?.player2 ?? player2.value;
     });
 
-    window.electronAPI.send('message',
+    window.electronAPI.send(
+        'message',
         JSON.stringify({
             command: 'state-get',
         }),
@@ -106,191 +106,191 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-    .screen-match-overview {
-        color: #222;
-        position: relative;
-        display: flex;
-        justify-content: center;
-        align-items: center;
+.screen-match-overview {
+    color: #222;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 
-        & .tint {
-            background: url('../../assets/background.svg');
-            background-size: cover;
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            top: 0;
-            z-index: 1;
+    & .tint {
+        background: url('../../assets/background.svg');
+        background-size: cover;
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        top: 0;
+        z-index: 1;
 
-            &.winter {
-                filter: hue-rotate(160deg);
-            }
-
-            &.summer {
-				filter: hue-rotate(195deg);
-            }
+        &.winter {
+            filter: hue-rotate(160deg);
         }
 
-        & .noise {
-            background: url('../../assets/noise.png');
-            background-size: 5em;
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            top: 0;
-            mix-blend-mode: soft-light;
-            z-index: 2;
+        &.summer {
+            filter: hue-rotate(195deg);
         }
+    }
 
-        & .content {
-            z-index: 10;
-            position: absolute;
-            top: 5vw;
-            bottom: 5vw;
-            left: 5vw;
-            right: 5vw;
+    & .noise {
+        background: url('../../assets/noise.png');
+        background-size: 5em;
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        top: 0;
+        mix-blend-mode: soft-light;
+        z-index: 2;
+    }
+
+    & .content {
+        z-index: 10;
+        position: absolute;
+        top: 5vw;
+        bottom: 5vw;
+        left: 5vw;
+        right: 5vw;
+        display: grid;
+        grid-template-rows: 1fr;
+        gap: 5vw;
+
+        & .player-info {
             display: grid;
-            grid-template-rows: 1fr;
+            grid-template-columns: 1fr auto 1fr;
+            justify-content: center;
+            align-items: center;
             gap: 5vw;
 
-            & .player-info {
-                display: grid;
-                grid-template-columns: 1fr auto 1fr;
-                justify-content: center;
-                align-items: center;
-                gap: 5vw;
+            & .player {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
 
-                & .player {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: flex-start;
-
-                    & header {
-                        background: #111;
-                        color: #ededed;
-                        padding: 1vw 2vw;
-                        border-radius: 0.5vw 0.5vw 0 0;
-                        font-weight: 600;
-                        font-size: 1vw;
-                        letter-spacing: 0.15vw;
-                    }
-
-                    & .box {
-                        flex-grow: 1;
-                        align-self: stretch;
-                        display: flex;
-                        flex-direction: column;
-                        gap: 2vw;
-                        background: #111;
-                        color: #ededed;
-                        padding: 2vw;
-                        border-radius: 0 0.5vw 0.5vw 0.5vw;
-
-                        & .avatar-box {
-                            display: flex;
-                            justify-content: center;
-                            align-items: center;
-                            flex-grow: 1;
-
-                            & .avatar {
-                                background-position: center;
-                                background-size: cover;
-                                width: 15vw;
-                                height: 15vw;
-                                border-radius: 1.5vw;
-                            }
-                        }
-
-                        & .meta {
-                            display: flex;
-                            flex-direction: column;
-                            gap: 0.25vw;
-
-                            & .pronouns {
-                                color: rgba(255, 255, 255, 0.6);
-                                font-size: 1vw;
-                                font-weight: 600;
-                            }
-
-                            & .username {
-                                font-weight: 600;
-                                letter-spacing: 0.1vw;
-                            }
-                        }
-                    }
+                & header {
+                    background: #111;
+                    color: #ededed;
+                    padding: 1vw 2vw;
+                    border-radius: 0.5vw 0.5vw 0 0;
+                    font-weight: 600;
+                    font-size: 1vw;
+                    letter-spacing: 0.15vw;
                 }
 
-                & .versus {
-                    font-size: 4vw;
-                    font-family: 'JetBrains Mono', monospace;
-                    font-weight: 900;
+                & .box {
+                    flex-grow: 1;
+                    align-self: stretch;
                     display: flex;
-                    gap: -0.5vw;
+                    flex-direction: column;
+                    gap: 2vw;
+                    background: #111;
+                    color: #ededed;
+                    padding: 2vw;
+                    border-radius: 0 0.5vw 0.5vw 0.5vw;
 
-                    & span {
-                        display: block;
-                        transform: scale(1);
-                        animation: versusLoop 1s cubic-bezier(1, 0, 0, 1) infinite;
+                    & .avatar-box {
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        flex-grow: 1;
 
-                        &:nth-child(2) {
-                            animation-delay: calc(0.1s * 1);
+                        & .avatar {
+                            background-position: center;
+                            background-size: cover;
+                            width: 15vw;
+                            height: 15vw;
+                            border-radius: 1.5vw;
+                        }
+                    }
+
+                    & .meta {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 0.25vw;
+
+                        & .pronouns {
+                            color: rgba(255, 255, 255, 0.6);
+                            font-size: 1vw;
+                            font-weight: 600;
                         }
 
-                        &:nth-child(3) {
-                            animation-delay: calc(0.2s * 2);
-                        }
-
-                        &:nth-child(4) {
-                            animation-delay: calc(0.1s * 3);
-                        }
-
-                        &:nth-child(5) {
-                            animation-delay: calc(0.2s * 4);
-                        }
-
-                        &:nth-child(6) {
-                            animation-delay: calc(0.1s * 5);
+                        & .username {
+                            font-weight: 600;
+                            letter-spacing: 0.1vw;
                         }
                     }
                 }
             }
-        }
 
-        & .marquees {
-            transform: rotate(-4deg) scale(1);
-            position: absolute;
-            top: 4vw;
-            bottom: 4vw;
-            left: 0;
-            right: 0;
-            z-index: 3;
-
-            & .marquee {
-                white-space: nowrap;
+            & .versus {
+                font-size: 4vw;
+                font-family: 'JetBrains Mono', monospace;
+                font-weight: 900;
                 display: flex;
-                gap: 1em;
-                position: absolute;
-                overflow: hidden;
-                font-size: 3vw;
-                font-weight: 800;
-                color: rgba(0, 0, 0, 0.2);
+                gap: -0.5vw;
 
-                &.top {
-                    top: 0;
-                    left: -14.85em;
-                    animation: marqueeLeft 10s infinite linear;
-                }
+                & span {
+                    display: block;
+                    transform: scale(1);
+                    animation: versusLoop 1s cubic-bezier(1, 0, 0, 1) infinite;
 
-                &.bottom {
-                    bottom: 0;
-                    left: 0;
-                    animation: marqueeRight 10s infinite linear;
+                    &:nth-child(2) {
+                        animation-delay: calc(0.1s * 1);
+                    }
+
+                    &:nth-child(3) {
+                        animation-delay: calc(0.2s * 2);
+                    }
+
+                    &:nth-child(4) {
+                        animation-delay: calc(0.1s * 3);
+                    }
+
+                    &:nth-child(5) {
+                        animation-delay: calc(0.2s * 4);
+                    }
+
+                    &:nth-child(6) {
+                        animation-delay: calc(0.1s * 5);
+                    }
                 }
             }
         }
     }
+
+    & .marquees {
+        transform: rotate(-4deg) scale(1);
+        position: absolute;
+        top: 4vw;
+        bottom: 4vw;
+        left: 0;
+        right: 0;
+        z-index: 3;
+
+        & .marquee {
+            white-space: nowrap;
+            display: flex;
+            gap: 1em;
+            position: absolute;
+            overflow: hidden;
+            font-size: 3vw;
+            font-weight: 800;
+            color: rgba(0, 0, 0, 0.2);
+
+            &.top {
+                top: 0;
+                left: -14.85em;
+                animation: marqueeLeft 10s infinite linear;
+            }
+
+            &.bottom {
+                bottom: 0;
+                left: 0;
+                animation: marqueeRight 10s infinite linear;
+            }
+        }
+    }
+}
 
 @keyframes marqueeLeft {
     from {

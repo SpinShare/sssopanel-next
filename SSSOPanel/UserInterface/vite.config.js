@@ -7,11 +7,7 @@ import mdPlugin, { Mode } from 'vite-plugin-markdown';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-    plugins: [
-        vue(),
-        vueJsx(),
-        mdPlugin({ mode: [Mode.HTML, Mode.TOC, Mode.VUE] }),
-    ],
+    plugins: [vue(), vueJsx(), mdPlugin({ mode: [Mode.HTML, Mode.TOC, Mode.VUE] })],
     resolve: {
         alias: {
             '@': fileURLToPath(new URL('./src', import.meta.url)),

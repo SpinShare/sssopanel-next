@@ -65,7 +65,8 @@ const props = defineProps({
 const currentScreen = useCurrentScreen();
 
 const openScreen = () => {
-    window.electronAPI.send('message',
+    window.electronAPI.send(
+        'message',
         JSON.stringify({
             command: 'open-screen',
             data: {
@@ -75,7 +76,8 @@ const openScreen = () => {
     );
 };
 const openScreenFullscreen = () => {
-    window.electronAPI.send('message',
+    window.electronAPI.send(
+        'message',
         JSON.stringify({
             command: 'open-screen',
             data: {

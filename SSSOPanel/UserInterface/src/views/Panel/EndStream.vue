@@ -38,7 +38,8 @@ const refDenIsVisible = ref(false);
 const nextStreamDate = ref(new Date());
 
 const transition = () => {
-    window.electronAPI.send('message',
+    window.electronAPI.send(
+        'message',
         JSON.stringify({
             command: 'state-set',
             data: {
@@ -49,7 +50,8 @@ const transition = () => {
         }),
     );
 
-    window.electronAPI.send('message',
+    window.electronAPI.send(
+        'message',
         JSON.stringify({
             command: 'screen-navigate',
             data: {
@@ -61,7 +63,8 @@ const transition = () => {
 
 const toggleRefDen = () => {
     refDenIsVisible.value = !refDenIsVisible.value;
-    window.electronAPI.send('message',
+    window.electronAPI.send(
+        'message',
         JSON.stringify({
             command: 'state-set',
             data: {
@@ -69,7 +72,8 @@ const toggleRefDen = () => {
             },
         }),
     );
-    window.electronAPI.send('message',
+    window.electronAPI.send(
+        'message',
         JSON.stringify({
             command: 'state-get',
         }),
@@ -86,7 +90,8 @@ onMounted(() => {
         refDenIsVisible.value = state?.refDenIsVisible ?? false;
     });
 
-    window.electronAPI.send('message',
+    window.electronAPI.send(
+        'message',
         JSON.stringify({
             command: 'state-get',
         }),

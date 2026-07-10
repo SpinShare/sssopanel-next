@@ -80,7 +80,8 @@ setInterval(() => {
 }, 50);
 
 onMounted(() => {
-    window.electronAPI.send('message',
+    window.electronAPI.send(
+        'message',
         JSON.stringify({
             command: 'state-get',
         }),
@@ -98,136 +99,136 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-    .screen-streamstart-countdown {
-        color: #222;
-        position: relative;
+.screen-streamstart-countdown {
+    color: #222;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    & .tint {
+        background: url('../../assets/background.svg');
+        background-size: cover;
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        top: 0;
+
+        &.winter {
+            filter: hue-rotate(160deg);
+        }
+
+        &.summer {
+            filter: hue-rotate(195deg);
+        }
+    }
+
+    & .noise {
+        background: url('../../assets/noise.png');
+        background-size: 5vw;
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        top: 0;
+        mix-blend-mode: soft-light;
+    }
+
+    & .content {
         display: flex;
-        justify-content: center;
+        gap: 10vw;
+        z-index: 10;
         align-items: center;
+        font-size: 0.8vw;
 
-        & .tint {
-            background: url('../../assets/background.svg');
-            background-size: cover;
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            top: 0;
-
-            &.winter {
-                filter: hue-rotate(160deg);
-            }
-
-            &.summer {
-				filter: hue-rotate(195deg);
-            }
+        & .event-logo {
+            justify-self: center;
+            align-self: center;
+            width: 25vw;
+            height: 25vw;
         }
 
-        & .noise {
-            background: url('../../assets/noise.png');
-            background-size: 5vw;
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            top: 0;
-            mix-blend-mode: soft-light;
-        }
+        & .countdown {
+            background: #111111;
+            color: #ededed;
+            padding: 0.5vw 2.5vw;
+            border-radius: 0 0.5vw 0.5vw 0.5vw;
+            position: relative;
 
-        & .content {
-            display: flex;
-            gap: 10vw;
-            z-index: 10;
-            align-items: center;
-            font-size: 0.8vw;
-
-            & .event-logo {
-                justify-self: center;
-                align-self: center;
-                width: 25vw;
-                height: 25vw;
-            }
-
-            & .countdown {
+            & .header {
+                font-size: 1vw;
+                font-weight: 900;
+                letter-spacing: 0.15vw;
                 background: #111111;
                 color: #ededed;
-                padding: 0.5vw 2.5vw;
-                border-radius: 0 0.5vw 0.5vw 0.5vw;
-                position: relative;
-
-                & .header {
-                    font-size: 1vw;
-                    font-weight: 900;
-                    letter-spacing: 0.15vw;
-                    background: #111111;
-                    color: #ededed;
-                    position: absolute;
-                    top: -1.45vw;
-                    left: 0;
-                    padding: 0.5vw 1vw;
-                    border-top-left-radius: 0.5vw;
-                    border-top-right-radius: 0.5vw;
-                }
-
-                & .time-left {
-                    font-family: 'JetBrains Mono', monospace;
-                    font-weight: 900;
-                    display: flex;
-                    align-items: flex-end;
-
-                    & span:nth-child(1) {
-                        font-size: 5vw;
-                    }
-
-                    & span:nth-child(2) {
-                        font-size: 3vw;
-                        font-weight: 600;
-                        transform: translateY(-0.1vw);
-                        opacity: 0.6;
-                    }
-                }
-            }
-        }
-
-        & .dots {
-            position: absolute;
-            top: 5vw;
-            width: 4vw;
-            bottom: 5vw;
-            background-size: 1.5vw 1.5vw;
-            background-image: radial-gradient(circle, #000 10%, transparent 12%), radial-gradient(circle, #000 10%, transparent 12%);
-
-            &.left {
-                left: 2vw;
-            }
-
-            &.right {
-                right: 2vw;
-            }
-        }
-
-        & .marquee {
-            white-space: nowrap;
-            display: flex;
-            gap: 2vw;
-            position: absolute;
-            overflow: hidden;
-            font-size: 1.5vw;
-            font-weight: 600;
-
-            &.top {
-                top: 1.5vw;
-                left: -23.75vw;
-                animation: marqueeLeft 10s infinite linear;
-            }
-
-            &.bottom {
-                bottom: 1.5vw;
+                position: absolute;
+                top: -1.45vw;
                 left: 0;
-                animation: marqueeRight 10s infinite linear;
+                padding: 0.5vw 1vw;
+                border-top-left-radius: 0.5vw;
+                border-top-right-radius: 0.5vw;
+            }
+
+            & .time-left {
+                font-family: 'JetBrains Mono', monospace;
+                font-weight: 900;
+                display: flex;
+                align-items: flex-end;
+
+                & span:nth-child(1) {
+                    font-size: 5vw;
+                }
+
+                & span:nth-child(2) {
+                    font-size: 3vw;
+                    font-weight: 600;
+                    transform: translateY(-0.1vw);
+                    opacity: 0.6;
+                }
             }
         }
     }
+
+    & .dots {
+        position: absolute;
+        top: 5vw;
+        width: 4vw;
+        bottom: 5vw;
+        background-size: 1.5vw 1.5vw;
+        background-image: radial-gradient(circle, #000 10%, transparent 12%), radial-gradient(circle, #000 10%, transparent 12%);
+
+        &.left {
+            left: 2vw;
+        }
+
+        &.right {
+            right: 2vw;
+        }
+    }
+
+    & .marquee {
+        white-space: nowrap;
+        display: flex;
+        gap: 2vw;
+        position: absolute;
+        overflow: hidden;
+        font-size: 1.5vw;
+        font-weight: 600;
+
+        &.top {
+            top: 1.5vw;
+            left: -23.75vw;
+            animation: marqueeLeft 10s infinite linear;
+        }
+
+        &.bottom {
+            bottom: 1.5vw;
+            left: 0;
+            animation: marqueeRight 10s infinite linear;
+        }
+    }
+}
 
 @keyframes marqueeLeft {
     from {

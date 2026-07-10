@@ -54,7 +54,7 @@
 
                                 <div class="group">
                                     <span>organizational contributors</span>
-									<span>alpine</span>
+                                    <span>alpine</span>
                                     <span>kyu!</span>
                                     <span>LuminaryCat</span>
                                     <span>Programmatic</span>
@@ -135,7 +135,7 @@
                                     <span>BHUUQIUMZIINGA</span>
                                     <span>blyenn</span>
                                     <span>C4veden</span>
-									<span>Carbon</span>
+                                    <span>Carbon</span>
                                     <span>cosmic</span>
                                     <span>Crooky</span>
                                     <span>CubTheCube</span>
@@ -247,13 +247,15 @@ onMounted(() => {
         players.value = settings['currentEvent.playerMapping'] ?? [];
     });
 
-    window.electronAPI.send('message',
+    window.electronAPI.send(
+        'message',
         JSON.stringify({
             command: 'state-get',
         }),
     );
 
-    window.electronAPI.send('message',
+    window.electronAPI.send(
+        'message',
         JSON.stringify({
             command: 'settings-get-full',
         }),
@@ -291,7 +293,7 @@ onUnmounted(() => {
         }
 
         &.summer {
-				filter: hue-rotate(195deg);
+            filter: hue-rotate(195deg);
         }
     }
 

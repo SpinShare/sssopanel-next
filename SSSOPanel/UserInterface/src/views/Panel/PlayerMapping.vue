@@ -123,7 +123,8 @@ const saveMapping = () => {
 
     const settings = [{ key: 'currentEvent.playerMapping', value: playerMappings.value }];
 
-    window.electronAPI.send('message',
+    window.electronAPI.send(
+        'message',
         JSON.stringify({
             command: 'settings-set',
             data: settings,
@@ -159,7 +160,8 @@ onMounted(() => {
         state.value = STATE_IDLE;
     });
 
-    window.electronAPI.send('message',
+    window.electronAPI.send(
+        'message',
         JSON.stringify({
             command: 'settings-get-full',
             data: '',

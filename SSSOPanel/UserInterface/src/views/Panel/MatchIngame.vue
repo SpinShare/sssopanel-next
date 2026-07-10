@@ -234,7 +234,7 @@
                 :color="refDenIsVisible ? 'primary' : 'default'"
                 v-tooltip="'Toggle Ref Den'"
             />
-            
+
             <SpinButton
                 @click="transition"
                 icon="record"
@@ -289,7 +289,8 @@ const scoresScorePlayer2 = ref(0);
 const transition = () => {
     updateState();
 
-    window.electronAPI.send('message',
+    window.electronAPI.send(
+        'message',
         JSON.stringify({
             command: 'screen-navigate',
             data: {
@@ -330,7 +331,8 @@ const updateState = () => {
         },
     };
 
-    window.electronAPI.send('message',
+    window.electronAPI.send(
+        'message',
         JSON.stringify({
             command: 'state-set',
             data: screenData,
@@ -369,7 +371,8 @@ const refDenIsVisible = ref(false);
 
 const toggleRefDen = () => {
     refDenIsVisible.value = !refDenIsVisible.value;
-    window.electronAPI.send('message',
+    window.electronAPI.send(
+        'message',
         JSON.stringify({
             command: 'state-set',
             data: {
@@ -377,7 +380,8 @@ const toggleRefDen = () => {
             },
         }),
     );
-    window.electronAPI.send('message',
+    window.electronAPI.send(
+        'message',
         JSON.stringify({
             command: 'state-get',
         }),
@@ -415,13 +419,15 @@ onMounted(() => {
         loadPlayers(settings['currentEvent.playerMapping'] ?? []);
     });
 
-    window.electronAPI.send('message',
+    window.electronAPI.send(
+        'message',
         JSON.stringify({
             command: 'settings-get-full',
         }),
     );
 
-    window.electronAPI.send('message',
+    window.electronAPI.send(
+        'message',
         JSON.stringify({
             command: 'state-get',
         }),

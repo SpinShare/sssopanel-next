@@ -76,7 +76,8 @@ const startGGPhases = ref(null);
 
 const toggleRefDen = () => {
     refDenIsVisible.value = !refDenIsVisible.value;
-    window.electronAPI.send('message',
+    window.electronAPI.send(
+        'message',
         JSON.stringify({
             command: 'state-set',
             data: {
@@ -84,7 +85,8 @@ const toggleRefDen = () => {
             },
         }),
     );
-    window.electronAPI.send('message',
+    window.electronAPI.send(
+        'message',
         JSON.stringify({
             command: 'state-get',
         }),
@@ -93,7 +95,8 @@ const toggleRefDen = () => {
 };
 
 const transition = () => {
-    window.electronAPI.send('message',
+    window.electronAPI.send(
+        'message',
         JSON.stringify({
             command: 'state-set',
             data: {
@@ -102,7 +105,8 @@ const transition = () => {
         }),
     );
 
-    window.electronAPI.send('message',
+    window.electronAPI.send(
+        'message',
         JSON.stringify({
             command: 'screen-navigate',
             data: {
@@ -150,7 +154,7 @@ const updateSelectedPhaseGroup = async () => {
                 entrantId: slot.entrant?.id,
                 entrant: entrant ?? null,
                 placement: slot.standing?.placement ?? null,
-                score: (slot.standing?.stats?.score?.value < 0) ? "X" : slot.standing?.stats?.score?.value ?? 0,
+                score: slot.standing?.stats?.score?.value < 0 ? 'X' : slot.standing?.stats?.score?.value ?? 0,
             });
         });
 
@@ -183,7 +187,8 @@ onMounted(() => {
         refDenIsVisible.value = state?.refDenIsVisible ?? false;
     });
 
-    window.electronAPI.send('message',
+    window.electronAPI.send(
+        'message',
         JSON.stringify({
             command: 'settings-get-full',
         }),

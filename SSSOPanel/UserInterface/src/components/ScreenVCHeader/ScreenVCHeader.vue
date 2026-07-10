@@ -1,8 +1,9 @@
 <template>
     <div class="voice-status-bar">
-        <div 
+        <div
             v-if="isConnected"
-            class="header">
+            class="header"
+        >
             Commentary Team
         </div>
         <!-- Move all connect and disconnect logic to panel!!! -->
@@ -205,7 +206,7 @@ export default {
     font-size: 0.9vw;
     color: rgba(255, 255, 255, 0.7);
     white-space: nowrap;
-    margin-left:2vh;
+    margin-left: 2vh;
 }
 
 .members-container {
