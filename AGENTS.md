@@ -13,7 +13,8 @@ This project is migrating from **Photino.NET** to **Electron.NET**. Follow these
 5. ✅ **Phase 4: C# Commands** — Update all 17 `Command*.cs` files (`PhotinoWindow?` → `BrowserWindow?`)
 6. ✅ **Phase 5: Vue Frontend** — Update all 22 files using `window.external.*` → `window.electronAPI.*`
 7. ✅ **Phase 6: Build & CI** — Create `electron.manifest.json`, update GitHub Actions, update dev script
-8. **Verify** — `npm run lint` (0 errors), `dotnet build` (0 errors), `electronize start` launches both windows
+8. ✅ **ElectronNET.Core Migration** — Upgrade from `ElectronNET.API` v23.6.1 to `ElectronNET.Core` v0.5.1. New console app startup via `ElectronNetRuntime.RuntimeController`. Dev command: `./dev.sh`
+9. **Verify** — `npm run lint` (0 errors), `dotnet build` (0 errors), `./dev.sh` launches both windows
 
 Detailed instructions for each phase are in the **Electron.NET Migration Plan** section below. If the project is already migrated, skip to the **Coding Standards** and **Commands** sections for daily development.
 
@@ -23,7 +24,7 @@ Desktop streaming overlay application for SpinShare SpeenOpen (Spin Rhythm XD to
 
 ## Tech Stack
 
-- **Backend**: C# .NET 7.0 desktop app via Electron.NET (Chromium-based windowing)
+- **Backend**: C# .NET 10.0 desktop app via Electron.NET (Chromium-based windowing)
 - **Frontend**: Vue 3 + Vite + Vue Router (hash-based history)
 - **UI Library**: Custom "Spin" component library (`SpinButton`, `SpinInput`, etc.)
 - **State/Events**: `mitt` event bus for IPC bridge, JSON command/response protocol
@@ -46,8 +47,7 @@ Desktop streaming overlay application for SpinShare SpeenOpen (Spin Rhythm XD to
 | Command | Description |
 |---------|-------------|
 | `dotnet build --configuration Release` | Build the full app |
-| `electronize start` | Start Electron in dev mode (loads Vite URL) |
-| `electronize build` | Publish for distribution (all platforms) |
+| `./dev.sh` | Start Electron in dev mode (ElectronNET.Core, .NET-first launch) |
 
 ### Tests
 
@@ -56,7 +56,7 @@ Desktop streaming overlay application for SpinShare SpeenOpen (Spin Rhythm XD to
 ### Dev Workflow
 
 1. Terminal 1: `cd SSSOPanel/UserInterface && npm run dev` (Vite)
-2. Terminal 2: `cd SSSOPanel && electronize start` (Electron)
+2. Terminal 2: `cd SSSOPanel && ./dev.sh` (Electron)
 3. In debug mode, Electron loads `http://localhost:5173`
 
 ---
@@ -67,9 +67,9 @@ Desktop streaming overlay application for SpinShare SpeenOpen (Spin Rhythm XD to
 SSSOPanel/                        # C# .NET backend
 ├── Program.cs                    # Entry point — creates Panel + Screen windows
 ├── SSSOPanel.csproj              # Project file (Microsoft.NET.Sdk.Web)
-├── electron.manifest.json        # Electron config
 ├── preload.js                    # Electron contextBridge IPC shim
-├── custom_main.js                # Electron main process (permissions)
+├── electron/
+│   └── custom_main.js            # Electron main process (permissions)
 ├── MessageParser/                # IPC command/response pattern
 │   ├── ICommand.cs               # Command interface
 │   ├── CommandFactory.cs         # Maps command strings → handler classes
@@ -78,7 +78,7 @@ SSSOPanel/                        # C# .NET backend
 ├── ScreenManager/                # Manages screen window lifecycle
 ├── SettingsManager/              # JSON file-backed settings
 ├── UpdateManager/                # GitHub release checker
-├── Properties/                   # launchSettings.json
+├── Properties/                   # launchSettings.json, electron-builder.json
 ├── Resources/wwwroot/            # Embedded production UI output
 └── UserInterface/                # Vue 3 frontend
     ├── vite.config.js
@@ -165,7 +165,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 |------|---------|
 | `SSSOPanel/Program.cs` | App entry — creates Panel + Screen windows via Electron |
 | `SSSOPanel/preload.js` | Electron contextBridge: `electronAPI.send`/`electronAPI.on` |
-| `SSSOPanel/custom_main.js` | Electron main process — permission handlers (WebRTC, autoplay) |
+| `SSSOPanel/electron/custom_main.js` | Electron main process — permission handlers (WebRTC, autoplay) |
 | `SSSOPanel/electron.manifest.json` | Electron.NET configuration (app metadata, ports) |
 | `SSSOPanel/MessageParser/ICommand.cs` | Command interface: `Task Execute(BrowserWindow? sender, object? data)` |
 | `SSSOPanel/MessageParser/CommandFactory.cs` | String → command handler mapping |
@@ -184,7 +184,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
 **`SSSOPanel.csproj` changes:**
 1. Remove `Photino.NET` (2.5.2) and `Photino.NET.Server` (1.0.0) packages
-2. Add `ElectronNET.API` package
+2. Add `ElectronNET.Core` package (v0.5.1 — includes `ElectronNET.Core.API` transitively)
 3. Change `OutputType` from `WinExe` to `Exe`
 4. Change SDK from `Microsoft.NET.Sdk` to `Microsoft.NET.Sdk.Web`
 5. Remove Photino-specific properties (`GenerateEmbeddedFilesManifest`, `EmbedWwwRoot`, `UiRoot`, `WwwRoot`)
