@@ -59,6 +59,18 @@ public class Program
         var settingsManager = SettingsManager.SettingsManager.GetInstance();
         var screenManager = ScreenManager.ScreenManager.GetInstance();
 
+        // Production base URL points at the built UI copied next to the executable.
+        var wwwrootPath = Path.Combine(AppContext.BaseDirectory, "wwwroot");
+        screenManager.BaseUrl = $"file://{wwwrootPath}";
+
+#if DEBUG
+        Console.WriteLine("Debug Mode, starting dev site");
+        var panelUrl = "http://localhost:5173/#/panel";
+#else
+        Console.WriteLine("Production Mode, starting built site");
+        var panelUrl = $"{screenManager.BaseUrl}/index.html#/panel";
+#endif
+
         Console.WriteLine("Creating Panel Window");
         _panelWindow = await Electron.WindowManager.CreateWindowAsync(
             new BrowserWindowOptions
@@ -71,18 +83,13 @@ public class Program
                 WebPreferences = new WebPreferences
                 {
                     DevTools = true,
-                    Preload = Path.GetFullPath("preload.js"),
+                    ContextIsolation = true,
+                    NodeIntegration = false,
+                    Preload = Path.Combine(AppContext.BaseDirectory, "preload.js"),
                 },
-            }
+            },
+            panelUrl
         );
-
-#if DEBUG
-        Console.WriteLine("Debug Mode, starting dev site");
-        await _panelWindow.WebContents.LoadURLAsync("http://localhost:5173/#/panel");
-#else
-        Console.WriteLine("Production Mode, starting built site");
-        await _panelWindow.WebContents.LoadURLAsync($"{screenManager.BaseUrl}/index.html#/panel");
-#endif
 
         _panelWindow.OnReadyToShow += () => _panelWindow.Show();
 
@@ -102,10 +109,27 @@ public class Program
             if (string.IsNullOrEmpty(msg)) return;
 
             var jObj = Newtonsoft.Json.Linq.JObject.Parse(msg);
-            var senderType = jObj.GetValue("__sender")?.ToString();
-            jObj.Remove("__sender");
 
-            BrowserWindow? sender = senderType == "panel" ? _panelWindow : null;
+            var senderId = jObj.GetValue("__windowId")?.ToObject<int?>();
+            jObj.Remove("__windowId");
+
+            BrowserWindow? sender = null;
+            if (senderId.HasValue)
+            {
+                sender = Electron.WindowManager.BrowserWindows.FirstOrDefault(w => w.Id == senderId.Value);
+            }
+
+            // Fallback for messages without a window id
+            if (sender == null)
+            {
+                var senderType = jObj.GetValue("__sender")?.ToString();
+                jObj.Remove("__sender");
+                sender = senderType == "panel" ? _panelWindow : null;
+            }
+            else
+            {
+                jObj.Remove("__sender");
+            }
 
             await messageHandler.HandleMessageAsync(sender, jObj.ToString(Newtonsoft.Json.Formatting.None));
         });

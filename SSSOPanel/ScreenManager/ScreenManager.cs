@@ -1,4 +1,5 @@
 using ElectronNET.API;
+using ElectronNET.API.Entities;
 using Newtonsoft.Json.Linq;
 using SSSOPanel.MessageParser;
 
@@ -62,7 +63,28 @@ public class ScreenManager
     public async Task<BrowserWindow> CreateNewScreen(bool isFullScreen)
     {
         Console.WriteLine("Creating Screen Window");
-        var windowScreen = await Electron.WindowManager.CreateWindowAsync();
+
+#if DEBUG
+        Console.WriteLine("Debug Mode, starting dev site");
+        var screenUrl = "http://localhost:5173/#/screen";
+#else
+        Console.WriteLine("Production Mode, starting built site");
+        var screenUrl = $"{BaseUrl}/index.html#/screen";
+#endif
+
+        var windowScreen = await Electron.WindowManager.CreateWindowAsync(
+            new BrowserWindowOptions
+            {
+                WebPreferences = new WebPreferences
+                {
+                    DevTools = true,
+                    ContextIsolation = true,
+                    NodeIntegration = false,
+                    Preload = Path.Combine(AppContext.BaseDirectory, "preload.js"),
+                },
+            },
+            screenUrl
+        );
 
         if (isFullScreen)
         {
@@ -76,21 +98,16 @@ public class ScreenManager
             );
         }
 
+#if DEBUG
+        windowScreen.WebContents.OpenDevTools();
+#endif
+
         windowScreen.OnClosed += () =>
         {
             UnregisterScreen(windowScreen);
         };
 
         RegisterScreen(windowScreen);
-
-#if DEBUG
-        Console.WriteLine("Debug Mode, starting dev site");
-        windowScreen.WebContents.OpenDevTools();
-        windowScreen.LoadURL($"http://localhost:5173/#/screen");
-#else
-        Console.WriteLine("Production Mode, starting built site");
-        windowScreen.LoadURL($"{BaseUrl}/index.html#/screen");
-#endif
 
         return windowScreen;
     }

@@ -62,6 +62,14 @@
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 			<TargetPath>.electron\custom_main.js</TargetPath>
 		</None>
+		<Content Include="preload.js">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<!-- Production UI: copy built frontend to output wwwroot/ -->
+		<Content Include="Resources\wwwroot\**">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<LinkBase>wwwroot\%(RecursiveDir)</LinkBase>
+		</Content>
 	</ItemGroup>
 
 </Project>
