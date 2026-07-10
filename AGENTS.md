@@ -16,6 +16,8 @@ This project is migrating from **Photino.NET** to **Electron.NET**. Follow these
 8. ✅ **ElectronNET.Core Migration** — Upgrade from `ElectronNET.API` v23.6.1 to `ElectronNET.Core` v0.5.1. New console app startup via `ElectronNetRuntime.RuntimeController`. Dev command: `./dev.sh`
 9. **Verify** — `npm run lint` (0 errors), `dotnet build` (0 errors), `./dev.sh` launches both windows
 
+**CRITICAL**: ElectronNET.Core console apps MUST use `Microsoft.NET.Sdk` (plain console SDK), NOT `Microsoft.NET.Sdk.Web`. The Web SDK causes `StartupManager.Initialize()` to classify the app as `DotNetAppType.AspNetCoreApp`, skipping `RuntimeControllerCore` creation — making `ElectronNetRuntime.RuntimeController` return null. This was fixed in commit `a0f2b9f`.
+
 Detailed instructions for each phase are in the **Electron.NET Migration Plan** section below. If the project is already migrated, skip to the **Coding Standards** and **Commands** sections for daily development.
 
 ## Project Overview
