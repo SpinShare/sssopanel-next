@@ -33,8 +33,6 @@ const refDenIsVisible = ref(false); // Now correctly declared for template acces
 const maxMessages = ref(5);
 const localMessages = ref([]);
 
-console.log('[SCREEN-REFDEN] Component initialized');
-
 // --- Computed Properties ---
 const messages = computed(() => {
     return localMessages.value.slice(0, maxMessages.value);

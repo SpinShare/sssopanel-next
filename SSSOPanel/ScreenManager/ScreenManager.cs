@@ -99,11 +99,7 @@ public class ScreenManager
             );
         }
 
-#if DEBUG
-        windowScreen.WebContents.OpenDevTools();
-#endif
-
-        windowScreen.OnClosed += () =>
+windowScreen.OnClosed += () =>
         {
             UnregisterScreen(windowScreen);
         };
