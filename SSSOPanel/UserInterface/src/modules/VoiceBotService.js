@@ -58,7 +58,7 @@ function connect(serverUrl, channelId) {
                 }
 
                 console.log('Received WebSocket message:', data);
-                handleServerMessage(data, messageType, channelId);
+                handleServerMessage(data, messageType);
             } catch (err) {
                 console.error('Message processing error:', err, 'Raw data:', event.data);
                 sendToWs({
@@ -89,7 +89,7 @@ function connect(serverUrl, channelId) {
     }
 }
 
-function handleServerMessage(data, messageType, channelId) {
+function handleServerMessage(data, messageType) {
     switch (messageType) {
         case 'bot_ready':
             state.botUsername = data.username;

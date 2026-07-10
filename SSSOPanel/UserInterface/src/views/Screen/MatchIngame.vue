@@ -48,30 +48,20 @@
                         </div>
                         <div class="score">
                             <div class="player">
-                                <transition
-                                    name="default"
-                                    mode="out-in"
+                                <span
                                     v-for="n in Math.ceil(scoresSetsMax / 2)"
-                                >
-                                    <span
-                                        class="point"
-                                        :key="n + (n < scoresScorePlayer1 + 1)"
-                                        :class="{ active: n < scoresScorePlayer1 + 1 }"
-                                    ></span>
-                                </transition>
+                                    :key="'p1-' + n"
+                                    class="point"
+                                    :class="{ active: n < scoresScorePlayer1 + 1 }"
+                                ></span>
                             </div>
                             <div class="player">
-                                <transition
-                                    name="default"
-                                    mode="out-in"
+                                <span
                                     v-for="n in Math.ceil(scoresSetsMax / 2)"
-                                >
-                                    <span
-                                        class="point"
-                                        :key="n + (n < scoresScorePlayer2 + 1)"
-                                        :class="{ active: n < scoresScorePlayer2 + 1 }"
-                                    ></span>
-                                </transition>
+                                    :key="'p2-' + n"
+                                    class="point"
+                                    :class="{ active: n < scoresScorePlayer2 + 1 }"
+                                ></span>
                             </div>
                         </div>
                     </div>

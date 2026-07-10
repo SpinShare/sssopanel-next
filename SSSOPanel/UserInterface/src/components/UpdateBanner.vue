@@ -42,9 +42,15 @@ const latestRelease = ref(null);
 const needsUpdate = ref(false);
 
 const isVersionOutdated = (localVersion, latestVersion) => {
-    let localParts = localVersion.split('.');
-    let latestParts = latestVersion.split('.');
+    const localParts = localVersion.split('.').map(Number);
+    const latestParts = latestVersion.split('.').map(Number);
 
+    for (let i = 0; i < Math.max(localParts.length, latestParts.length); i++) {
+        const local = localParts[i] ?? 0;
+        const latest = latestParts[i] ?? 0;
+        if (latest > local) return true;
+        if (latest < local) return false;
+    }
     return false;
 };
 

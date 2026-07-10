@@ -14,20 +14,11 @@ This project is migrating from **Photino.NET** to **Electron.NET**. Follow these
 6. ✅ **Phase 5: Vue Frontend** — Update all 22 files using `window.external.*` → `window.electronAPI.*`
 7. ✅ **Phase 6: Build & CI** — Create `electron.manifest.json`, update GitHub Actions, update dev script
 8. ✅ **ElectronNET.Core Migration** — Upgrade from `ElectronNET.API` v23.6.1 to `ElectronNET.Core` v0.5.1. New console app startup via `ElectronNetRuntime.RuntimeController`. Dev command: `./dev.sh`
-9. ✅ **Verify** — `dotnet build` (0 errors), `./dev.sh` launches both windows. See **Known Lint Debt** below.
+9. ✅ **Verify** — `dotnet build` (0 errors), `./dev.sh` launches both windows, `npm run lint` (0 errors).
 
 **CRITICAL**: ElectronNET.Core console apps MUST use `Microsoft.NET.Sdk` (plain console SDK), NOT `Microsoft.NET.Sdk.Web`. The Web SDK causes `StartupManager.Initialize()` to classify the app as `DotNetAppType.AspNetCoreApp`, skipping `RuntimeControllerCore` creation — making `ElectronNetRuntime.RuntimeController` return null. This was fixed in commit `a0f2b9f`.
 
 **CRITICAL (Window Creation)**: `Electron.WindowManager.CreateWindowAsync(options)` defaults `loadUrl` to `"http://localhost"`. Always pass the real URL as the second argument, e.g. `CreateWindowAsync(options, panelUrl)`. Omitting it causes the window to attempt loading `http://localhost/?token=...`, which fails with `ERR_CONNECTION_REFUSED`. Also set `WebPreferences.ContextIsolation = true` and `NodeIntegration = false` explicitly — Electron.NET's host JS forces `nodeIntegration: true, contextIsolation: false` whenever `nodeIntegration` is absent from `webPreferences`, which breaks `contextBridge` in preload scripts.
-
-## Known Lint Debt
-
-`npm run lint` currently reports 9 pre-existing errors in 4 Vue files (`UpdateBanner.vue`, `AppLayout.vue`, `modules/VoiceBotService.js`, `views/Screen/MatchIngame.vue`). These existed before the runtime fixes and are safe to defer:
-
-- `UpdateBanner.vue`: unused `localParts`, `latestParts`
-- `AppLayout.vue`: unused `inject`, `onMounted`, `onUnmounted`, `ref` imports
-- `modules/VoiceBotService.js`: unused `channelId` parameter
-- `views/Screen/MatchIngame.vue`: two `v-for` loops on custom elements missing `:key`
 
 Detailed instructions for each phase are in the **Electron.NET Migration Plan** section below. If the project is already migrated, skip to the **Coding Standards** and **Commands** sections for daily development.
 

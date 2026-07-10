@@ -51,7 +51,6 @@
 <script setup>
 import UpdateBanner from '@/components/UpdateBanner.vue';
 import AlertMessage from '@/components/Common/AlertMessage.vue';
-import { inject, onMounted, onUnmounted, ref } from 'vue';
 import router from '@/router';
 import useCurrentScreen from '@/modules/useCurrentScreen';
 
