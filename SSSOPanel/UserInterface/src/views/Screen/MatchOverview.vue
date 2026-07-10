@@ -94,7 +94,7 @@ onMounted(() => {
         player2.value = state?.currentMatch?.players?.player2 ?? player2.value;
     });
 
-    window.external.sendMessage(
+    window.electronAPI.send('message',
         JSON.stringify({
             command: 'state-get',
         }),

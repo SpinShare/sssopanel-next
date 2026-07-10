@@ -159,7 +159,7 @@ const saveSettings = () => {
         { key: 'currentEvent.startgg.eventId', value: startGGEventId.value },
     ];
 
-    window.external.sendMessage(
+    window.electronAPI.send('message',
         JSON.stringify({
             command: 'settings-set',
             data: settings,
@@ -168,7 +168,7 @@ const saveSettings = () => {
 };
 
 const openGithubReleases = () => {
-    window.external.sendMessage(
+    window.electronAPI.send('message',
         JSON.stringify({
             command: 'open-in-browser',
             data: 'https://github.com/SpinShare/sssopanel-next',
@@ -195,7 +195,7 @@ onMounted(() => {
         settingsState.value = SETTING_STATE_IDLE;
     });
 
-    window.external.sendMessage(
+    window.electronAPI.send('message',
         JSON.stringify({
             command: 'settings-get-full',
             data: '',

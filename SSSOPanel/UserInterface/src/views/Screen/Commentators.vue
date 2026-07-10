@@ -48,7 +48,7 @@ onMounted(() => {
         roomPassword.value = state?.commentators?.roomPassword ?? roomPassword.value;
     });
 
-    window.external.sendMessage(
+    window.electronAPI.send('message',
         JSON.stringify({
             command: 'state-get',
         }),

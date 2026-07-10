@@ -80,7 +80,7 @@ setInterval(() => {
 }, 50);
 
 onMounted(() => {
-    window.external.sendMessage(
+    window.electronAPI.send('message',
         JSON.stringify({
             command: 'state-get',
         }),

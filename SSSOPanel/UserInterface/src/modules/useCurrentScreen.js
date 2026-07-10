@@ -13,7 +13,7 @@ function useCurrentScreen() {
             currentScreen.value = data.Path;
         });
 
-        window.external.sendMessage(
+        window.electronAPI.send('message',
             JSON.stringify({
                 command: 'current-route-get',
             }),

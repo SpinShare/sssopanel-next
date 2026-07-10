@@ -52,7 +52,7 @@ onMounted(() => {
         });
     });
 
-    window.external.sendMessage(
+    window.electronAPI.send('message',
         JSON.stringify({
             command: 'current-route-get',
         }),

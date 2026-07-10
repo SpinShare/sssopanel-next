@@ -63,7 +63,7 @@ const spotifyTitle = ref('');
 
 let spotifyUpdateInterval = null;
 const updateSpotify = () => {
-    window.external.sendMessage(
+    window.electronAPI.send('message',
         JSON.stringify({
             command: 'screen-spotify-get',
         }),

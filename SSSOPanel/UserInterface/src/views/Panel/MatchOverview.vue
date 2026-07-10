@@ -57,7 +57,7 @@ const loadedPlayer2 = ref(null);
 const refDenIsVisible = ref(false);
 
 const transition = () => {
-    window.external.sendMessage(
+    window.electronAPI.send('message',
         JSON.stringify({
             command: 'state-set',
             data: {
@@ -71,7 +71,7 @@ const transition = () => {
         }),
     );
 
-    window.external.sendMessage(
+    window.electronAPI.send('message',
         JSON.stringify({
             command: 'screen-navigate',
             data: {
@@ -83,7 +83,7 @@ const transition = () => {
 
 const toggleRefDen = () => {
     refDenIsVisible.value = !refDenIsVisible.value;
-    window.external.sendMessage(
+    window.electronAPI.send('message',
         JSON.stringify({
             command: 'state-set',
             data: {
@@ -91,7 +91,7 @@ const toggleRefDen = () => {
             },
         }),
     );
-    window.external.sendMessage(
+    window.electronAPI.send('message',
         JSON.stringify({
             command: 'state-get',
         }),
@@ -132,13 +132,13 @@ onMounted(() => {
         loadPlayers(settings['currentEvent.playerMapping'] ?? []);
     });
 
-    window.external.sendMessage(
+    window.electronAPI.send('message',
         JSON.stringify({
             command: 'settings-get-full',
         }),
     );
 
-    window.external.sendMessage(
+    window.electronAPI.send('message',
         JSON.stringify({
             command: 'state-get',
         }),

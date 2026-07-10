@@ -247,13 +247,13 @@ onMounted(() => {
         players.value = settings['currentEvent.playerMapping'] ?? [];
     });
 
-    window.external.sendMessage(
+    window.electronAPI.send('message',
         JSON.stringify({
             command: 'state-get',
         }),
     );
 
-    window.external.sendMessage(
+    window.electronAPI.send('message',
         JSON.stringify({
             command: 'settings-get-full',
         }),

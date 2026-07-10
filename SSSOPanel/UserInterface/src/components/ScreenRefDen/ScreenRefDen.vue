@@ -55,7 +55,7 @@ const handleIncomingMessage = (message) => {
         if (localMessages.value.length > maxMessages.value) {
             localMessages.value.pop();
         }
-        window.external.sendMessage(
+        window.electronAPI.send('message',
             JSON.stringify({
                 command: 'state-set',
                 data: {
@@ -73,7 +73,7 @@ onMounted(() => {
         refDenIsVisible.value = state?.refDenIsVisible ?? false;
         localMessages.value = state?.refDenMessages ?? [];
     });
-    window.external.sendMessage(JSON.stringify({ command: 'state-get' }));
+    window.electronAPI.send('message',JSON.stringify({ command: 'state-get' }));
     // Set up the message handler from the VoiceBotService
     VoiceBotService.addMessageHandler(handleIncomingMessage);
 });

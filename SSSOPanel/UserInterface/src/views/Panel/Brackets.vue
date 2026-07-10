@@ -76,7 +76,7 @@ const startGGPhases = ref(null);
 
 const toggleRefDen = () => {
     refDenIsVisible.value = !refDenIsVisible.value;
-    window.external.sendMessage(
+    window.electronAPI.send('message',
         JSON.stringify({
             command: 'state-set',
             data: {
@@ -84,7 +84,7 @@ const toggleRefDen = () => {
             },
         }),
     );
-    window.external.sendMessage(
+    window.electronAPI.send('message',
         JSON.stringify({
             command: 'state-get',
         }),
@@ -93,7 +93,7 @@ const toggleRefDen = () => {
 };
 
 const transition = () => {
-    window.external.sendMessage(
+    window.electronAPI.send('message',
         JSON.stringify({
             command: 'state-set',
             data: {
@@ -102,7 +102,7 @@ const transition = () => {
         }),
     );
 
-    window.external.sendMessage(
+    window.electronAPI.send('message',
         JSON.stringify({
             command: 'screen-navigate',
             data: {
@@ -183,7 +183,7 @@ onMounted(() => {
         refDenIsVisible.value = state?.refDenIsVisible ?? false;
     });
 
-    window.external.sendMessage(
+    window.electronAPI.send('message',
         JSON.stringify({
             command: 'settings-get-full',
         }),

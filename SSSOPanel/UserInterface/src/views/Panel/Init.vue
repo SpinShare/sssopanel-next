@@ -25,7 +25,7 @@ const refDenIsVisible = ref(false);
 const emitter = inject('emitter');
 
 const transition = () => {
-    window.external.sendMessage(
+    window.electronAPI.send('message',
         JSON.stringify({
             command: 'screen-navigate',
             data: {
@@ -39,7 +39,7 @@ const transition = () => {
 
 const toggleRefDen = () => {
     refDenIsVisible.value = !refDenIsVisible.value;
-    window.external.sendMessage(
+    window.electronAPI.send('message',
         JSON.stringify({
             command: 'state-set',
             data: {
@@ -47,7 +47,7 @@ const toggleRefDen = () => {
             },
         }),
     );
-    window.external.sendMessage(
+    window.electronAPI.send('message',
         JSON.stringify({
             command: 'state-get',
         }),

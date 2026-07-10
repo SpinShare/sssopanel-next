@@ -286,7 +286,7 @@ onMounted(() => {
         applyState(state);
     });
 
-    window.external.sendMessage(
+    window.electronAPI.send('message',
         JSON.stringify({
             command: 'state-get',
         }),

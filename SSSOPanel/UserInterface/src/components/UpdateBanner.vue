@@ -49,7 +49,7 @@ const isVersionOutdated = (localVersion, latestVersion) => {
 };
 
 const openUpdate = () => {
-    window.external.sendMessage(
+    window.electronAPI.send('message',
         JSON.stringify({
             command: 'open-in-browser',
             data: 'https://github.com/SpinShare/client-next/releases/latest',
@@ -65,7 +65,7 @@ onMounted(() => {
     emitter.on('update-get-version-response', (version) => {
         currentVersion.value = version;
 
-        window.external.sendMessage(
+        window.electronAPI.send('message',
             JSON.stringify({
                 command: 'update-get-latest',
                 data: '',
@@ -83,7 +83,7 @@ onMounted(() => {
         needsUpdate.value = isVersionOutdated(currentVersion.value, latestRelease.value.tag_name.replace('v', '').replace('-preview', ''));
     });
 
-    window.external.sendMessage(
+    window.electronAPI.send('message',
         JSON.stringify({
             command: 'update-get-version',
             data: '',

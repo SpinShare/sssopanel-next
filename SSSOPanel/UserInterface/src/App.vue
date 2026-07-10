@@ -16,7 +16,7 @@
 import { inject } from 'vue';
 const emitter = inject('emitter');
 
-window.external.receiveMessage((rawResponse) => {
+window.electronAPI.on('message', (rawResponse) => {
     const response = JSON.parse(rawResponse);
     emitter.emit(response.Command, response.Data);
 });
