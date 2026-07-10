@@ -10,7 +10,7 @@
         ></video>
         <div
             class="loading-overlay"
-            v-if="isLoading"
+            :class="{ visible: showOverlay }"
         >
             <SpinLoader />
         </div>
@@ -37,25 +37,52 @@ const props = defineProps({
     },
 });
 
+const MIN_LOADER_MS = 600;
+
 const videoRef = ref(null);
-const isLoading = ref(false);
+const showOverlay = ref(false);
+
 let player = null;
 let loadedUrl = '';
+let loadStartTime = 0;
+let hideTimer = null;
+
+const clearHideTimer = () => {
+    if (hideTimer) {
+        clearTimeout(hideTimer);
+        hideTimer = null;
+    }
+};
+
+const hideLoader = () => {
+    clearHideTimer();
+    const elapsed = Date.now() - loadStartTime;
+    const remaining = MIN_LOADER_MS - elapsed;
+    if (remaining > 0) {
+        hideTimer = setTimeout(() => {
+            showOverlay.value = false;
+        }, remaining);
+    } else {
+        showOverlay.value = false;
+    }
+};
 
 const onVideoReady = () => {
-    isLoading.value = false;
+    hideLoader();
 };
 
 const load = async () => {
     if (!player || !props.url || !props.active) return;
     if (loadedUrl === props.url) return;
     loadedUrl = props.url;
-    isLoading.value = true;
+    clearHideTimer();
+    loadStartTime = Date.now();
+    showOverlay.value = true;
     try {
         await player.load(new URL(props.url));
     } catch (err) {
         console.error('[WhepPlayer] load failed', props.url, err);
-        isLoading.value = false;
+        hideLoader();
     }
 };
 
@@ -71,7 +98,7 @@ const ensurePlayer = () => {
     });
     player.on('media-recovered', () => {
         console.log('[WhepPlayer] media-recovered', props.url);
-        isLoading.value = false;
+        hideLoader();
     });
 };
 
@@ -107,6 +134,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+    clearHideTimer();
     if (player) {
         try {
             player.destroy();
@@ -134,5 +162,11 @@ onUnmounted(() => {
     justify-content: center;
     background: rgba(0, 0, 0, 0.5);
     pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+
+    &.visible {
+        opacity: 1;
+    }
 }
 </style>
