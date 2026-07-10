@@ -66,11 +66,11 @@ public class ScreenManager
 
         if (isFullScreen)
         {
-            await windowScreen.SetFullScreenAsync(true);
+            windowScreen.SetFullScreen(true);
         }
         else
         {
-            await windowScreen.SetSizeAsync(
+            windowScreen.SetSize(
                 Convert.ToInt32(1280 * ScreenScaleFactor.Get()),
                 Convert.ToInt32(720 * ScreenScaleFactor.Get())
             );
@@ -85,7 +85,7 @@ public class ScreenManager
 
 #if DEBUG
         Console.WriteLine("Debug Mode, starting dev site");
-        await windowScreen.WebContents.OpenDevToolsAsync();
+        windowScreen.WebContents.OpenDevTools();
         windowScreen.LoadURL($"http://localhost:5173/#/screen");
 #else
         Console.WriteLine("Production Mode, starting built site");

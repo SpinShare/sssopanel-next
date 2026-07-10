@@ -8,7 +8,8 @@ public class CommandScreenFullscreenToggle: ICommand
     {
         if (sender == null) return;
         
-        sender.SetFullScreen(!sender.FullScreen);
+        var isFullScreen = await sender.IsFullScreenAsync();
+        sender.SetFullScreen(!isFullScreen);
         
         await Task.Yield();
     }

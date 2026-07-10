@@ -9,6 +9,7 @@ using MessageParser;
 public class Program
 {
     private static FileStream? _lockFile;
+    private static BrowserWindow? _panelWindow;
     
     public static async Task Main(string[] args)
     {
@@ -25,29 +26,8 @@ public class Program
         var settingsManager = SettingsManager.SettingsManager.GetInstance();
         var screenManager = ScreenManager.ScreenManager.GetInstance();
 
-        // Register IPC handler
-        Electron.IpcMain.On("message", async (evt, message) =>
-        {
-            var msg = message.ToString();
-            if (string.IsNullOrEmpty(msg)) return;
-            
-            // Resolve the sender BrowserWindow from the event's webContentsId
-            BrowserWindow? sender = null;
-            var allWindows = Electron.WindowManager.GetAllWindows();
-            foreach (var w in allWindows)
-            {
-                if (w.WebContents.Id == evt.Sender.Id)
-                {
-                    sender = w;
-                    break;
-                }
-            }
-            
-            await messageHandler.HandleMessageAsync(sender, msg);
-        });
-
         Console.WriteLine("Creating Panel Window");
-        var windowPanel = await Electron.WindowManager.CreateWindowAsync(
+        _panelWindow = await Electron.WindowManager.CreateWindowAsync(
             new BrowserWindowOptions
             {
                 Title = "Panel",
@@ -55,20 +35,20 @@ public class Program
                 Height = Convert.ToInt32(750 * ScreenScaleFactor.Get()),
                 Resizable = false,
 #if DEBUG
-                DevTools = true,
+                WebPreferences = new WebPreferences { DevTools = true },
 #endif
             }
         );
 
 #if DEBUG
         Console.WriteLine("Debug Mode, starting dev site");
-        windowPanel.LoadURL($"http://localhost:5173/#/panel");
+        _panelWindow.LoadURL($"http://localhost:5173/#/panel");
 #else
         Console.WriteLine("Production Mode, starting built site");
-        windowPanel.LoadURL($"{screenManager.BaseUrl}/index.html#/panel");
+        _panelWindow.LoadURL($"{screenManager.BaseUrl}/index.html#/panel");
 #endif
 
-        windowPanel.OnClosed += () =>
+        _panelWindow.OnClosed += () =>
         {
             Console.WriteLine("Closing Screen Windows");
             foreach (var screen in screenManager.GetScreens())
@@ -76,6 +56,21 @@ public class Program
                 screen.Close();
             }
         };
+
+        // Register IPC handler
+        Electron.IpcMain.On("message", async (args) =>
+        {
+            var msg = args.ToString();
+            if (string.IsNullOrEmpty(msg)) return;
+            
+            var jObj = Newtonsoft.Json.Linq.JObject.Parse(msg);
+            var senderType = jObj.GetValue("__sender")?.ToString();
+            jObj.Remove("__sender");
+            
+            BrowserWindow? sender = senderType == "panel" ? _panelWindow : null;
+            
+            await messageHandler.HandleMessageAsync(sender, jObj.ToString(Newtonsoft.Json.Formatting.None));
+        });
 
         // Keep the app running
         await Task.Delay(-1);
