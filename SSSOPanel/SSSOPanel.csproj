@@ -28,6 +28,7 @@
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">
 		<PublishSingleFile>true</PublishSingleFile>
 		<SelfContained>true</SelfContained>
+		<PublishReadyToRun>true</PublishReadyToRun>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -72,7 +73,7 @@
 		<!-- Production UI: copy built frontend to output wwwroot/ -->
 		<Content Include="Resources\wwwroot\**">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<LinkBase>wwwroot\%(RecursiveDir)</LinkBase>
+			<Link>wwwroot\%(RecursiveDir)%(Filename)%(Extension)</Link>
 		</Content>
 	</ItemGroup>
 
