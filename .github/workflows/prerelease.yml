@@ -1,0 +1,111 @@
+name: Pre-release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: build (${{ matrix.rid }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            rid: linux-x64
+            artifact-glob: '*.AppImage'
+          - os: windows-latest
+            rid: win-x64
+            artifact-glob: '*-setup.exe'
+    permissions: write-all
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20.x
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Install UI dependencies
+        working-directory: SSSOPanel/UserInterface
+        run: npm install
+
+      - name: Build UI
+        working-directory: SSSOPanel/UserInterface
+        run: npm run build
+
+      - name: Stage UI build into wwwroot
+        run: |
+          rm -rf SSSOPanel/Resources/wwwroot/assets
+          cp -r SSSOPanel/UserInterface/dist/. SSSOPanel/Resources/wwwroot/
+        shell: bash
+
+      - name: Publish & package (ElectronNET.Core + electron-builder)
+        working-directory: SSSOPanel
+        run: dotnet publish SSSOPanel.csproj -c Release -r ${{ matrix.rid }}
+
+      - name: Upload packaged artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          name: SSSOPanel-prerelease-${{ matrix.rid }}
+          path: SSSOPanel/bin/Release/net10.0/${{ matrix.rid }}/publish/${{ matrix.artifact-glob }}
+          if-no-files-found: error
+          retention-days: 30
+
+  release:
+    name: pre-release
+    needs: build
+    permissions: write-all
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Configure date
+        id: date
+        run: echo "value=$(date +'%Y-%m-%d')" >> "$GITHUB_OUTPUT"
+
+      - name: Retrieve Linux artifacts
+        uses: actions/download-artifact@v7
+        with:
+          name: SSSOPanel-prerelease-linux-x64
+          path: SSSOPanel-prerelease-linux-x64
+
+      - name: Retrieve Windows artifacts
+        uses: actions/download-artifact@v7
+        with:
+          name: SSSOPanel-prerelease-win-x64
+          path: SSSOPanel-prerelease-win-x64
+
+      - name: List Files
+        run: |
+          ls -lp SSSOPanel-prerelease-linux-x64
+          ls -lp SSSOPanel-prerelease-win-x64
+
+      - name: Delete previous pre-release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          echo "Looking for existing pre-releases to replace..."
+          OLD_TAGS=$(gh release list --json tagName,isPrerelease --jq '.[] | select(.isPrerelease == true) | .tagName' || true)
+          for tag in $OLD_TAGS; do
+            echo "Deleting previous pre-release: $tag"
+            gh release delete "$tag" --yes --cleanup-tag || echo "Tag $tag already gone"
+          done
+
+      - name: Create pre-release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: prerelease-${{ steps.date.outputs.value }}
+          name: Pre-release ${{ steps.date.outputs.value }}
+          files: |
+            SSSOPanel-prerelease-linux-x64/*.AppImage
+            SSSOPanel-prerelease-win-x64/*-setup.exe
+          token: ${{ secrets.GITHUB_TOKEN }}
+          generate_release_notes: true
+          prerelease: true
