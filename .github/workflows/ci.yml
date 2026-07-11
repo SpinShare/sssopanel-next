@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    paths:
+      - 'SSSOPanel/**'
+      - '.github/workflows/ci.yml'
+
+jobs:
+  verify:
+    name: lint & build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Install UI dependencies
+        working-directory: SSSOPanel/UserInterface
+        run: npm install
+
+      - name: Lint UI
+        working-directory: SSSOPanel/UserInterface
+        run: npm run lint
+
+      - name: Build UI
+        working-directory: SSSOPanel/UserInterface
+        run: npm run build
+
+      - name: Stage UI build into wwwroot
+        run: |
+          rm -rf SSSOPanel/Resources/wwwroot/assets
+          cp -r SSSOPanel/UserInterface/dist/. SSSOPanel/Resources/wwwroot/
+
+      - name: Restore .NET dependencies
+        working-directory: SSSOPanel
+        run: dotnet restore
+
+      - name: Build .NET
+        working-directory: SSSOPanel
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Upload UI dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-dist
+          path: SSSOPanel/UserInterface/dist

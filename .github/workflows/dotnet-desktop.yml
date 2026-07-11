@@ -10,59 +10,68 @@ on:
 
 jobs:
   build:
-    name: build
+    name: build (linux-x64)
     permissions: write-all
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup NodeJS
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 20.x
+
       - name: Setup .NET
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 7.0.x
-      - name: Restore NuGet packages
-        run: dotnet restore
-      - name: Run tests
-        run: dotnet test --no-restore --verbosity normal
-      - name: Install Electron.NET CLI
-        run: dotnet tool install --global Electron.CLI
-      - name: Build with Electron
-        working-directory: SSSOPanel
-        run: electronize build /target win-x64
-      - name: Archive build artifacts
-        uses: vimtor/action-zip@v1
-        with:
-          files: SSSOPanel/bin/Release/net7.0/win-x64/publish
-          dest: build.zip
-      - name: List Files
+          dotnet-version: 10.0.x
+
+      - name: Install UI dependencies
+        working-directory: SSSOPanel/UserInterface
+        run: npm install
+
+      - name: Build UI
+        working-directory: SSSOPanel/UserInterface
+        run: npm run build
+
+      - name: Stage UI build into wwwroot
         run: |
-          ls -lp SSSOPanel/bin/Release/net7.0/win-x64/publish
-      - name: Save Release Artifact
+          rm -rf SSSOPanel/Resources/wwwroot/assets
+          cp -r SSSOPanel/UserInterface/dist/. SSSOPanel/Resources/wwwroot/
+
+      - name: Publish & package (ElectronNET.Core + electron-builder)
+        working-directory: SSSOPanel
+        run: dotnet publish -c Release
+
+      - name: Upload packaged artifacts
         uses: actions/upload-artifact@v4
         with:
-          path: build.zip
-          name: build.zip
-          retention-days: 1
+          name: SSSOPanel-linux-x64
+          path: |
+            SSSOPanel/bin/Release/net10.0/linux-x64/publish/*.tar.xz
+            SSSOPanel/bin/Release/net10.0/linux-x64/publish/*.AppImage
+
   release:
+    name: release
     needs: build
     permissions: write-all
     runs-on: ubuntu-latest
     steps:
-      - name: Retrieve Release Artifacts
+      - name: Retrieve build artifacts
         uses: actions/download-artifact@v4
         with:
-          path: build
+          name: SSSOPanel-linux-x64
+          path: SSSOPanel-linux-x64
+
       - name: List Files
-        run: |
-          ls -lp build/build.zip
+        run: ls -lp SSSOPanel-linux-x64
+
       - name: Create release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: |
-            build/build.zip/build.zip
+            SSSOPanel-linux-x64/*.tar.xz
+            SSSOPanel-linux-x64/*.AppImage
           token: ${{ secrets.GITHUB_TOKEN }}
           generate_release_notes: true
           name: Release ${{ github.event.repository.updated_at }}

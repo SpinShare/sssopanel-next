@@ -8,17 +8,21 @@ This project is migrating from **Photino.NET** to **Electron.NET**. Follow these
 
 1. **Plan (read-only)** — Read this file fully, explore the codebase, understand the current Photino.NET structure
 2. ✅ **Phase 1: C# Project Setup** — Edit `SSSOPanel.csproj`: swap SDK to `Microsoft.NET.Sdk.Web`, remove Photino packages, add `ElectronNET.API`, add Electron config properties
-3. ✅ **Phase 2: New Files** — Create `preload.js` and `custom_main.js` in `SSSOPanel/`
+3. ✅ **Phase 2: New Files** — Create `preload.js` and `electron/custom_main.js` in `SSSOPanel/`
 4. ✅ **Phase 3: C# Core** — Rewrite `Program.cs`, `ScreenManager.cs`, `MessageHandler.cs`, `ICommand.cs`
 5. ✅ **Phase 4: C# Commands** — Update all 17 `Command*.cs` files (`PhotinoWindow?` → `BrowserWindow?`)
 6. ✅ **Phase 5: Vue Frontend** — Update all 22 files using `window.external.*` → `window.electronAPI.*`
-7. ✅ **Phase 6: Build & CI** — Create `electron.manifest.json`, update GitHub Actions, update dev script
+7. ✅ **Phase 6: Build & CI** — Configure build/CI for ElectronNET.Core (no `electron.manifest.json` — see CRITICAL note below); CI workflow `ci.yml` (lint+build) + release workflow `dotnet-desktop.yml` (`dotnet publish` + electron-builder); dev script `./dev.sh`
 8. ✅ **ElectronNET.Core Migration** — Upgrade from `ElectronNET.API` v23.6.1 to `ElectronNET.Core` v0.5.1. New console app startup via `ElectronNetRuntime.RuntimeController`. Dev command: `./dev.sh`
 9. ✅ **Verify** — `dotnet build` (0 errors), `./dev.sh` launches both windows, `npm run lint` (0 errors).
 
 **CRITICAL**: ElectronNET.Core console apps MUST use `Microsoft.NET.Sdk` (plain console SDK), NOT `Microsoft.NET.Sdk.Web`. The Web SDK causes `StartupManager.Initialize()` to classify the app as `DotNetAppType.AspNetCoreApp`, skipping `RuntimeControllerCore` creation — making `ElectronNetRuntime.RuntimeController` return null. This was fixed in commit `a0f2b9f`.
 
 **CRITICAL (Window Creation)**: `Electron.WindowManager.CreateWindowAsync(options)` defaults `loadUrl` to `"http://localhost"`. Always pass the real URL as the second argument, e.g. `CreateWindowAsync(options, panelUrl)`. Omitting it causes the window to attempt loading `http://localhost/?token=...`, which fails with `ERR_CONNECTION_REFUSED`. Also set `WebPreferences.ContextIsolation = true` and `NodeIntegration = false` explicitly — Electron.NET's host JS forces `nodeIntegration: true, contextIsolation: false` whenever `nodeIntegration` is absent from `webPreferences`, which breaks `contextBridge` in preload scripts.
+
+**CRITICAL (ElectronNET.Core config)**: Do NOT create `electron.manifest.json` (or `electron-manifest.json`). Under `ElectronNET.Core` v0.5.1, the `ELECTRON002` migration check explicitly forbids it — it triggers build error `"This file format is no longer supported."`. Instead, configure the app via (1) MSBuild properties in `SSSOPanel.csproj` (`ElectronVersion`, `ElectronSingleInstance`, `ElectronPackageId`, `Title`, `<RuntimeIdentifier>linux-x64</RuntimeIdentifier>`, etc.) and (2) `SSSOPanel/Properties/electron-builder.json` (electron-builder targets, must live in `Properties/`). The legacy `electronize` CLI is also gone — packaging is `dotnet publish -c Release` (the SDK's `ElectronPublishApp` target runs `electron-builder` automatically; the Linux `tar.xz` output lands in `SSSOPanel/bin/Release/net10.0/linux-x64/publish/`). Cross-platform builds are blocked by the `ELECTRON100` check: the `RuntimeIdentifier` platform must match the host OS (run on Linux for `linux-x64`, Windows for `win-x64`).
+
+**NOTE (AutoplayPolicy)**: `ElectronNET.Core.API` v0.5.1's `WebPreferences` has no `AutoplayPolicy` property (unlike the old `ElectronNET.API` v23.6.1). Do not set `WebPreferences.AutoplayPolicy` — it won't compile. Stream autoplay is handled by the permission handlers in `electron/custom_main.js` plus the `autoplay` HTML attribute on the `<video>` element.
 
 Detailed instructions for each phase are in the **Electron.NET Migration Plan** section below. If the project is already migrated, skip to the **Coding Standards** and **Commands** sections for daily development.
 
@@ -139,7 +143,7 @@ Desktop streaming overlay application for SpinShare SpeenOpen (Spin Rhythm XD to
 ```
 SSSOPanel/                        # C# .NET backend
 ├── Program.cs                    # Entry point — creates Panel + Screen windows
-├── SSSOPanel.csproj              # Project file (Microsoft.NET.Sdk.Web)
+├── SSSOPanel.csproj              # Project file (Microsoft.NET.Sdk, plain console SDK)
 ├── preload.js                    # Electron contextBridge IPC shim
 ├── electron/
 │   └── custom_main.js            # Electron main process (permissions)
@@ -239,7 +243,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 | `SSSOPanel/Program.cs` | App entry — creates Panel + Screen windows via Electron |
 | `SSSOPanel/preload.js` | Electron contextBridge: `electronAPI.send`/`electronAPI.on` |
 | `SSSOPanel/electron/custom_main.js` | Electron main process — permission handlers (WebRTC, autoplay) |
-| `SSSOPanel/electron.manifest.json` | Electron.NET configuration (app metadata, ports) |
+| `SSSOPanel/Properties/electron-builder.json` | electron-builder config (targets: linux `tar.xz`, win `portable`) |
 | `SSSOPanel/MessageParser/ICommand.cs` | Command interface: `Task Execute(BrowserWindow? sender, object? data)` |
 | `SSSOPanel/MessageParser/CommandFactory.cs` | String → command handler mapping |
 | `SSSOPanel/MessageParser/CommandStateSet.cs` | Handles `state-set`, merges JSON state |
@@ -259,11 +263,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
 1. Remove `Photino.NET` (2.5.2) and `Photino.NET.Server` (1.0.0) packages
 2. Add `ElectronNET.Core` package (v0.5.1 — includes `ElectronNET.Core.API` transitively)
 3. Change `OutputType` from `WinExe` to `Exe`
-4. Change SDK from `Microsoft.NET.Sdk` to `Microsoft.NET.Sdk.Web`
+4. Change SDK from `Microsoft.NET.Sdk` to `Microsoft.NET.Sdk.Web` — **SUPERSEDED under ElectronNET.Core**: use plain `Microsoft.NET.Sdk` (see CRITICAL note above; the Web SDK breaks `RuntimeController`).
 5. Remove Photino-specific properties (`GenerateEmbeddedFilesManifest`, `EmbedWwwRoot`, `UiRoot`, `WwwRoot`)
 6. Remove Photino build targets (BuildUserInterface — Electron.NET handles this via its own pipeline)
-7. Add `<ElectronMainJs>custom_main.js</ElectronMainJs>` and `<ElectronPreloadJs>preload.js</ElectronPreloadJs>`
-8. Add `<Content Include="wwwroot/**" CopyToOutputDirectory="PreserveNewest" />`
+7. Stage the Electron main/preload via `<None Update="electron\custom_main.js">` → `TargetPath `.electron\custom_main.js`` and `<Content Include="preload.js" CopyToOutputDirectory="PreserveNewest" />` (the `ElectronMainJs`/`ElectronPreloadJs` MSBuild props are not used under `ElectronNET.Core`).
+8. Add `<Content Include="Resources\wwwroot\**" CopyToOutputDirectory="PreserveNewest" LinkBase="wwwroot\%(RecursiveDir)" />`
 
 ### Phase 2: New Files
 
@@ -276,7 +280,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 });
 ```
 
-**`SSSOPanel/custom_main.js`** — Allow all permissions for WebRTC/media/autoplay:
+**`SSSOPanel/electron/custom_main.js`** — Allow all permissions for WebRTC/media/autoplay. Under `ElectronNET.Core` the file must export `module.exports.onStartup = function (host) { ... }` (the host invokes it); the real file also registers a `get-window-id` sync IPC so the preload can retrieve its `BrowserWindow` id for IPC routing. The outdated root `SSSOPanel/custom_main.js` (from the old `ElectronNET.API` flow) was removed — only `electron/custom_main.js` (copied to `.electron/custom_main.js`) is used.
 ```js
 const { session } = require('electron');
 app.whenReady().then(() => {
@@ -299,7 +303,7 @@ app.whenReady().then(() => {
 **`ScreenManager.cs`** — Full rewrite:
 1. Change `_screens` from `List<PhotinoWindow>` to `List<BrowserWindow>`
 2. `CreateNewScreen()` → `Electron.WindowManager.CreateWindowAsync()`
-3. Set `WebPreferences.AutoplayPolicy = NoUserGestureRequired`
+3. Set `WebPreferences.AutoplayPolicy = NoUserGestureRequired` — **N/A under ElectronNET.Core**: `Core.API` v0.5.1 `WebPreferences` has no `AutoplayPolicy` property; skip this (autoplay is handled by `electron/custom_main.js` permission handlers + the `autoplay` HTML attribute). See the NOTE above.
 4. Remove `SetMediaStreamEnabled`/`SetMediaAutoplayEnabled` (replaced by custom_main.js permissions)
 
 **`MessageHandler.cs`** — Rewrite IPC:
@@ -337,12 +341,12 @@ The 22 affected files are:
 
 ### Phase 6: Build & CI
 
-1. **`electron.manifest.json`**: Create with app name, singleInstance: true, aspCoreBackendPort: 0 (auto)
-2. **GitHub Actions** (`.github/workflows/dotnet-desktop.yml`):
-   - Remove `dotnet publish` step
-   - Replace with `electronize build` (needs Windows runner for Windows builds)
-   - Update artifact paths
-3. **Dev script** (`dev.sh`): Replace `dotnet run` with `electronize start`
+> Superseded by the ElectronNET.Core CRITICAL note above. Kept for historical record.
+
+1. **`electron.manifest.json`**: ~~Create~~ — **do NOT create** under `ElectronNET.Core` (`ELECTRON002` forbids it). Config is MSBuild props + `Properties/electron-builder.json`.
+2. **CI** (`.github/workflows/ci.yml`): lint UI, build UI, stage into `Resources/wwwroot`, `dotnet build -c Release` (fast verification on push/PR).
+3. **Release** (`.github/workflows/dotnet-desktop.yml`): build UI, `dotnet publish -c Release` on `ubuntu-latest` (the `ElectronPublishApp` target runs `electron-builder` → Linux `tar.xz` in `bin/Release/net10.0/linux-x64/publish/`), upload + draft GitHub release.
+4. **Dev script** (`dev.sh`): `dotnet run -c Debug -- -unpackeddotnet` (ElectronNET.Core .NET-first launch; `electronize` CLI no longer exists).
 
 ### Cross-Platform Notes
 
