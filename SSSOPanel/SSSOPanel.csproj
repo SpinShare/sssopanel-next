@@ -11,8 +11,12 @@
 		<NoWarn>$(NoWarn);ELECTRON001</NoWarn>
 	</PropertyGroup>
 
+	<!-- ElectronNetCommon properties
+	     ElectronNET.Core.props sets RuntimeIdentifier='win-x64' by default when unset.
+	     Override that default on Unix so local dev and CI pick the host-matching RID.
+	     Passing -r on the CLI still wins because the package only fills the empty case. -->
 	<PropertyGroup Label="ElectronNetCommon">
-		<RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+		<RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == 'win-x64' AND '$(OS)' == 'Unix'">linux-x64</RuntimeIdentifier>
 		<ElectronVersion>30.4.0</ElectronVersion>
 		<ElectronSingleInstance>true</ElectronSingleInstance>
 		<ElectronPackageId>com.spinshare.sssopanel</ElectronPackageId>
