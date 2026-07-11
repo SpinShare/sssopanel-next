@@ -10,9 +10,19 @@ on:
 
 jobs:
   build:
-    name: build (linux-x64)
+    name: build (${{ matrix.rid }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            rid: linux-x64
+            artifact-glob: '*.AppImage'
+          - os: windows-latest
+            rid: win-x64
+            artifact-glob: '*.exe'
     permissions: write-all
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
 
@@ -38,18 +48,17 @@ jobs:
         run: |
           rm -rf SSSOPanel/Resources/wwwroot/assets
           cp -r SSSOPanel/UserInterface/dist/. SSSOPanel/Resources/wwwroot/
+        shell: bash
 
       - name: Publish & package (ElectronNET.Core + electron-builder)
         working-directory: SSSOPanel
-        run: dotnet publish -c Release
+        run: dotnet publish SSSOPanel.csproj -c Release -r ${{ matrix.rid }}
 
       - name: Upload packaged artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: SSSOPanel-linux-x64
-          path: |
-            SSSOPanel/bin/Release/net10.0/linux-x64/publish/*.tar.xz
-            SSSOPanel/bin/Release/net10.0/linux-x64/publish/*.AppImage
+          name: SSSOPanel-${{ matrix.rid }}
+          path: SSSOPanel/bin/Release/net10.0/${{ matrix.rid }}/publish/${{ matrix.artifact-glob }}
 
   release:
     name: release
@@ -57,21 +66,29 @@ jobs:
     permissions: write-all
     runs-on: ubuntu-latest
     steps:
-      - name: Retrieve build artifacts
+      - name: Retrieve Linux artifacts
         uses: actions/download-artifact@v4
         with:
           name: SSSOPanel-linux-x64
           path: SSSOPanel-linux-x64
 
+      - name: Retrieve Windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: SSSOPanel-win-x64
+          path: SSSOPanel-win-x64
+
       - name: List Files
-        run: ls -lp SSSOPanel-linux-x64
+        run: |
+          ls -lp SSSOPanel-linux-x64
+          ls -lp SSSOPanel-win-x64
 
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            SSSOPanel-linux-x64/*.tar.xz
             SSSOPanel-linux-x64/*.AppImage
+            SSSOPanel-win-x64/*.exe
           token: ${{ secrets.GITHUB_TOKEN }}
           generate_release_notes: true
           name: Release ${{ github.event.repository.updated_at }}

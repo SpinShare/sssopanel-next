@@ -3,7 +3,7 @@
   "compression": "maximum",
   "linux": {
     "target": [
-      "tar.xz"
+      "AppImage"
     ],
     "executableArgs": [ "--no-sandbox" ],
     "artifactName": "${name}-${arch}-${version}.${ext}"
@@ -11,9 +11,14 @@
   "win": {
     "target": [
       {
-        "target": "portable",
+        "target": "nsis",
         "arch": "x64"
       }
     ]
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "artifactName": "${name}-${arch}-${version}-setup.${ext}"
   }
 }
