@@ -60,10 +60,3 @@ jobs:
       - name: Build .NET
         working-directory: SSSOPanel
         run: dotnet build SSSOPanel.csproj --configuration Release --no-restore --runtime ${{ matrix.rid }}
-
-      - name: Upload UI dist
-        uses: actions/upload-artifact@v6
-        with:
-          name: ui-dist-${{ matrix.rid }}
-          path: SSSOPanel/UserInterface/dist
-          if-no-files-found: error
