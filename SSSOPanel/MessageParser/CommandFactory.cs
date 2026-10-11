@@ -19,7 +19,7 @@ public class CommandFactory
             "update-get-latest" => new CommandUpdateGetLatest(),
             "current-route-get" => new CommandCurrentRouteGet(),
             "screen-navigate" => new CommandScreenNavigate(),
-            "screen-spotify-get" => new CommandScreenSpotifyGet(),
+            "screen-music-get" => new CommandScreenMusicGet(),
             "screen-fullscreen-toggle" => new CommandScreenFullscreenToggle(),
             "screen-match-update" => new CommandScreenMatchUpdate(),
             _ => throw new Exception($"Unknown command: {command}")
