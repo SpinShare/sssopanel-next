@@ -6,7 +6,6 @@ public class CommandFactory
     {
         return command switch
         {
-            "open-screen" => new CommandOpenScreen(),
             "open-in-browser" => new CommandOpenInBrowser(),
             "open-in-explorer" => new CommandOpenInExplorer(),
             "settings-open-in-explorer" => new CommandSettingsOpenInExplorer(),
@@ -20,7 +19,6 @@ public class CommandFactory
             "current-route-get" => new CommandCurrentRouteGet(),
             "screen-navigate" => new CommandScreenNavigate(),
             "screen-spotify-get" => new CommandScreenSpotifyGet(),
-            "screen-fullscreen-toggle" => new CommandScreenFullscreenToggle(),
             "screen-match-update" => new CommandScreenMatchUpdate(),
             _ => throw new Exception($"Unknown command: {command}")
         };

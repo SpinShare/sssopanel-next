@@ -1,7 +1,8 @@
 <template>
-    <AspectLayout>
+    <AspectLayout :transparent="props.transparent">
         <main
             class="layout-screen"
+            :class="{ transparent: props.transparent }"
             :style="{ gridTemplateRows }"
         >
             <ScreenVCHeader v-if="showHeader" />
@@ -22,6 +23,13 @@ import AspectLayout from '@/layouts/AspectLayout.vue';
 import ScreenFooter from '@/components/ScreenFooter/ScreenFooter.vue';
 import ScreenVCHeader from '../components/ScreenVCHeader/ScreenVCHeader.vue';
 import ScreenRefDen from '../components/ScreenRefDen/ScreenRefDen.vue';
+
+const props = defineProps({
+    transparent: {
+        type: Boolean,
+        default: false,
+    },
+});
 
 const emitter = inject('emitter');
 const route = useRoute();
@@ -74,5 +82,9 @@ onUnmounted(() => {
     //grid-template-rows: auto 1fr auto;
     background: #222;
     font-family: 'Orbitron', sans-serif;
+
+    &.transparent {
+        background: transparent;
+    }
 }
 </style>

@@ -56,6 +56,10 @@ body {
     color: rgb(var(--colorBaseText));
     overflow: hidden;
 }
+// Screens bring their own backdrop, see App.vue
+html.screen body {
+    background: transparent;
+}
 a {
     color: rgb(var(--colorBaseText));
 

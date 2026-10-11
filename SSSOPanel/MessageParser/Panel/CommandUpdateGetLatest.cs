@@ -7,7 +7,7 @@ using UpdateManager;
 
 public class CommandUpdateGetLatest : ICommand
 {
-    public async Task Execute(BrowserWindow? sender, object? data)
+    public async Task Execute(IClient? sender, object? data)
     {
         var updateManager = UpdateManager.GetInstance();
         Console.WriteLine("Getting latest Version");

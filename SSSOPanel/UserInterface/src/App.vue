@@ -1,4 +1,12 @@
 <template>
+    <div
+        class="screen-backdrop"
+        v-if="$route.path.startsWith('/screen')"
+    >
+        <div class="top"></div>
+        <div class="gameplay"></div>
+        <div class="bottom"></div>
+    </div>
     <router-view v-slot="{ Component, route }">
         <transition
             :name="route.path.startsWith('/screen') ? 'screen' : 'default'"
@@ -32,5 +40,42 @@ window.electronAPI.on('message', (rawResponse) => {
     & > main {
         overflow-y: scroll;
     }
+}
+
+// Solid backdrop the screens fade over. The gameplay band (1920x540 at 1080p) only opens up
+// once a screen with a gameplay cutout is fully in place, and closes before it leaves.
+.screen-backdrop {
+    $gameplayHeight: 28.125vw;
+
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+
+    & > div {
+        position: absolute;
+        left: 0;
+        right: 0;
+        background: rgb(var(--colorBase));
+    }
+    & .top {
+        top: 0;
+        bottom: calc(50% + #{$gameplayHeight * 0.5});
+    }
+    & .bottom {
+        top: calc(50% + #{$gameplayHeight * 0.5});
+        bottom: 0;
+    }
+    & .gameplay {
+        // Overlaps by a pixel to avoid seams
+        top: calc(50% - #{$gameplayHeight * 0.5} - 1px);
+        height: calc(#{$gameplayHeight} + 2px);
+        // Closed again before the screen visibly starts to leave
+        transition: opacity 0.4s ease-out;
+    }
+}
+// Waits for the previous screen to leave (1s) and the new one to enter (1s)
+html.gameplay .screen-backdrop .gameplay {
+    opacity: 0;
+    transition: opacity 0.5s ease-out 2s;
 }
 </style>

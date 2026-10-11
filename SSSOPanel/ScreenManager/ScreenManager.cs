@@ -1,5 +1,3 @@
-using ElectronNET.API;
-using ElectronNET.API.Entities;
 using Newtonsoft.Json.Linq;
 using SSSOPanel.MessageParser;
 
@@ -18,9 +16,8 @@ public class ScreenManager
     private static ScreenManager? _instance;
     private static readonly object Lock = new();
 
-    private List<BrowserWindow> _screens = new();
+    private List<IClient> _screens = new();
     public ScreenRoute CurrentRoute = new();
-    public string BaseUrl = "";
     public JObject State = new JObject();
 
     public ScreenManager()
@@ -43,69 +40,29 @@ public class ScreenManager
         return _instance;
     }
 
-    public void RegisterScreen(BrowserWindow screen)
+    public void RegisterScreen(IClient screen)
     {
-        Console.WriteLine("Registering Screen: {0}", screen.Id);
-        _screens.Add(screen);
-    }
-
-    public void UnregisterScreen(BrowserWindow screen)
-    {
-        Console.WriteLine("Deregistering Screen: {0}", screen.Id);
-        _screens.Remove(screen);
-    }
-
-    public List<BrowserWindow> GetScreens()
-    {
-        return _screens;
-    }
-
-    public async Task<BrowserWindow> CreateNewScreen(bool isFullScreen)
-    {
-        Console.WriteLine("Creating Screen Window");
-
-#if DEBUG
-        Console.WriteLine("Debug Mode, starting dev site");
-        var screenUrl = "http://localhost:5173/#/screen";
-#else
-        Console.WriteLine("Production Mode, starting built site");
-        var screenUrl = $"{BaseUrl}/index.html#/screen";
-#endif
-
-        var windowScreen = await Electron.WindowManager.CreateWindowAsync(
-            new BrowserWindowOptions
-            {
-                AutoHideMenuBar = true,
-                WebPreferences = new WebPreferences
-                {
-                    DevTools = true,
-                    ContextIsolation = true,
-                    NodeIntegration = false,
-                    Preload = Path.Combine(AppContext.BaseDirectory, "preload.js"),
-                },
-            },
-            screenUrl
-        );
-
-        if (isFullScreen)
+        Console.WriteLine("Registering Screen");
+        lock (Lock)
         {
-            windowScreen.SetFullScreen(true);
+            _screens.Add(screen);
         }
-        else
+    }
+
+    public void UnregisterScreen(IClient screen)
+    {
+        Console.WriteLine("Deregistering Screen");
+        lock (Lock)
         {
-            windowScreen.SetSize(
-                Convert.ToInt32(1280 * ScreenScaleFactor.Get()),
-                Convert.ToInt32(720 * ScreenScaleFactor.Get())
-            );
+            _screens.Remove(screen);
         }
+    }
 
-windowScreen.OnClosed += () =>
+    public List<IClient> GetScreens()
+    {
+        lock (Lock)
         {
-            UnregisterScreen(windowScreen);
-        };
-
-        RegisterScreen(windowScreen);
-
-        return windowScreen;
+            return new List<IClient>(_screens);
+        }
     }
 }

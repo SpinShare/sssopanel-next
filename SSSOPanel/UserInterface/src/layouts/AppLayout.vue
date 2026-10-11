@@ -13,16 +13,16 @@
 
             <nav>
                 <SpinButton
-                    icon="window-restore"
+                    :icon="overlayUrlCopied ? 'check' : 'content-copy'"
                     color="transparent"
-                    v-tooltip="'Open Screen (Windowed)'"
-                    @click="openScreen"
+                    v-tooltip="'Copy OBS Browser Source URL'"
+                    @click="copyOverlayUrl"
                 />
                 <SpinButton
-                    icon="fullscreen"
+                    icon="open-in-new"
                     color="transparent"
-                    v-tooltip="'Open Screen (Fullscreen)'"
-                    @click="openScreenFullscreen"
+                    v-tooltip="'Preview Screen in Browser'"
+                    @click="openOverlayPreview"
                 />
                 <SpinButton
                     icon="cog"
@@ -53,6 +53,8 @@ import UpdateBanner from '@/components/UpdateBanner.vue';
 import AlertMessage from '@/components/Common/AlertMessage.vue';
 import router from '@/router';
 import useCurrentScreen from '@/modules/useCurrentScreen';
+import { overlayUrl } from '@/modules/transport';
+import { ref } from 'vue';
 
 const props = defineProps({
     title: {
@@ -63,25 +65,22 @@ const props = defineProps({
 
 const currentScreen = useCurrentScreen();
 
-const openScreen = () => {
-    window.electronAPI.send(
-        'message',
-        JSON.stringify({
-            command: 'open-screen',
-            data: {
-                fullscreen: false,
-            },
-        }),
-    );
+const overlayUrlCopied = ref(false);
+
+const copyOverlayUrl = async () => {
+    await navigator.clipboard.writeText(overlayUrl);
+
+    overlayUrlCopied.value = true;
+    setTimeout(() => {
+        overlayUrlCopied.value = false;
+    }, 2000);
 };
-const openScreenFullscreen = () => {
+const openOverlayPreview = () => {
     window.electronAPI.send(
         'message',
         JSON.stringify({
-            command: 'open-screen',
-            data: {
-                fullscreen: true,
-            },
+            command: 'open-in-browser',
+            data: overlayUrl,
         }),
     );
 };

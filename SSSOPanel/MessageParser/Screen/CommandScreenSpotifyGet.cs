@@ -5,7 +5,7 @@ namespace SSSOPanel.MessageParser;
 
 public class CommandScreenSpotifyGet: ICommand
 {
-    public async Task Execute(BrowserWindow? sender, object? data)
+    public async Task Execute(IClient? sender, object? data)
     {
         var spotifyProcesses = Process.GetProcessesByName("Spotify");
 

@@ -1,5 +1,5 @@
 <template>
-    <ScreenLayout>
+    <ScreenLayout transparent>
         <section class="screen-match-ingame">
             <div class="tint"></div>
             <div class="noise"></div>
@@ -86,7 +86,7 @@
                         ></div>
                     </div>
                 </section>
-                <section class="streams"></section>
+                <section class="gameplay"></section>
                 <section
                     class="chart-info"
                     v-if="!!chart"
@@ -164,6 +164,10 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
+// Gameplay is layered below the overlay in OBS, 1920x540 at 1080p
+$gameplayHeight: 28.125vw;
+$gameplayMask: linear-gradient(to bottom, #000 calc(50% - #{$gameplayHeight * 0.5}), transparent calc(50% - #{$gameplayHeight * 0.5}), transparent calc(50% + #{$gameplayHeight * 0.5}), #000 calc(50% + #{$gameplayHeight * 0.5}));
+
 .screen-match-ingame {
     color: #222;
     position: relative;
@@ -200,6 +204,13 @@ onUnmounted(() => {
         top: 0;
         opacity: 0.4;
         mix-blend-mode: soft-light;
+    }
+
+    // Only the full size background gets the cutout, not the nested tints
+    & > .tint,
+    & > .noise {
+        -webkit-mask-image: $gameplayMask;
+        mask-image: $gameplayMask;
     }
 
     & .content {
@@ -344,11 +355,9 @@ onUnmounted(() => {
             }
         }
 
-        & .streams {
-            position: relative;
+        & .gameplay {
             width: 100%;
-            height: 28vw;
-            background: #111;
+            height: $gameplayHeight;
         }
 
         & .chart-info {

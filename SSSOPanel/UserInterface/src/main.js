@@ -11,6 +11,9 @@ import './assets/app.scss';
 import '@mdi/font/scss/materialdesignicons.scss';
 
 import mitt from 'mitt';
+import { installTransport } from '@/modules/transport';
+
+installTransport();
 
 const app = createApp(App);
 

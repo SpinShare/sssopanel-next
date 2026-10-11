@@ -57,18 +57,17 @@ public class Program
         var messageHandler = new MessageHandler();
         var updateManager = UpdateManager.UpdateManager.GetInstance();
         var settingsManager = SettingsManager.SettingsManager.GetInstance();
-        var screenManager = ScreenManager.ScreenManager.GetInstance();
 
-        // Production base URL points at the built UI copied next to the executable.
+        // Overlays (OBS browser sources) connect to this instead of Electron IPC
         var wwwrootPath = Path.Combine(AppContext.BaseDirectory, "wwwroot");
-        screenManager.BaseUrl = $"file://{wwwrootPath}";
+        await OverlayServer.OverlayServer.GetInstance().Start(wwwrootPath, messageHandler);
 
 #if DEBUG
         Console.WriteLine("Debug Mode, starting dev site");
         var panelUrl = "http://localhost:5173/#/panel";
 #else
         Console.WriteLine("Production Mode, starting built site");
-        var panelUrl = $"{screenManager.BaseUrl}/index.html#/panel";
+        var panelUrl = $"file://{wwwrootPath}/index.html#/panel";
 #endif
 
         Console.WriteLine("Creating Panel Window");
@@ -94,45 +93,19 @@ public class Program
 
         _panelWindow.OnReadyToShow += () => _panelWindow.Show();
 
-        _panelWindow.OnClosed += () =>
-        {
-            Console.WriteLine("Closing Screen Windows");
-            foreach (var screen in screenManager.GetScreens())
-            {
-                screen.Close();
-            }
-        };
+        var panelClient = new ElectronClient(_panelWindow);
 
-        // Register IPC handler
+        // Register IPC handler, only the panel talks over IPC
         _ = Electron.IpcMain.On("message", async (args) =>
         {
             var msg = args.ToString();
             if (string.IsNullOrEmpty(msg)) return;
 
             var jObj = Newtonsoft.Json.Linq.JObject.Parse(msg);
-
-            var senderId = jObj.GetValue("__windowId")?.ToObject<int?>();
             jObj.Remove("__windowId");
+            jObj.Remove("__sender");
 
-            BrowserWindow? sender = null;
-            if (senderId.HasValue)
-            {
-                sender = Electron.WindowManager.BrowserWindows.FirstOrDefault(w => w.Id == senderId.Value);
-            }
-
-            // Fallback for messages without a window id
-            if (sender == null)
-            {
-                var senderType = jObj.GetValue("__sender")?.ToString();
-                jObj.Remove("__sender");
-                sender = senderType == "panel" ? _panelWindow : null;
-            }
-            else
-            {
-                jObj.Remove("__sender");
-            }
-
-            await messageHandler.HandleMessageAsync(sender, jObj.ToString(Newtonsoft.Json.Formatting.None));
+            await messageHandler.HandleMessageAsync(panelClient, jObj.ToString(Newtonsoft.Json.Formatting.None));
         });
     }
 
