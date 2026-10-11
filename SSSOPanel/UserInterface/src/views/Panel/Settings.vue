@@ -81,6 +81,46 @@
                     />
                 </SpinInput>
             </SpinInputGroup>
+            <SpinInputGroup header="Music">
+                <SpinInput
+                    label="Source"
+                    hint="Where the current song is read from"
+                    type="horizontal"
+                >
+                    <SpinSelect
+                        :disabled="settingsState === SETTING_STATE_SAVING"
+                        v-model="musicSource"
+                        :options="[
+                            { icon: 'spotify', label: 'Spotify', value: 'spotify' },
+                            { icon: 'fish', label: 'Tuna (OBS plugin)', value: 'tuna' },
+                        ]"
+                    />
+                </SpinInput>
+                <template v-if="musicSource === 'tuna'">
+                    <SpinInput
+                        label="Tuna Address"
+                        hint="Webserver of the Tuna OBS plugin"
+                        type="horizontal"
+                    >
+                        <input
+                            :disabled="settingsState === SETTING_STATE_SAVING"
+                            type="text"
+                            v-model="tunaUrl"
+                            placeholder="http://localhost:1608"
+                        />
+                    </SpinInput>
+                    <SpinInput
+                        label="Album Cover"
+                        hint="Show the cover instead of the music icon"
+                        type="horizontal"
+                    >
+                        <SpinSwitch
+                            :disabled="settingsState === SETTING_STATE_SAVING"
+                            v-model="tunaShowCover"
+                        />
+                    </SpinInput>
+                </template>
+            </SpinInputGroup>
         </template>
         <template v-if="settingsState === SETTING_STATE_LOADING">
             <SpinLoader />
@@ -123,6 +163,10 @@ const startGGTournamentName = ref('');
 const startGGEvents = ref([]);
 const startGGEventId = ref('-1');
 
+const musicSource = ref('spotify');
+const tunaUrl = ref('http://localhost:1608');
+const tunaShowCover = ref(true);
+
 const loadStartGGEvents = async () => {
     startGGTournamentId.value = null;
     startGGTournamentName.value = '';
@@ -157,6 +201,9 @@ const saveSettings = () => {
         { key: 'currentEvent.startgg.tournamentId', value: startGGTournamentId.value },
         { key: 'currentEvent.startgg.tournamentName', value: startGGTournamentName.value },
         { key: 'currentEvent.startgg.eventId', value: startGGEventId.value },
+        { key: 'music.source', value: musicSource.value },
+        { key: 'tuna.url', value: tunaUrl.value },
+        { key: 'tuna.showCover', value: tunaShowCover.value },
     ];
 
     window.electronAPI.send(
@@ -187,6 +234,10 @@ onMounted(() => {
         startGGTournamentId.value = settings['currentEvent.startgg.tournamentId'] ?? null;
         startGGTournamentName.value = settings['currentEvent.startgg.tournamentName'] ?? '';
         startGGEventId.value = settings['currentEvent.startgg.eventId'] ?? '-1';
+
+        musicSource.value = settings['music.source'] ?? 'spotify';
+        tunaUrl.value = settings['tuna.url'] || 'http://localhost:1608';
+        tunaShowCover.value = settings['tuna.showCover'] ?? true;
         if (startGGApiToken.value !== '' && startGGTournamentSlug.value !== '') {
             await loadStartGGEvents();
         }

@@ -17,12 +17,24 @@
         >
             <div
                 class="music"
-                v-if="spotifyActive"
-                :key="`${spotifyActive}${spotifyTitle}${spotifyArtist}`"
+                v-if="musicActive"
+                :key="`${musicActive}${musicTitle}${musicArtist}`"
             >
-                <span class="mdi mdi-music"></span>
-                <span>{{ spotifyTitle }}</span>
-                <span>{{ spotifyArtist }}</span>
+                <img
+                    v-if="musicCover && !musicCoverFailed"
+                    :src="musicCover"
+                    alt=""
+                    @error="musicCoverFailed = true"
+                />
+                <span
+                    v-else
+                    class="mdi mdi-music"
+                ></span>
+                <span class="title">{{ musicTitle }}</span>
+                <template v-if="musicArtist">
+                    <span>-</span>
+                    <span class="artist">{{ musicArtist }}</span>
+                </template>
             </div>
         </transition>
     </div>
@@ -57,42 +69,49 @@ const promos = ref([
 const activePromoIndex = ref(0);
 let promoUpdateInterval = null;
 
-const spotifyActive = ref(false);
-const spotifyArtist = ref('');
-const spotifyTitle = ref('');
+const musicActive = ref(false);
+const musicArtist = ref('');
+const musicTitle = ref('');
+const musicCover = ref('');
+const musicCoverFailed = ref(false);
 
-let spotifyUpdateInterval = null;
-const updateSpotify = () => {
+let musicUpdateInterval = null;
+const updateMusic = () => {
     window.electronAPI.send(
         'message',
         JSON.stringify({
-            command: 'screen-spotify-get',
+            command: 'screen-music-get',
         }),
     );
 };
 
 onMounted(() => {
-    emitter.on('screen-spotify-get-response', (data) => {
-        spotifyActive.value = data.active;
-        spotifyArtist.value = data.artist;
-        spotifyTitle.value = data.title;
+    emitter.on('screen-music-get-response', (data) => {
+        // Tuna serves every cover from the same URL, so tie it to the song to refresh it
+        const cover = data.cover ? `${data.cover}?song=${encodeURIComponent(data.artist + data.title)}` : '';
+        if (cover !== musicCover.value) musicCoverFailed.value = false;
+
+        musicActive.value = data.active;
+        musicArtist.value = data.artist;
+        musicTitle.value = data.title;
+        musicCover.value = cover;
     });
 
     promoUpdateInterval = setInterval(() => {
         activePromoIndex.value = (activePromoIndex.value + 1) % promos.value.length;
     }, 12000);
-    spotifyUpdateInterval = setInterval(() => {
-        updateSpotify();
+    musicUpdateInterval = setInterval(() => {
+        updateMusic();
     }, 1000);
 
-    updateSpotify();
+    updateMusic();
 });
 
 onUnmounted(() => {
-    emitter.off('screen-spotify-get-response');
+    emitter.off('screen-music-get-response');
 
     clearInterval(promoUpdateInterval);
-    clearInterval(spotifyUpdateInterval);
+    clearInterval(musicUpdateInterval);
 });
 </script>
 
@@ -132,25 +151,34 @@ onUnmounted(() => {
     & .music {
         display: flex;
         align-items: center;
-        gap: 1vw;
+        gap: 0.75vw;
         font-size: 1.25vw;
         max-width: 35vw;
 
         & .mdi {
             font-size: 2vw;
         }
+        & img {
+            flex-shrink: 0;
+            height: 2vw;
+            width: 2vw;
+            object-fit: cover;
+            border-radius: 0.25vw;
+        }
         & span {
             text-overflow: ellipsis;
             white-space: nowrap;
-            word-break: break-all;
             overflow: hidden;
+            flex-shrink: 0;
 
-            &:nth-child(2) {
+            // The artists give up their space first, the title is only cut off once they are gone
+            &.title {
                 color: rgba(255, 255, 255, 0.8);
-                flex: 1;
+                flex-shrink: 1;
             }
-            &:nth-child(3) {
+            &.artist {
                 font-weight: bold;
+                flex-shrink: 9999;
             }
         }
     }
