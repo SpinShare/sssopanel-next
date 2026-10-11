@@ -142,6 +142,46 @@
                     </SpinInput>
                 </template>
             </SpinInputGroup>
+            <SpinInputGroup header="Music">
+                <SpinInput
+                    label="Source"
+                    hint="Where the current song is read from"
+                    type="horizontal"
+                >
+                    <SpinSelect
+                        :disabled="settingsState === SETTING_STATE_SAVING"
+                        v-model="musicSource"
+                        :options="[
+                            { icon: 'spotify', label: 'Spotify', value: 'spotify' },
+                            { icon: 'fish', label: 'Tuna (OBS plugin)', value: 'tuna' },
+                        ]"
+                    />
+                </SpinInput>
+                <template v-if="musicSource === 'tuna'">
+                    <SpinInput
+                        label="Tuna Address"
+                        hint="Webserver of the Tuna OBS plugin"
+                        type="horizontal"
+                    >
+                        <input
+                            :disabled="settingsState === SETTING_STATE_SAVING"
+                            type="text"
+                            v-model="tunaUrl"
+                            placeholder="http://localhost:1608"
+                        />
+                    </SpinInput>
+                    <SpinInput
+                        label="Album Cover"
+                        hint="Show the cover instead of the music icon"
+                        type="horizontal"
+                    >
+                        <SpinSwitch
+                            :disabled="settingsState === SETTING_STATE_SAVING"
+                            v-model="tunaShowCover"
+                        />
+                    </SpinInput>
+                </template>
+            </SpinInputGroup>
         </template>
         <template v-if="settingsState === SETTING_STATE_LOADING">
             <SpinLoader />
@@ -204,6 +244,10 @@ const obsScenes = ref([]);
 const obsStatus = ref('Not connected');
 const obsConnecting = ref(false);
 
+const musicSource = ref('spotify');
+const tunaUrl = ref('http://localhost:1608');
+const tunaShowCover = ref(true);
+
 const obsSceneOptions = (screenKey) => {
     // Keep a saved scene selectable while OBS is not connected
     const scenes = [...obsScenes.value];
@@ -257,7 +301,7 @@ const saveSettings = () => {
     console.log('Saving Settings');
     settingsState.value = SETTING_STATE_SAVING;
 
-    const settings = [{ key: 'theme', value: theme.value }, { key: 'currentEvent.startgg.apiToken', value: startGGApiToken.value }, { key: 'currentEvent.startgg.tournamentSlug', value: startGGTournamentSlug.value }, { key: 'currentEvent.startgg.tournamentId', value: startGGTournamentId.value }, { key: 'currentEvent.startgg.tournamentName', value: startGGTournamentName.value }, { key: 'currentEvent.startgg.eventId', value: startGGEventId.value }, { key: 'obs.enabled', value: obsEnabled.value }, { key: 'obs.url', value: obsUrl.value }, { key: 'obs.password', value: obsPassword.value }, ...obsScreens.map((screen) => ({ key: `obs.scene.${screen.key}`, value: obsSceneMapping.value[screen.key] }))];
+    const settings = [{ key: 'theme', value: theme.value }, { key: 'currentEvent.startgg.apiToken', value: startGGApiToken.value }, { key: 'currentEvent.startgg.tournamentSlug', value: startGGTournamentSlug.value }, { key: 'currentEvent.startgg.tournamentId', value: startGGTournamentId.value }, { key: 'currentEvent.startgg.tournamentName', value: startGGTournamentName.value }, { key: 'currentEvent.startgg.eventId', value: startGGEventId.value }, { key: 'obs.enabled', value: obsEnabled.value }, { key: 'obs.url', value: obsUrl.value }, { key: 'obs.password', value: obsPassword.value }, { key: 'music.source', value: musicSource.value }, { key: 'tuna.url', value: tunaUrl.value }, { key: 'tuna.showCover', value: tunaShowCover.value }, ...obsScreens.map((screen) => ({ key: `obs.scene.${screen.key}`, value: obsSceneMapping.value[screen.key] }))];
 
     window.electronAPI.send(
         'message',
@@ -291,6 +335,9 @@ onMounted(() => {
         obsEnabled.value = settings['obs.enabled'] ?? false;
         obsUrl.value = settings['obs.url'] || 'ws://localhost:4455';
         obsPassword.value = settings['obs.password'] ?? '';
+        musicSource.value = settings['music.source'] ?? 'spotify';
+        tunaUrl.value = settings['tuna.url'] || 'http://localhost:1608';
+        tunaShowCover.value = settings['tuna.showCover'] ?? true;
         obsScreens.forEach((screen) => {
             obsSceneMapping.value[screen.key] = settings[`obs.scene.${screen.key}`] ?? '';
         });

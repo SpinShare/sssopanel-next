@@ -11,7 +11,7 @@ public class MessageHandler
         "state-get",
         "state-set",
         "settings-get-full",
-        "screen-spotify-get",
+        "screen-music-get",
     };
 
     private readonly CommandFactory _commandFactory = new();
