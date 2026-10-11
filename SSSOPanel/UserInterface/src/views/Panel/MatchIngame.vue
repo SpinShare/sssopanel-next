@@ -17,62 +17,6 @@
                 "
             />
         </SpinInput>
-        <SpinInputGroup header="Controls">
-            <SpinInput
-                label="Streams"
-                type="horizontal"
-            >
-                <div style="display: flex; gap: 10px">
-                    <SpinButton
-                        label="On"
-                        @click="
-                            () => {
-                                streamsActive = true;
-                                updateState();
-                            }
-                        "
-                        :disabled="streamsActive"
-                    />
-                    <SpinButton
-                        label="Off"
-                        @click="
-                            () => {
-                                streamsActive = false;
-                                updateState();
-                            }
-                        "
-                        :disabled="!streamsActive"
-                    />
-                </div>
-            </SpinInput>
-            <SpinInput
-                label="Audio"
-                type="horizontal"
-            >
-                <div style="display: flex; gap: 10px">
-                    <SpinButton
-                        label="Left Stream"
-                        @click="
-                            () => {
-                                audioActive = 'left';
-                                updateState();
-                            }
-                        "
-                        :disabled="audioActive === 'left'"
-                    />
-                    <SpinButton
-                        label="Right Stream"
-                        @click="
-                            () => {
-                                audioActive = 'right';
-                                updateState();
-                            }
-                        "
-                        :disabled="audioActive === 'right'"
-                    />
-                </div>
-            </SpinInput>
-        </SpinInputGroup>
         <SpinInputGroup
             header="Scores"
             :collapsable="true"
@@ -146,19 +90,9 @@
                 />
             </SpinInput>
             <SpinInput
-                label="Key"
-                hint="WHEP stream key"
-                type="horizontal"
-            >
-                <input
-                    v-model="player1Key"
-                    type="text"
-                />
-            </SpinInput>
-            <SpinInput
                 v-if="currentScreen === '/screen/match-ingame'"
                 label="Update Players"
-                hint="This restarts the livestream area"
+                hint="Pushes the selected players to the screen"
                 type="horizontal"
             >
                 <SpinButton
@@ -184,19 +118,9 @@
                 />
             </SpinInput>
             <SpinInput
-                label="Key"
-                hint="WHEP stream key"
-                type="horizontal"
-            >
-                <input
-                    v-model="player2Key"
-                    type="text"
-                />
-            </SpinInput>
-            <SpinInput
                 v-if="currentScreen === '/screen/match-ingame'"
                 label="Update Players"
-                hint="This restarts the livestream area"
+                hint="Pushes the selected players to the screen"
                 type="horizontal"
             >
                 <SpinButton
@@ -246,12 +170,8 @@ const player2Id = ref(null);
 
 const loadedPlayer1 = ref(null);
 const loadedPlayer2 = ref(null);
-const player1Key = ref('');
-const player2Key = ref('');
 const chartId = ref(0);
 const loadedChart = ref(null);
-const streamsActive = ref(true);
-const audioActive = ref('left');
 const scoresSetsCurrent = ref(0);
 const scoresSetsMax = ref(3);
 const scoresScorePlayer1 = ref(0);
@@ -275,14 +195,8 @@ const updateState = () => {
     let screenData = {
         currentMatch: {
             players: {
-                player1: {
-                    ...loadedPlayer1.value,
-                    key: player1Key.value,
-                },
-                player2: {
-                    ...loadedPlayer2.value,
-                    key: player2Key.value,
-                },
+                player1: loadedPlayer1.value,
+                player2: loadedPlayer2.value,
             },
             scores: {
                 sets: {
@@ -295,8 +209,6 @@ const updateState = () => {
                 },
             },
             chart: loadedChart.value,
-            streamsActive: streamsActive.value,
-            audioActive: audioActive.value,
         },
     };
 
@@ -362,11 +274,9 @@ onMounted(() => {
     emitter.on('state-get-response', (state) => {
         player1Id.value = state?.currentMatch?.players?.player1?.id ? state?.currentMatch?.players?.player1?.id + '' : player1Id.value;
         loadedPlayer1.value = state?.currentMatch?.players?.player1 ?? loadedPlayer1.value;
-        player1Key.value = state?.currentMatch?.players?.player1?.key ?? player1Key.value;
 
         player2Id.value = state?.currentMatch?.players?.player2?.id ? state?.currentMatch?.players?.player2?.id + '' : player2Id.value;
         loadedPlayer2.value = state?.currentMatch?.players?.player2 ?? loadedPlayer2.value;
-        player2Key.value = state?.currentMatch?.players?.player2?.key ?? player2Key.value;
 
         scoresSetsCurrent.value = state?.currentMatch?.scores?.sets?.current ?? scoresSetsCurrent.value;
         scoresSetsMax.value = state?.currentMatch?.scores?.sets?.max ?? scoresSetsMax.value;
@@ -375,9 +285,6 @@ onMounted(() => {
 
         loadedChart.value = state?.currentMatch?.chart ?? loadedChart.value;
         chartId.value = state?.currentMatch?.chart?.id ?? chartId.value;
-
-        streamsActive.value = state?.currentMatch?.streamsActive ?? streamsActive.value;
-        audioActive.value = state?.currentMatch?.audioActive ?? audioActive.value;
 
         refDenIsVisible.value = state?.refDenIsVisible ?? false;
     });

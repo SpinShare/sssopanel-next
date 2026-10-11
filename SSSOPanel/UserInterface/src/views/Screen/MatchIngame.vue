@@ -86,64 +86,7 @@
                         ></div>
                     </div>
                 </section>
-                <section class="streams">
-                    <transition
-                        name="default"
-                        mode="out-in"
-                    >
-                        <div
-                            class="stream"
-                            :style="{ opacity: streamsActive ? 1 : 0 }"
-                            :key="'stream1-' + streamsActive"
-                        >
-                            <transition
-                                name="promo"
-                                mode="out-in"
-                            >
-                                <div
-                                    class="audio-active"
-                                    v-if="audioActive === 'left'"
-                                >
-                                    <span class="mdi mdi-volume-high"></span>
-                                </div>
-                            </transition>
-
-                            <WhepPlayer
-                                :url="stream1Url"
-                                :muted="stream1Muted"
-                                :active="streamsActive"
-                            />
-                        </div>
-                    </transition>
-                    <transition
-                        name="default"
-                        mode="out-in"
-                    >
-                        <div
-                            class="stream"
-                            :style="{ opacity: streamsActive ? 1 : 0 }"
-                            :key="'stream2-' + streamsActive"
-                        >
-                            <transition
-                                name="promo"
-                                mode="out-in"
-                            >
-                                <div
-                                    class="audio-active"
-                                    v-if="audioActive === 'right'"
-                                >
-                                    <span class="mdi mdi-volume-high"></span>
-                                </div>
-                            </transition>
-
-                            <WhepPlayer
-                                :url="stream2Url"
-                                :muted="stream2Muted"
-                                :active="streamsActive"
-                            />
-                        </div>
-                    </transition>
-                </section>
+                <section class="streams"></section>
                 <section
                     class="chart-info"
                     v-if="!!chart"
@@ -176,15 +119,9 @@
 </template>
 
 <script setup>
-import WhepPlayer from '@/components/Common/WhepPlayer.vue';
 import ScreenLayout from '../../layouts/ScreenLayout.vue';
 import { ref, inject, onMounted, onUnmounted } from 'vue';
 const emitter = inject('emitter');
-
-const stream1Url = ref('');
-const stream2Url = ref('');
-const stream1Muted = ref(false);
-const stream2Muted = ref(true);
 
 const player1 = ref(null);
 const player2 = ref(null);
@@ -193,53 +130,16 @@ const scoresSetsCurrent = ref(0);
 const scoresSetsMax = ref(3);
 const scoresScorePlayer1 = ref(0);
 const scoresScorePlayer2 = ref(0);
-const streamsActive = ref(true);
-const audioActive = ref('left');
-
-const updateAudioState = () => {
-    if (audioActive.value === 'left') {
-        stream1Muted.value = false;
-        stream2Muted.value = true;
-    } else {
-        stream1Muted.value = true;
-        stream2Muted.value = false;
-    }
-};
-
-const updateStreamsState = () => {
-    // The WhepPlayer `active` prop is bound to `streamsActive` directly,
-    // so pausing / resuming is handled by the component. Nothing to do here.
-};
-
-const updateStreams = () => {
-    const key1 = player1.value?.key ?? '';
-    const key2 = player2.value?.key ?? '';
-    const url1 = key1 ? `https://mtx.raibu.stream/${key1}/whep` : '';
-    const url2 = key2 ? `https://mtx.raibu.stream/${key2}/whep` : '';
-
-    if (stream1Url.value !== url1) {
-        stream1Url.value = url1;
-    }
-    if (stream2Url.value !== url2) {
-        stream2Url.value = url2;
-    }
-};
 
 const applyState = (state) => {
     player1.value = state?.currentMatch?.players?.player1 ?? player1.value;
     player2.value = state?.currentMatch?.players?.player2 ?? player2.value;
     chart.value = state?.currentMatch?.chart ?? chart.value;
-    streamsActive.value = state?.currentMatch?.streamsActive ?? streamsActive.value;
-    audioActive.value = state?.currentMatch?.audioActive ?? audioActive.value;
 
     scoresSetsCurrent.value = state?.currentMatch?.scores?.sets?.current ?? scoresSetsCurrent.value;
     scoresSetsMax.value = state?.currentMatch?.scores?.sets?.max ?? scoresSetsMax.value;
     scoresScorePlayer1.value = state?.currentMatch?.scores?.score?.player1 ?? scoresScorePlayer1.value;
     scoresScorePlayer2.value = state?.currentMatch?.scores?.score?.player2 ?? scoresScorePlayer2.value;
-
-    updateAudioState();
-    updateStreamsState();
-    updateStreams();
 };
 
 onMounted(() => {
@@ -448,25 +348,7 @@ onUnmounted(() => {
             position: relative;
             width: 100%;
             height: 28vw;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
             background: #111;
-
-            & .stream {
-                position: relative;
-
-                & .audio-active {
-                    position: absolute;
-                    left: 0.5vw;
-                    bottom: 0.5vw;
-                    padding: 0.25vw 0.5vw;
-                    background: #111;
-                    color: #ededed;
-                    border-radius: 0.5vw;
-                    font-size: 1.5vw;
-                    z-index: 500;
-                }
-            }
         }
 
         & .chart-info {
