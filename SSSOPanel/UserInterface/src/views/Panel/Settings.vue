@@ -81,6 +81,67 @@
                     />
                 </SpinInput>
             </SpinInputGroup>
+            <SpinInputGroup header="OBS">
+                <SpinInput
+                    label="Scene Switching"
+                    hint="Switch OBS scenes together with screens"
+                    type="horizontal"
+                >
+                    <SpinSwitch
+                        :disabled="settingsState === SETTING_STATE_SAVING"
+                        v-model="obsEnabled"
+                    />
+                </SpinInput>
+                <template v-if="obsEnabled">
+                    <SpinInput
+                        label="Address"
+                        hint="obs-websocket"
+                        type="horizontal"
+                    >
+                        <input
+                            :disabled="settingsState === SETTING_STATE_SAVING"
+                            type="text"
+                            v-model="obsUrl"
+                            placeholder="ws://localhost:4455"
+                        />
+                    </SpinInput>
+                    <SpinInput
+                        label="Password"
+                        hint="obs-websocket"
+                        type="horizontal"
+                    >
+                        <input
+                            :disabled="settingsState === SETTING_STATE_SAVING"
+                            type="password"
+                            v-model="obsPassword"
+                        />
+                    </SpinInput>
+                    <SpinInput
+                        label="Connection"
+                        :hint="obsStatus"
+                        type="horizontal"
+                    >
+                        <SpinButton
+                            label="Connect"
+                            :disabled="obsConnecting"
+                            @click="connectObs"
+                        />
+                    </SpinInput>
+                    <SpinInput
+                        v-for="screen in obsScreens"
+                        :key="screen.key"
+                        :label="screen.label"
+                        hint="OBS Scene"
+                        type="horizontal"
+                    >
+                        <SpinSelect
+                            :disabled="settingsState === SETTING_STATE_SAVING"
+                            v-model="obsSceneMapping[screen.key]"
+                            :options="obsSceneOptions(screen.key)"
+                        />
+                    </SpinInput>
+                </template>
+            </SpinInputGroup>
         </template>
         <template v-if="settingsState === SETTING_STATE_LOADING">
             <SpinLoader />
@@ -102,6 +163,7 @@ import AppLayout from '../../layouts/AppLayout.vue';
 import SpinInput from '@/components/Common/SpinInput.vue';
 import SpinSelect from '@/components/Common/SpinSelect.vue';
 import SpinButton from '@/components/Common/SpinButton.vue';
+import SpinSwitch from '@/components/Common/SpinSwitch.vue';
 import { onMounted, ref, inject, onUnmounted } from 'vue';
 import useTournamentAPI from '@/modules/useStartGGApi';
 import SpinLoader from '@/components/Common/SpinLoader.vue';
@@ -122,6 +184,51 @@ const startGGTournamentId = ref(null);
 const startGGTournamentName = ref('');
 const startGGEvents = ref([]);
 const startGGEventId = ref('-1');
+
+const obsScreens = [
+    { key: 'init', label: 'Init' },
+    { key: 'countdown', label: 'Countdown' },
+    { key: 'brackets', label: 'Brackets' },
+    { key: 'match-overview', label: 'Match (Overview)' },
+    { key: 'match-ingame', label: 'Match (Ingame)' },
+    { key: 'commentators', label: 'Commentators' },
+    { key: 'end-stream', label: 'End (Stream)' },
+    { key: 'end-tournament', label: 'End (Tournament)' },
+];
+
+const obsEnabled = ref(false);
+const obsUrl = ref('ws://localhost:4455');
+const obsPassword = ref('');
+const obsSceneMapping = ref(Object.fromEntries(obsScreens.map((screen) => [screen.key, ''])));
+const obsScenes = ref([]);
+const obsStatus = ref('Not connected');
+const obsConnecting = ref(false);
+
+const obsSceneOptions = (screenKey) => {
+    // Keep a saved scene selectable while OBS is not connected
+    const scenes = [...obsScenes.value];
+    const mappedScene = obsSceneMapping.value[screenKey];
+    if (mappedScene && !scenes.includes(mappedScene)) scenes.push(mappedScene);
+
+    return [{ icon: 'border-none-variant', label: 'None', value: '' }, ...scenes.map((scene) => ({ icon: 'movie-open', label: scene, value: scene }))];
+};
+
+const connectObs = () => {
+    obsConnecting.value = true;
+    obsStatus.value = 'Connecting...';
+
+    window.electronAPI.send(
+        'message',
+        JSON.stringify({
+            command: 'obs-connect',
+            data: {
+                enabled: obsEnabled.value,
+                url: obsUrl.value,
+                password: obsPassword.value,
+            },
+        }),
+    );
+};
 
 const loadStartGGEvents = async () => {
     startGGTournamentId.value = null;
@@ -150,14 +257,7 @@ const saveSettings = () => {
     console.log('Saving Settings');
     settingsState.value = SETTING_STATE_SAVING;
 
-    const settings = [
-        { key: 'theme', value: theme.value },
-        { key: 'currentEvent.startgg.apiToken', value: startGGApiToken.value },
-        { key: 'currentEvent.startgg.tournamentSlug', value: startGGTournamentSlug.value },
-        { key: 'currentEvent.startgg.tournamentId', value: startGGTournamentId.value },
-        { key: 'currentEvent.startgg.tournamentName', value: startGGTournamentName.value },
-        { key: 'currentEvent.startgg.eventId', value: startGGEventId.value },
-    ];
+    const settings = [{ key: 'theme', value: theme.value }, { key: 'currentEvent.startgg.apiToken', value: startGGApiToken.value }, { key: 'currentEvent.startgg.tournamentSlug', value: startGGTournamentSlug.value }, { key: 'currentEvent.startgg.tournamentId', value: startGGTournamentId.value }, { key: 'currentEvent.startgg.tournamentName', value: startGGTournamentName.value }, { key: 'currentEvent.startgg.eventId', value: startGGEventId.value }, { key: 'obs.enabled', value: obsEnabled.value }, { key: 'obs.url', value: obsUrl.value }, { key: 'obs.password', value: obsPassword.value }, ...obsScreens.map((screen) => ({ key: `obs.scene.${screen.key}`, value: obsSceneMapping.value[screen.key] }))];
 
     window.electronAPI.send(
         'message',
@@ -187,6 +287,14 @@ onMounted(() => {
         startGGTournamentId.value = settings['currentEvent.startgg.tournamentId'] ?? null;
         startGGTournamentName.value = settings['currentEvent.startgg.tournamentName'] ?? '';
         startGGEventId.value = settings['currentEvent.startgg.eventId'] ?? '-1';
+
+        obsEnabled.value = settings['obs.enabled'] ?? false;
+        obsUrl.value = settings['obs.url'] || 'ws://localhost:4455';
+        obsPassword.value = settings['obs.password'] ?? '';
+        obsScreens.forEach((screen) => {
+            obsSceneMapping.value[screen.key] = settings[`obs.scene.${screen.key}`] ?? '';
+        });
+
         if (startGGApiToken.value !== '' && startGGTournamentSlug.value !== '') {
             await loadStartGGEvents();
         }
@@ -196,6 +304,11 @@ onMounted(() => {
     emitter.on('settings-set-response', () => {
         settingsState.value = SETTING_STATE_IDLE;
     });
+    emitter.on('obs-status-get-response', (status) => {
+        obsConnecting.value = false;
+        obsScenes.value = status.scenes;
+        obsStatus.value = status.connected ? 'Connected' : status.error || 'Not connected';
+    });
 
     window.electronAPI.send(
         'message',
@@ -204,11 +317,18 @@ onMounted(() => {
             data: '',
         }),
     );
+    window.electronAPI.send(
+        'message',
+        JSON.stringify({
+            command: 'obs-status-get',
+        }),
+    );
 });
 
 onUnmounted(() => {
     emitter.off('settings-get-full-response');
     emitter.off('settings-set-response');
+    emitter.off('obs-status-get-response');
 });
 </script>
 

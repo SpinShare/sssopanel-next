@@ -24,6 +24,9 @@ public class CommandSettingsSet : ICommand
             settingsManager.Set(key, value);
         }
 
+        // Connection details or scene mapping may have changed
+        ObsManager.ObsManager.GetInstance().Configure();
+
         Message response = new() {
             Command = "settings-set-response",
             Data = settingsManager.GetFull()

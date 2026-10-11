@@ -35,6 +35,13 @@ The overlay reconnects on its own when the panel is restarted.
 
 When running a dev server, use `http://localhost:5173/#/screen` instead.
 
+#### Scene switching
+The panel can switch OBS scenes together with its screens, using the WebSocket server built into OBS 28 and newer.
+
+1. In OBS, open **Tools > WebSocket Server Settings**, enable the server and note the password
+2. In the panel settings, enable **Scene Switching** in the OBS group, enter the address (default `ws://localhost:4455`) and password, then press **Connect**
+3. Pick an OBS scene for each screen and save. Screens set to **None** leave the current scene alone
+
 ### Building
 #### Building the UI
 ```sh

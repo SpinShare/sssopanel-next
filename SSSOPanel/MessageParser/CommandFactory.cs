@@ -20,6 +20,8 @@ public class CommandFactory
             "screen-navigate" => new CommandScreenNavigate(),
             "screen-spotify-get" => new CommandScreenSpotifyGet(),
             "screen-match-update" => new CommandScreenMatchUpdate(),
+            "obs-status-get" => new CommandObsStatusGet(),
+            "obs-connect" => new CommandObsConnect(),
             _ => throw new Exception($"Unknown command: {command}")
         };
     }

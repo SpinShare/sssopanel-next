@@ -62,6 +62,8 @@ public class Program
         var wwwrootPath = Path.Combine(AppContext.BaseDirectory, "wwwroot");
         await OverlayServer.OverlayServer.GetInstance().Start(wwwrootPath, messageHandler);
 
+        ObsManager.ObsManager.GetInstance().Configure();
+
 #if DEBUG
         Console.WriteLine("Debug Mode, starting dev site");
         var panelUrl = "http://localhost:5173/#/panel";
