@@ -124,3 +124,6 @@ SSSOPanel/Resources/wwwroot/
 StartServer.bat
 StartPanel.bat
 SSSOPanel/Resources/wwwroot/index.html
+
+# alpine stuff
+temp/
