@@ -2,6 +2,9 @@ import { inject, onMounted, onUnmounted } from 'vue';
 import router from '@/router';
 import useSrxd, { pickResults, player1Won as isPlayer1Winner, stripRichText } from '@/modules/useSrxd';
 
+// How long auto results stay up, the next song loading hides them earlier
+const AUTO_RESULTS_DURATION = 30000;
+
 // Used once in App.vue, so the prompt shows up no matter which panel page is open
 export default function useWinnerPrompt() {
     const emitter = inject('emitter');
@@ -12,6 +15,7 @@ export default function useWinnerPrompt() {
     let refreshAfterSet = false;
     // Set once the next song loads, a late answer to the prompt then still counts the point but won't cover gameplay
     let resultsStale = false;
+    let autoHideTimer = null;
 
     useSrxd((message) => {
         // App.vue also hosts the screens, those never prompt
@@ -21,6 +25,7 @@ export default function useWinnerPrompt() {
             // Rounds count up again in a new room, so only the current song counts as prompted
             lastPromptedRound = null;
             resultsStale = true;
+            clearTimeout(autoHideTimer);
             // The next song is coming up, the old results would cover it
             if (state.currentMatch?.resultsVisible) setState({ currentMatch: { resultsVisible: false } });
         }
@@ -40,7 +45,8 @@ export default function useWinnerPrompt() {
         const match = state.currentMatch ?? {};
         const ingame1 = match.ingame?.player1;
         const ingame2 = match.ingame?.player2;
-        if (state.winnerPrompt === false || !ingame1 || !ingame2) return;
+        const auto = state.autoResults === true;
+        if ((!auto && state.winnerPrompt === false) || !ingame1 || !ingame2) return;
 
         const entry1 = results.entries.find((entry) => entry.name === ingame1);
         const entry2 = results.entries.find((entry) => entry.name === ingame2);
@@ -53,6 +59,16 @@ export default function useWinnerPrompt() {
         const winner = player1Won ? match.players?.player1 : match.players?.player2;
         const winnerName = winner?.spinshareProfile?.username ?? (player1Won ? ingame1 : ingame2);
         const [winnerEntry, loserEntry] = player1Won ? [entry1, entry2] : [entry2, entry1];
+        // Auto results skip the prompt: the point is added, the results show and hide again after a while
+        if (auto) {
+            applyChoice(results, player1Won, true);
+            clearTimeout(autoHideTimer);
+            autoHideTimer = setTimeout(() => {
+                if (state.currentMatch?.resultsVisible) setState({ currentMatch: { resultsVisible: false } });
+            }, AUTO_RESULTS_DURATION);
+            return;
+        }
+
         const scoreLine = winnerEntry && loserEntry ? ` (${winnerEntry.score.toLocaleString()} vs ${loserEntry.score.toLocaleString()})` : '';
 
         emitter.emit('alert-show', {
@@ -141,6 +157,7 @@ export default function useWinnerPrompt() {
     });
 
     onUnmounted(() => {
+        clearTimeout(autoHideTimer);
         emitter.off('*', onAnyMessage);
     });
 }

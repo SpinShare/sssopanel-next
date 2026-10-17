@@ -31,12 +31,23 @@
                 />
             </SpinInput>
             <SpinInput
+                label="Auto Results"
+                hint="Add the point and show the results on its own, hidden after 30s"
+                type="horizontal"
+            >
+                <SpinSwitch
+                    v-model="autoResults"
+                    @update:model-value="(value) => setStateFlag('autoResults', value)"
+                />
+            </SpinInput>
+            <SpinInput
                 label="Winner Prompt"
-                hint="Ask to add a point when a round ends"
+                :hint="autoResults ? 'Not needed with Auto Results' : 'Ask to add a point when a round ends'"
                 type="horizontal"
             >
                 <SpinSwitch
                     v-model="winnerPrompt"
+                    :disabled="autoResults"
                     @update:model-value="setWinnerPrompt"
                 />
             </SpinInput>
@@ -237,6 +248,7 @@ const ingamePlayer1 = ref('');
 const ingamePlayer2 = ref('');
 const autoChart = ref(true);
 const winnerPrompt = ref(true);
+const autoResults = ref(false);
 
 const gameStatus = computed(() => {
     if (!game.value.enabled) return 'Disabled in settings';
@@ -284,6 +296,18 @@ const loadChartFromTrack = async (track) => {
     loadedChart.value = chart ?? chartFromTrack(track);
     chartId.value = loadedChart.value.id ?? 0;
     updateState();
+};
+
+const setStateFlag = (key, value) => {
+    window.electronAPI.send(
+        'message',
+        JSON.stringify({
+            command: 'state-set',
+            data: {
+                [key]: value,
+            },
+        }),
+    );
 };
 
 // Kept in the state so turning it off sticks when the page is opened again
@@ -472,6 +496,7 @@ onMounted(() => {
         refDenIsVisible.value = state?.refDenIsVisible ?? false;
         resultsVisible.value = state?.currentMatch?.resultsVisible ?? false;
         winnerPrompt.value = state?.winnerPrompt ?? true;
+        autoResults.value = state?.autoResults ?? false;
         autoChart.value = state?.autoChart ?? true;
 
         if (!stateLoaded.value) {

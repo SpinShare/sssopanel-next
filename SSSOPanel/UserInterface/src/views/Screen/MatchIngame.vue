@@ -115,38 +115,46 @@
                             :style="`background-image: url(${player2?.spinshareProfile?.avatar})`"
                         ></div>
                     </div>
-                    <transition name="tug">
+                    <!-- Grows and shrinks instead of popping in, so the row above slides instead of jumping -->
+                    <div
+                        class="tug-row"
+                        :class="{ shown: !!tug }"
+                    >
                         <div
                             class="tug"
-                            v-if="tug"
+                            v-if="shownTug"
                         >
                             <div class="tug-bar">
                                 <div class="tint muted"></div>
                                 <div class="noise"></div>
                                 <div
                                     class="tug-fill left"
-                                    :style="{ width: tug.width1 + '%' }"
+                                    :style="{ width: Math.max(0, shownLead) * 50 + '%' }"
                                 >
                                     <div class="tint themed"></div>
                                     <div class="noise"></div>
                                 </div>
                                 <div
                                     class="tug-fill right"
-                                    :style="{ width: tug.width2 + '%' }"
+                                    :style="{ width: Math.max(0, -shownLead) * 50 + '%' }"
                                 >
                                     <div class="tint themed"></div>
                                     <div class="noise"></div>
                                 </div>
-                                <span
-                                    class="tug-lead"
-                                    :class="tug.diff >= 0 ? 'left' : 'right'"
-                                    v-if="tug.diff !== 0"
-                                >
-                                    +<ScreenRollingNumber :value="Math.abs(tug.diff).toLocaleString()" />
-                                </span>
+                                <!-- Keyed by side, so a lead change fades out on one side and in on the other -->
+                                <transition name="lead">
+                                    <span
+                                        v-if="shownTug.diff !== 0"
+                                        :key="shownTug.diff > 0 ? 'left' : 'right'"
+                                        class="tug-lead"
+                                        :class="shownTug.diff > 0 ? 'left' : 'right'"
+                                    >
+                                        +<ScreenRollingNumber :value="Math.abs(shownTug.diff).toLocaleString()" />
+                                    </span>
+                                </transition>
                             </div>
                         </div>
-                    </transition>
+                    </div>
                 </section>
                 <section class="gameplay">
                     <transition name="results">
@@ -307,8 +315,8 @@ const tug = computed(() => {
         score2: lane2.score,
         diff,
         // Each bar covers half of the track at most
-        width1: diff > 0 ? lead * 50 : 0,
-        width2: diff < 0 ? lead * 50 : 0,
+        // Positive is player 1 ahead, negative player 2
+        signedLead: diff > 0 ? lead : -lead,
         sides: [
             { key: 'left', lane: lane1 },
             { key: 'right', lane: lane2 },
@@ -324,6 +332,38 @@ const tug = computed(() => {
         })),
     };
 });
+
+// Last bar data, kept on screen while the row slides closed
+const shownTug = ref(null);
+watch(tug, (value) => {
+    if (value) shownTug.value = value;
+});
+
+// One animated value for both fills. It slides through the middle when the lead changes hands, so the two
+// sides never grow and shrink at the same time (which looked like both were ahead for a moment)
+const TUG_EASE = 0.1; // seconds, how quickly the bar catches up
+const shownLead = ref(0);
+let tugFrame = null;
+let tugFrameTime = 0;
+const animateTug = (time) => {
+    const target = tug.value?.signedLead ?? 0;
+    const dt = tugFrameTime ? (time - tugFrameTime) / 1000 : 0;
+    tugFrameTime = time;
+
+    shownLead.value += (target - shownLead.value) * (1 - Math.exp(-dt / TUG_EASE));
+    if (Math.abs(target - shownLead.value) < 0.0005) shownLead.value = target;
+
+    tugFrame = shownLead.value === target ? null : requestAnimationFrame(animateTug);
+};
+watch(
+    () => tug.value?.signedLead ?? 0,
+    () => {
+        if (tugFrame) return;
+        tugFrameTime = 0;
+        tugFrame = requestAnimationFrame(animateTug);
+    },
+);
+onUnmounted(() => tugFrame && cancelAnimationFrame(tugFrame));
 
 const formatTime = (seconds) => `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, '0')}`;
 
@@ -469,7 +509,8 @@ $gameplayMask: linear-gradient(to bottom, #000 calc(50% - #{$gameplayHeight * 0.
         & .match-info {
             display: grid;
             grid-template-columns: 1fr auto auto auto 1fr;
-            gap: 1vw 2vw;
+            // No row gap, the tug row brings its own spacing so it can collapse fully
+            column-gap: 2vw;
             padding: 0 4vw;
 
             & .player {
@@ -619,8 +660,25 @@ $gameplayMask: linear-gradient(to bottom, #000 calc(50% - #{$gameplayHeight * 0.
             }
         }
 
-        & .tug {
+        & .tug-row {
             grid-column: 1 / -1;
+            display: grid;
+            grid-template-rows: 0fr;
+            opacity: 0;
+            transition: grid-template-rows 0.5s ease-in-out, opacity 0.5s ease-in-out;
+
+            &.shown {
+                grid-template-rows: 1fr;
+                opacity: 1;
+            }
+
+            & > .tug {
+                overflow: hidden;
+                min-height: 0;
+            }
+        }
+
+        & .tug {
             display: grid;
             align-items: center;
 
@@ -630,6 +688,7 @@ $gameplayMask: linear-gradient(to bottom, #000 calc(50% - #{$gameplayHeight * 0.
             }
 
             & .tug-bar {
+                margin-top: 1vw;
                 height: 2vw;
                 border-radius: 0.5vw;
                 position: relative;
@@ -652,7 +711,6 @@ $gameplayMask: linear-gradient(to bottom, #000 calc(50% - #{$gameplayHeight * 0.
                     top: 0;
                     bottom: 0;
                     overflow: hidden;
-                    transition: width 0.3s linear;
 
                     &.left {
                         right: 50%;
@@ -905,6 +963,15 @@ $gameplayMask: linear-gradient(to bottom, #000 calc(50% - #{$gameplayHeight * 0.
 .results-leave-to {
     opacity: 0;
     transform: scale(0.98);
+}
+
+.lead-enter-active,
+.lead-leave-active {
+    transition: opacity 0.25s ease-out;
+}
+.lead-enter-from,
+.lead-leave-to {
+    opacity: 0;
 }
 
 .tug-enter-active,
