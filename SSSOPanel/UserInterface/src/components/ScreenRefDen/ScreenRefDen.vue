@@ -45,7 +45,7 @@ const formatTimestamp = (timestamp) => {
 };
 
 const handleIncomingMessage = (message) => {
-    // Only process messages with the correct command
+    let changed = false;
     if (message.command === 'message-received') {
         // Add new message to the top of the list
         localMessages.value.unshift(message.data);
@@ -53,6 +53,20 @@ const handleIncomingMessage = (message) => {
         if (localMessages.value.length > maxMessages.value) {
             localMessages.value.pop();
         }
+        changed = true;
+    } else if (message.command === 'message-updated') {
+        const existing = localMessages.value.find((m) => m.messageId === message.data.messageId);
+        if (existing) {
+            existing.content = message.data.content;
+            changed = true;
+        }
+    } else if (message.command === 'message-deleted') {
+        const count = localMessages.value.length;
+        localMessages.value = localMessages.value.filter((m) => m.messageId !== message.data.messageId);
+        changed = localMessages.value.length !== count;
+    }
+
+    if (changed) {
         window.electronAPI.send(
             'message',
             JSON.stringify({

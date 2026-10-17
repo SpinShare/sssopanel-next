@@ -14,6 +14,7 @@ public class MessageHandler
         "screen-music-get",
         "srxd-get",
         "theme-get",
+        "voicebot-status-get",
     };
 
     // Set once the panel window exists, for messages that don't answer a command

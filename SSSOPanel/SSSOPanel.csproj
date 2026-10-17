@@ -77,6 +77,17 @@
 		<Content Include="preload.js">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
+		<!-- Voice bot (pharahp submodule) and the node runtime it runs on, next to the exe, never bundled -->
+		<Content Include="VoiceBot\**" Exclude="VoiceBot\.git*;VoiceBot\.git\**;VoiceBot\.github\**;VoiceBot\.idea\**;VoiceBot\Dockerfile;VoiceBot\.dockerignore;VoiceBot\guild_config.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
+		<Content Include="node\**">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
 		<!-- Production UI: copy built frontend to output wwwroot/ -->
 		<Content Include="Resources\wwwroot\**">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

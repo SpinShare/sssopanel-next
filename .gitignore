@@ -127,3 +127,6 @@ SSSOPanel/Resources/wwwroot/index.html
 
 # alpine stuff
 temp/
+
+# Node runtime bundled for the voice bot (ci / build-appimage.sh download it)
+SSSOPanel/node/

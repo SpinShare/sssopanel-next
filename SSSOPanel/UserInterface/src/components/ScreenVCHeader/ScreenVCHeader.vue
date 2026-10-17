@@ -46,47 +46,16 @@
     </div>
 </template>
 
-<script>
+<script setup>
+import { computed } from 'vue';
 import VoiceBotService from '../../modules/VoiceBotService';
 import VoiceMember from './VoiceMember.vue';
 
-export default {
-    name: 'ScreenVCHeader',
-    components: {
-        VoiceMember,
-    },
-    data() {
-        return {
-            serverUrl: 'ws://207.180.220.125:8765',
-            channelId: '747601413172887552',
-        };
-    },
-    computed: {
-        state() {
-            return VoiceBotService.state;
-        },
-        isConnected() {
-            return this.state.isConnected;
-        },
-        botUsername() {
-            return this.state.botUsername;
-        },
-        voiceMembers() {
-            return this.state.voiceMembers;
-        },
-    },
-    mounted() {
-        VoiceBotService.connect(this.serverUrl, this.channelId);
-    },
-    methods: {
-        connectToBot() {
-            VoiceBotService.connect(this.serverUrl, this.channelId);
-        },
-        disconnect() {
-            VoiceBotService.disconnect();
-        },
-    },
-};
+// ScreenLayout keeps the connection, the ref den needs it even without the header
+const bot = VoiceBotService.state;
+
+const isConnected = computed(() => bot.isConnected);
+const voiceMembers = computed(() => bot.voiceMembers);
 </script>
 
 <style scoped>

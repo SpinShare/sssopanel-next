@@ -17,6 +17,7 @@
         <transition name="default">
             <div
                 v-show="showDropdown"
+                ref="DOMOptions"
                 class="options"
             >
                 <div
@@ -26,7 +27,11 @@
                     :class="`option ${modelValue === option.value ? 'selected' : ''}`"
                 >
                     <span :class="`mdi mdi-${option.icon}`"></span>
-                    <span class="label">{{ option.label }}</span>
+                    <span
+                        class="label"
+                        :title="option.label"
+                        >{{ option.label }}</span
+                    >
                 </div>
             </div>
         </transition>
@@ -34,7 +39,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { nextTick, ref } from 'vue';
 
 const props = defineProps({
     modelValue: String,
@@ -49,6 +54,7 @@ const props = defineProps({
 });
 
 const DOMDropdown = ref(null);
+const DOMOptions = ref(null);
 const showDropdown = ref(false);
 const selectedValue = ref(props.modelValue);
 const emit = defineEmits(['update:modelValue']);
@@ -56,6 +62,11 @@ const emit = defineEmits(['update:modelValue']);
 const toggleDropdown = () => {
     if (props.disabled) return;
     showDropdown.value = !showDropdown.value;
+
+    // Long lists scroll, start at the picked option
+    if (showDropdown.value) {
+        nextTick(() => DOMOptions.value?.querySelector('.selected')?.scrollIntoView({ block: 'nearest' }));
+    }
 };
 
 const selectOption = (value) => {
@@ -74,6 +85,8 @@ const closeDropdown = () => {
 .spin-select {
     position: relative;
     min-width: 175px;
+    // Long labels (channel names, scenes) get cut off instead of stretching the row
+    max-width: 200px;
     transition: 0.15s ease-in-out all;
 
     & .button {
@@ -93,6 +106,10 @@ const closeDropdown = () => {
 
         & .value {
             flex-grow: 1;
+            min-width: 0;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
             font-family: 'Work Sans', sans-serif;
             font-size: 1rem;
         }
@@ -118,12 +135,16 @@ const closeDropdown = () => {
         z-index: 1;
         border-bottom-left-radius: 4px;
         border-bottom-right-radius: 4px;
-        overflow: hidden;
+        max-height: min(280px, 45vh);
+        overflow-x: hidden;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
 
         & .option {
             cursor: pointer;
             display: grid;
-            grid-template-columns: 24px auto;
+            grid-template-columns: 24px minmax(0, 1fr);
             gap: 10px;
             align-items: center;
             color: var(--colorBaseText);
@@ -138,6 +159,12 @@ const closeDropdown = () => {
                 justify-content: center;
                 align-items: center;
                 font-size: 20px;
+            }
+
+            & .label {
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
             }
 
             &.selected {

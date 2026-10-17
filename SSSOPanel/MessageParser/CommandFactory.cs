@@ -25,6 +25,9 @@ public class CommandFactory
             "srxd-get" => new CommandSrxdGet(),
             "srxd-connect" => new CommandSrxdConnect(),
             "theme-get" => new CommandThemeGet(),
+            "voicebot-status-get" => new CommandVoiceBotStatusGet(),
+            "voicebot-start" => new CommandVoiceBotStart(),
+            "voicebot-stop" => new CommandVoiceBotStop(),
             _ => throw new Exception($"Unknown command: {command}")
         };
     }

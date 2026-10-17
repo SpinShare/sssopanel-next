@@ -23,6 +23,7 @@ import AspectLayout from '@/layouts/AspectLayout.vue';
 import ScreenFooter from '@/components/ScreenFooter/ScreenFooter.vue';
 import ScreenVCHeader from '../components/ScreenVCHeader/ScreenVCHeader.vue';
 import ScreenRefDen from '../components/ScreenRefDen/ScreenRefDen.vue';
+import useVoiceBot from '@/modules/useVoiceBot';
 
 const props = defineProps({
     transparent: {
@@ -33,6 +34,9 @@ const props = defineProps({
 
 const emitter = inject('emitter');
 const route = useRoute();
+
+// Connects the vc header and ref den to the local or remote bot, whatever the panel settings say
+useVoiceBot();
 
 const showHeader = computed(() => {
     return route.name !== 'ViewScreenCountdown';
