@@ -252,7 +252,7 @@ const game = useSrxd();
 
 // Bars follow the point lead on a log scale, so small early gaps stay small and big leads don't
 // flatten out the rest. TUG_SOFTNESS is roughly where the curve bends (higher is calmer).
-const TUG_FULL_LEAD = 20000;
+const TUG_FULL_LEAD = 2000;
 const TUG_SOFTNESS = 500;
 // Health ring pulses below this
 const TUG_LOW_HEALTH = 0.3;
