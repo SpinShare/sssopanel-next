@@ -7,7 +7,7 @@
             <div class="content">
                 <section class="match-info">
                     <div
-                        class="player"
+                        class="player left"
                         v-show="player1"
                     >
                         <div
@@ -33,6 +33,15 @@
                             </div>
                         </div>
                     </div>
+                    <transition name="tug">
+                        <ScreenStatsBox
+                            v-if="tug"
+                            class="side-stats left"
+                            side="left"
+                            :stats="tug.sides[0]"
+                            :low-health="TUG_LOW_HEALTH"
+                        />
+                    </transition>
                     <div class="stats">
                         <div class="tint themed"></div>
                         <div class="noise"></div>
@@ -71,8 +80,17 @@
                             </div>
                         </div>
                     </div>
+                    <transition name="tug">
+                        <ScreenStatsBox
+                            v-if="tug"
+                            class="side-stats right"
+                            side="right"
+                            :stats="tug.sides[1]"
+                            :low-health="TUG_LOW_HEALTH"
+                        />
+                    </transition>
                     <div
-                        class="player"
+                        class="player right"
                         v-show="!!player2"
                     >
                         <div class="meta">
@@ -102,36 +120,6 @@
                             class="tug"
                             v-if="tug"
                         >
-                            <div
-                                class="tug-stats"
-                                :class="[tug.sides[0].key, { low: tug.sides[0].health < TUG_LOW_HEALTH, failed: tug.sides[0].failed }]"
-                                :style="{ '--health': tug.sides[0].health }"
-                            >
-                                <div class="tint muted"></div>
-                                <div class="noise"></div>
-                                <div class="tug-ring">
-                                    <div class="tint themed"></div>
-                                    <div class="noise"></div>
-                                </div>
-                                <div class="tug-stats-inner">
-                                    <div class="tint muted"></div>
-                                    <div class="noise"></div>
-                                    <ScreenRollingNumber
-                                        class="score"
-                                        :value="tug.sides[0].score"
-                                    />
-                                    <span
-                                        v-if="tug.sides[0].failed"
-                                        class="failed-tag"
-                                        >FAILED</span
-                                    >
-                                    <span
-                                        v-else
-                                        class="dim"
-                                        ><ScreenRollingNumber :value="tug.sides[0].combo" />x &middot; <ScreenRollingNumber :value="tug.sides[0].multiplier" />x &middot; <ScreenRollingNumber :value="tug.sides[0].accuracy" />%</span
-                                    >
-                                </div>
-                            </div>
                             <div class="tug-bar">
                                 <div class="tint muted"></div>
                                 <div class="noise"></div>
@@ -156,36 +144,6 @@
                                 >
                                     +<ScreenRollingNumber :value="Math.abs(tug.diff).toLocaleString()" />
                                 </span>
-                            </div>
-                            <div
-                                class="tug-stats"
-                                :class="[tug.sides[1].key, { low: tug.sides[1].health < TUG_LOW_HEALTH, failed: tug.sides[1].failed }]"
-                                :style="{ '--health': tug.sides[1].health }"
-                            >
-                                <div class="tint muted"></div>
-                                <div class="noise"></div>
-                                <div class="tug-ring">
-                                    <div class="tint themed"></div>
-                                    <div class="noise"></div>
-                                </div>
-                                <div class="tug-stats-inner">
-                                    <div class="tint muted"></div>
-                                    <div class="noise"></div>
-                                    <ScreenRollingNumber
-                                        class="score"
-                                        :value="tug.sides[1].score"
-                                    />
-                                    <span
-                                        v-if="tug.sides[1].failed"
-                                        class="failed-tag"
-                                        >FAILED</span
-                                    >
-                                    <span
-                                        v-else
-                                        class="dim"
-                                        ><ScreenRollingNumber :value="tug.sides[1].combo" />x &middot; <ScreenRollingNumber :value="tug.sides[1].multiplier" />x &middot; <ScreenRollingNumber :value="tug.sides[1].accuracy" />%</span
-                                    >
-                                </div>
                             </div>
                         </div>
                     </transition>
@@ -235,13 +193,19 @@
                             >
                             <div
                                 class="tags"
-                                v-if="chartMeta.tags.length"
+                                v-if="chartMeta.tags.length || chartMeta.length"
                             >
                                 <span
                                     v-for="tag in chartMeta.tags"
                                     :key="tag"
                                     >{{ tag }}</span
                                 >
+                                <span
+                                    v-if="chartMeta.length"
+                                    class="time"
+                                >
+                                    <template v-if="chartMeta.time !== null"><ScreenRollingNumber :value="chartMeta.time" /> / </template>{{ chartMeta.length }}
+                                </span>
                             </div>
                             <div
                                 class="progress"
@@ -278,10 +242,11 @@
 
 <script setup>
 import ScreenLayout from '../../layouts/ScreenLayout.vue';
-import { computed, ref, inject, onMounted, onUnmounted } from 'vue';
+import { computed, reactive, ref, inject, onMounted, onUnmounted, watch } from 'vue';
 import useSrxd, { stripRichText } from '@/modules/useSrxd';
 import ScreenRollingNumber from '@/components/ScreenRollingNumber/ScreenRollingNumber.vue';
 import ScreenMatchResults from '@/components/ScreenMatchResults/ScreenMatchResults.vue';
+import ScreenStatsBox from '@/components/ScreenStatsBox/ScreenStatsBox.vue';
 const emitter = inject('emitter');
 const game = useSrxd();
 
@@ -289,7 +254,7 @@ const game = useSrxd();
 // flatten out the rest. TUG_SOFTNESS is roughly where the curve bends (higher is calmer).
 const TUG_FULL_LEAD = 20000;
 const TUG_SOFTNESS = 500;
-// Health ring turns red below this
+// Health ring pulses below this
 const TUG_LOW_HEALTH = 0.3;
 
 const player1 = ref(null);
@@ -308,6 +273,22 @@ const liveScores = computed(() => {
     const scores = game.value.scores;
     if (game.value.phase !== 'playing' || !scores || scores.round !== game.value.round) return null;
     return scores;
+});
+
+// Live full combo per player name. The game sends no judgements during a song, so a combo drop or any
+// health loss (only misses cost health) counts as the FC being gone. The exact tier is only in the results.
+const fullCombos = reactive({});
+watch(liveScores, (scores) => {
+    for (const lane of scores?.lanes ?? []) {
+        let tracked = fullCombos[lane.name];
+        if (!tracked || tracked.round !== scores.round) {
+            tracked = fullCombos[lane.name] = { round: scores.round, combo: 0, health: 1, fullCombo: true };
+        }
+
+        if (lane.failed || lane.combo < tracked.combo || lane.health < tracked.health) tracked.fullCombo = false;
+        tracked.combo = lane.combo;
+        tracked.health = lane.health;
+    }
 });
 
 const tug = computed(() => {
@@ -338,6 +319,7 @@ const tug = computed(() => {
             multiplier: lane.multiplier,
             accuracy: lane.accuracy.toFixed(2),
             failed: lane.failed,
+            fullCombo: fullCombos[lane.name]?.round === liveScores.value.round && fullCombos[lane.name].fullCombo,
             health: lane.failed ? 0 : Math.min(1, Math.max(0, lane.health)),
         })),
     };
@@ -364,12 +346,14 @@ const chartMeta = computed(() => {
     if (bpmHigh) tags.push(bpmLow && bpmLow !== bpmHigh ? `${bpmLow}-${bpmHigh} BPM` : `${bpmHigh} BPM`);
 
     const length = scores?.songLength ?? track.value?.duration;
-    if (length) tags.push(scores ? `${formatTime(scores.songTime)} / ${formatTime(length)}` : formatTime(length));
 
     return {
         subtitle: stripRichText(track.value?.subtitle ?? chart.value?.subtitle),
         featArtists: stripRichText(track.value?.featArtists),
         tags,
+        // Separate from the tags so the time can roll like the other live numbers
+        length: length ? formatTime(length) : null,
+        time: scores && length ? formatTime(scores.songTime) : null,
         progress: scores ? Math.min(1, Math.max(0, scores.progress)) : null,
     };
 });
@@ -481,9 +465,10 @@ $gameplayMask: linear-gradient(to bottom, #000 calc(50% - #{$gameplayHeight * 0.
         z-index: 10;
         color: #eee;
 
+        // player, stats, sets, stats, player. Columns are fixed so the stats boxes can come and go
         & .match-info {
             display: grid;
-            grid-template-columns: 1fr auto 1fr;
+            grid-template-columns: 1fr auto auto auto 1fr;
             gap: 1vw 2vw;
             padding: 0 4vw;
 
@@ -528,7 +513,12 @@ $gameplayMask: linear-gradient(to bottom, #000 calc(50% - #{$gameplayHeight * 0.
                     }
                 }
 
-                &:nth-child(3) {
+                &.left {
+                    grid-column: 1;
+                }
+
+                &.right {
+                    grid-column: 5;
                     justify-content: flex-end;
 
                     & .meta {
@@ -541,7 +531,16 @@ $gameplayMask: linear-gradient(to bottom, #000 calc(50% - #{$gameplayHeight * 0.
                 }
             }
 
+            & .side-stats.left {
+                grid-column: 2;
+            }
+
+            & .side-stats.right {
+                grid-column: 4;
+            }
+
             & .stats {
+                grid-column: 3;
                 background: #111;
                 padding: 1.25vw 2vw;
                 border-radius: 0.5vw;
@@ -623,99 +622,11 @@ $gameplayMask: linear-gradient(to bottom, #000 calc(50% - #{$gameplayHeight * 0.
         & .tug {
             grid-column: 1 / -1;
             display: grid;
-            grid-template-columns: 20vw 1fr 20vw;
-            gap: 1vw;
             align-items: center;
 
             // Muted version of the grainy background, a step lighter than the band behind it
             & .tint.muted {
                 filter: contrast(1) brightness(0.22) grayscale(2);
-            }
-
-            // Tinted health ring around a muted box, a conic mask empties it from the top.
-            // Clockwise for player 1, counter-clockwise for player 2 so both sides mirror.
-            & .tug-stats {
-                height: 2vw;
-                border-radius: 0.5vw;
-                position: relative;
-                overflow: hidden;
-
-                & .tug-ring {
-                    position: absolute;
-                    inset: 0;
-                    -webkit-mask-image: conic-gradient(transparent 0 calc((1 - var(--health)) * 100%), #000 0);
-                    mask-image: conic-gradient(transparent 0 calc((1 - var(--health)) * 100%), #000 0);
-                    transition: --health 0.3s linear;
-
-                    & .tint {
-                        filter: var(--themeFilter);
-                    }
-                }
-
-                &.right .tug-ring {
-                    -webkit-mask-image: conic-gradient(#000 0 calc(var(--health) * 100%), transparent 0);
-                    mask-image: conic-gradient(#000 0 calc(var(--health) * 100%), transparent 0);
-                }
-
-                // Pulses instead of changing color, the overlay has no warning colors
-                &.low .tug-ring {
-                    animation: tugLowHealth 0.8s ease-in-out infinite alternate;
-                }
-
-                & .tug-stats-inner {
-                    position: absolute;
-                    inset: 0.2vw;
-                    border-radius: 0.3vw;
-                    overflow: hidden;
-                    display: flex;
-                    align-items: center;
-                    gap: 0.75vw;
-                    padding: 0 1vw;
-                    white-space: nowrap;
-                    z-index: 10;
-
-                    & .score,
-                    & .dim,
-                    & .failed-tag {
-                        position: relative;
-                        z-index: 10;
-                    }
-
-                    & .score {
-                        font-weight: 600;
-                        font-size: 1vw;
-                        letter-spacing: 0.1vw;
-                        --digit-gap: 0.1vw;
-                    }
-
-                    & .dim {
-                        color: rgba(255, 255, 255, 0.6);
-                        font-size: 0.8vw;
-                        letter-spacing: 0.05vw;
-                        --digit-gap: 0.05vw;
-                    }
-
-                    // Same as the "OF" in the sets box
-                    & .failed-tag {
-                        background: #111;
-                        color: #ededed;
-                        font-weight: bold;
-                        font-size: 0.75vw;
-                        letter-spacing: 0.25vw;
-                        padding: 0.25vw 0.5vw;
-                        border-radius: 0.25vw;
-                    }
-                }
-
-                &.failed .tug-stats-inner .score {
-                    color: rgba(255, 255, 255, 0.4);
-                    text-decoration: line-through;
-                }
-
-                // Mirrored, score at the outer end
-                &.right .tug-stats-inner {
-                    flex-direction: row-reverse;
-                }
             }
 
             & .tug-bar {
@@ -831,6 +742,8 @@ $gameplayMask: linear-gradient(to bottom, #000 calc(50% - #{$gameplayHeight * 0.
                     & .title {
                         font-weight: 600;
                         font-size: 1.5vw;
+                        // overflow: hidden clips at the line box, the reset's line-height: 1 would cut off g, y, p
+                        line-height: 1.3;
                         letter-spacing: 0.1vw;
                         overflow: hidden;
                         word-break: break-all;
@@ -842,6 +755,7 @@ $gameplayMask: linear-gradient(to bottom, #000 calc(50% - #{$gameplayHeight * 0.
                     & .artist {
                         color: rgba(255, 255, 255, 0.6);
                         font-size: 1vw;
+                        line-height: 1.3;
                         overflow: hidden;
                         word-break: break-all;
                         max-width: 50vw;
@@ -852,6 +766,7 @@ $gameplayMask: linear-gradient(to bottom, #000 calc(50% - #{$gameplayHeight * 0.
                     & .charter {
                         color: rgba(255, 255, 255, 0.5);
                         font-size: 0.85vw;
+                        line-height: 1.3;
                         letter-spacing: 0.05vw;
                         overflow: hidden;
                         max-width: 50vw;
@@ -871,7 +786,9 @@ $gameplayMask: linear-gradient(to bottom, #000 calc(50% - #{$gameplayHeight * 0.
                         gap: 0.5vw;
                         margin-top: 0.25vw;
 
-                        & span {
+                        // Direct children only, the rolling time has spans of its own
+                        & > span {
+                            --digit-gap: 0.1vw;
                             font-size: 0.8vw;
                             font-weight: 600;
                             letter-spacing: 0.1vw;
@@ -969,13 +886,6 @@ $gameplayMask: linear-gradient(to bottom, #000 calc(50% - #{$gameplayHeight * 0.
             }
         }
     }
-}
-
-// Registered so the health ring can animate, gradients can't otherwise
-@property --health {
-    syntax: '<number>';
-    inherits: true;
-    initial-value: 1;
 }
 
 @keyframes tugLowHealth {

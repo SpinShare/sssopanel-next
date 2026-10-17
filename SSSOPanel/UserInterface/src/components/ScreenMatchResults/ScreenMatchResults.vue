@@ -102,11 +102,13 @@ const judgements = [
 // The plain counts are the late hits only, early ones are counted separately (early can be higher than the plain count)
 const count = (entry, key) => entry.judgements?.[key] ?? 0;
 
+// Named after the lowest judgement the player got, none means no full combo
 const fullComboLabels = {
-    good: 'Full Combo',
+    okay: 'Full Combo (Okay)',
+    good: 'Full Combo (Good)',
     great: 'Full Combo (Great)',
-    perfect: 'Perfect Full Combo',
-    perfectPlus: 'Perfect+ Full Combo',
+    perfect: 'Full Combo (Perfect)',
+    perfectPlus: 'Full Combo (Perfect+)',
 };
 const fullComboLabel = (fullCombo) => (fullCombo && fullCombo !== 'none' ? fullComboLabels[fullCombo] ?? fullCombo : null);
 

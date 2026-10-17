@@ -111,10 +111,16 @@ export const pickResults = (results, ingame) => ({
     player2: results?.entries?.find((entry) => entry.name === ingame?.player2) ?? null,
 });
 
-// Placement decides, score breaks ties (both failed share a placement). Someone missing from the results left
+// Perfect+ hits, the early key is included in case the game ever reports early ones
+const perfectPlusCount = (entry) => (entry.judgements?.perfectPlus ?? 0) + (entry.judgements?.earlyPerfectPlus ?? 0);
+
+// Score decides, an exact score tie goes to whoever hit more Perfect+ (the more accurate run).
+// Someone missing from the results left. The game's placement and then player 1 only settle a complete tie.
 export const player1Won = (entry1, entry2) => {
     if (!entry1) return false;
     if (!entry2) return true;
+    if (entry1.score !== entry2.score) return entry1.score > entry2.score;
+    if (perfectPlusCount(entry1) !== perfectPlusCount(entry2)) return perfectPlusCount(entry1) > perfectPlusCount(entry2);
     if (entry1.placement !== entry2.placement) return entry1.placement < entry2.placement;
-    return entry1.score >= entry2.score;
+    return true;
 };

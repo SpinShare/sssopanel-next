@@ -178,6 +178,8 @@ onUnmounted(() => {
             white-space: nowrap;
             overflow: hidden;
             flex-shrink: 0;
+            // overflow: hidden clips at the line box, the reset's line-height: 1 would cut off g, y, p
+            line-height: 1.3;
 
             // The artists give up their space first, the title is only cut off once they are gone
             &.title {
