@@ -1,15 +1,17 @@
 <template>
     <div class="group">
-        <header>
+        <header
+            :class="{ collapsable }"
+            @click="collapsable && (isOpen = !isOpen)"
+        >
             <span>{{ header }}</span>
             <span
                 v-if="collapsable"
                 class="mdi"
                 :class="{
-                    'mdi-chevron-down': isOpen,
-                    'mdi-chevron-up': !isOpen,
+                    'mdi-chevron-up': isOpen,
+                    'mdi-chevron-down': !isOpen,
                 }"
-                @click="isOpen = !isOpen"
             ></span>
         </header>
         <div
@@ -59,6 +61,11 @@ const isOpen = ref(!props.collapsed);
         margin: 0 -20px;
         display: flex;
         align-items: center;
+
+        &.collapsable {
+            cursor: pointer;
+            user-select: none;
+        }
 
         & span:nth-child(1) {
             flex-grow: 1;

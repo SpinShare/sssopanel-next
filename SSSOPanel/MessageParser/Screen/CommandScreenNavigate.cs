@@ -6,7 +6,7 @@ namespace SSSOPanel.MessageParser;
 
 public class CommandScreenNavigate: ICommand
 {
-    public async Task Execute(BrowserWindow? sender, object? data)
+    public async Task Execute(IClient? sender, object? data)
     {
         if (data == null) return;
 
@@ -44,6 +44,7 @@ public class CommandScreenNavigate: ICommand
             };
 
             screenManager.CurrentRoute = newCurrentRoute;
+            ObsManager.ObsManager.GetInstance().SetSceneForScreen(path);
             
             MessageHandler.SendResponse(sender, new
             {

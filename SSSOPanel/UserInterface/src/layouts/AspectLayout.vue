@@ -1,6 +1,7 @@
 <template>
     <section
         class="layout-aspect"
+        :class="{ transparent: props.transparent }"
         ref="screen"
     >
         <slot />
@@ -9,6 +10,13 @@
 
 <script setup>
 import { onMounted, ref } from 'vue';
+const props = defineProps({
+    transparent: {
+        type: Boolean,
+        default: false,
+    },
+});
+
 const screen = ref(null);
 
 const updateScreen = () => {
@@ -41,5 +49,9 @@ onMounted(() => {
     align-self: center;
     justify-self: center;
     font-family: 'Orbitron', sans-serif;
+
+    &.transparent {
+        background: transparent;
+    }
 }
 </style>

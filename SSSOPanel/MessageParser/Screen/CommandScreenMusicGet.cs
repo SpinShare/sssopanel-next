@@ -1,5 +1,4 @@
 using Process = System.Diagnostics.Process;
-using ElectronNET.API;
 using Newtonsoft.Json.Linq;
 
 namespace SSSOPanel.MessageParser;
@@ -17,7 +16,7 @@ public class CommandScreenMusicGet : ICommand
 
     private record Song(bool Active, string Artist, string Title, string Cover);
 
-    public async Task Execute(BrowserWindow? sender, object? data)
+    public async Task Execute(IClient? sender, object? data)
     {
         // Spotify needs no external setup, so it stays the default
         var source = SettingsManager.SettingsManager.GetInstance().Get<string>("music.source");

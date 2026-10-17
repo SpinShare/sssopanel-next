@@ -6,7 +6,6 @@ public class CommandFactory
     {
         return command switch
         {
-            "open-screen" => new CommandOpenScreen(),
             "open-in-browser" => new CommandOpenInBrowser(),
             "open-in-explorer" => new CommandOpenInExplorer(),
             "settings-open-in-explorer" => new CommandSettingsOpenInExplorer(),
@@ -20,8 +19,12 @@ public class CommandFactory
             "current-route-get" => new CommandCurrentRouteGet(),
             "screen-navigate" => new CommandScreenNavigate(),
             "screen-music-get" => new CommandScreenMusicGet(),
-            "screen-fullscreen-toggle" => new CommandScreenFullscreenToggle(),
             "screen-match-update" => new CommandScreenMatchUpdate(),
+            "obs-status-get" => new CommandObsStatusGet(),
+            "obs-connect" => new CommandObsConnect(),
+            "srxd-get" => new CommandSrxdGet(),
+            "srxd-connect" => new CommandSrxdConnect(),
+            "theme-get" => new CommandThemeGet(),
             _ => throw new Exception($"Unknown command: {command}")
         };
     }

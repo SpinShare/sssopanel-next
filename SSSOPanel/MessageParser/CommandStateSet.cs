@@ -5,7 +5,7 @@ namespace SSSOPanel.MessageParser;
 
 public class CommandStateSet: ICommand
 {
-    public async Task Execute(BrowserWindow? sender, object? data)
+    public async Task Execute(IClient? sender, object? data)
     {
         if (data == null) return;
         

@@ -1,6 +1,21 @@
 @import url('https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;500;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100;200;300;400;500;600;700;800&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
 
+// Overlay themes, a filter on the shared background.svg tint (set as html[data-theme] by useTheme.js)
+:root {
+    --themeFilter: hue-rotate(195deg); // spring, also the default
+}
+:root[data-theme='winter'] {
+    --themeFilter: hue-rotate(160deg);
+}
+:root[data-theme='summer'] {
+    --themeFilter: hue-rotate(0deg);
+}
+:root[data-theme='autumn'] {
+    // Hue alone lands too close to summer, so it's deepened a bit
+    --themeFilter: hue-rotate(-35deg) saturate(1.8) brightness(0.85);
+}
+
 :root {
     font-size: 14px;
     
@@ -55,6 +70,10 @@ body {
     background: rgb(var(--colorBase));
     color: rgb(var(--colorBaseText));
     overflow: hidden;
+}
+// Screens bring their own backdrop, see App.vue
+html.screen body {
+    background: transparent;
 }
 a {
     color: rgb(var(--colorBaseText));

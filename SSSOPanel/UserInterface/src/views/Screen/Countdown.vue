@@ -1,11 +1,12 @@
 <template>
     <ScreenLayout>
         <section class="screen-streamstart-countdown">
-            <div class="tint summer"></div>
+            <div class="tint themed"></div>
             <div class="noise"></div>
 
             <div class="content">
                 <img
+                    v-if="EventLogo"
                     :src="EventLogo"
                     class="event-logo"
                 />
@@ -47,9 +48,12 @@
 
 <script setup>
 import ScreenLayout from '../../layouts/ScreenLayout.vue';
-import EventLogo from '../../assets/eventlogo-spring-2026.svg';
-import { ref, inject, onMounted, onUnmounted } from 'vue';
+import { currentTheme } from '@/modules/useTheme';
+import { getEventLogo } from '@/modules/eventLogos';
+import { ref, inject, onMounted, onUnmounted, computed } from 'vue';
 const emitter = inject('emitter');
+
+const EventLogo = computed(() => getEventLogo(currentTheme.value.theme, currentTheme.value.year));
 
 const countdownActive = ref(false);
 const countdownTime = ref(null);
@@ -115,12 +119,8 @@ onUnmounted(() => {
         bottom: 0;
         top: 0;
 
-        &.winter {
-            filter: hue-rotate(160deg);
-        }
-
-        &.summer {
-            filter: hue-rotate(195deg);
+        &.themed {
+            filter: var(--themeFilter);
         }
     }
 
@@ -147,6 +147,8 @@ onUnmounted(() => {
             align-self: center;
             width: 25vw;
             height: 25vw;
+            // Keeps png logos in shape like the svg ones
+            object-fit: contain;
         }
 
         & .countdown {

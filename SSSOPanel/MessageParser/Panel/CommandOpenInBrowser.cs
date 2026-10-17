@@ -5,7 +5,7 @@ namespace SSSOPanel.MessageParser;
 
 public class CommandOpenInBrowser : ICommand
 {
-    public async Task Execute(BrowserWindow? sender, object? data)
+    public async Task Execute(IClient? sender, object? data)
     {
         if (data == null) return;
         var url = data.ToString();

@@ -33,6 +33,11 @@
 		<PublishReadyToRun>true</PublishReadyToRun>
 	</PropertyGroup>
 
+	<!-- Kestrel: serves the overlay (OBS browser source) and its WebSocket -->
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+
 	<ItemGroup>
 		<PackageReference Include="ElectronNET.Core" Version="0.5.1" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />

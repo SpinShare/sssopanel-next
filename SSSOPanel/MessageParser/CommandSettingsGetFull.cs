@@ -4,7 +4,7 @@ namespace SSSOPanel.MessageParser;
 
 public class CommandSettingsGetFull : ICommand
 {
-    public async Task Execute(BrowserWindow? sender, object? data)
+    public async Task Execute(IClient? sender, object? data)
     {
         var settingsManager = SettingsManager.SettingsManager.GetInstance();
 

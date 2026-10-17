@@ -1,76 +1,91 @@
 <template>
     <AppLayout title="Match (Ingame)">
-        <SpinInput
-            label="Chart ID"
-            :hint="loadedChart === null ? 'Not loaded' : loadedChart?.title ?? 'Unknown chart ID'"
+        <!-- Match recap carousel, only there while it is on screen -->
+        <SpinInputGroup
+            v-if="recapSlides > 1"
+            header="Match Recap"
         >
-            <input
-                v-model="chartId"
-                type="number"
-                @change="
-                    async () => {
-                        await loadChart();
-                        if (loadedChart.value !== null) {
-                            updateState();
-                        }
-                    }
-                "
-            />
-        </SpinInput>
-        <SpinInputGroup header="Controls">
             <SpinInput
-                label="Streams"
+                label="Set"
+                :hint="`${resultsSlide + 1} of ${recapSlides}${recapCountdown}`"
                 type="horizontal"
             >
                 <div style="display: flex; gap: 10px">
                     <SpinButton
-                        label="On"
-                        @click="
-                            () => {
-                                streamsActive = true;
-                                updateState();
-                            }
-                        "
-                        :disabled="streamsActive"
+                        @click="setResultsSlide(resultsSlide - 1)"
+                        icon="chevron-left"
+                        :disabled="resultsSlide <= 0"
+                        v-tooltip="'Previous Set'"
                     />
                     <SpinButton
-                        label="Off"
-                        @click="
-                            () => {
-                                streamsActive = false;
-                                updateState();
-                            }
-                        "
-                        :disabled="!streamsActive"
+                        @click="setResultsSlide(resultsSlide + 1)"
+                        icon="chevron-right"
+                        :disabled="resultsSlide >= recapSlides - 1"
+                        v-tooltip="'Next Set'"
                     />
                 </div>
             </SpinInput>
+        </SpinInputGroup>
+        <SpinInputGroup
+            header="Game"
+            :collapsable="true"
+            :collapsed="true"
+        >
             <SpinInput
-                label="Audio"
+                label="Spin Rhythm XD"
+                :hint="gameStatus"
+                type="horizontal"
+            />
+            <SpinInput
+                label="Chart from Game"
+                hint="Load the picked chart automatically"
                 type="horizontal"
             >
-                <div style="display: flex; gap: 10px">
-                    <SpinButton
-                        label="Left Stream"
-                        @click="
-                            () => {
-                                audioActive = 'left';
-                                updateState();
-                            }
-                        "
-                        :disabled="audioActive === 'left'"
-                    />
-                    <SpinButton
-                        label="Right Stream"
-                        @click="
-                            () => {
-                                audioActive = 'right';
-                                updateState();
-                            }
-                        "
-                        :disabled="audioActive === 'right'"
-                    />
-                </div>
+                <SpinSwitch
+                    v-model="autoChart"
+                    @update:model-value="setAutoChart"
+                />
+            </SpinInput>
+            <SpinInput
+                label="Chart ID"
+                :hint="loadedChart === null ? 'Not loaded' : loadedChart?.title ?? 'Unknown chart ID'"
+            >
+                <input
+                    v-model="chartId"
+                    type="number"
+                    @change="onChartIdChange"
+                />
+            </SpinInput>
+            <SpinInput
+                label="Auto Results"
+                hint="Add the point and show the results on its own, hidden after 30s"
+                type="horizontal"
+            >
+                <SpinSwitch
+                    v-model="autoResults"
+                    @update:model-value="(value) => setStateFlag('autoResults', value)"
+                />
+            </SpinInput>
+            <SpinInput
+                label="Auto Recap"
+                hint="Step through the match recap on its own, spread over a minute"
+                type="horizontal"
+            >
+                <SpinSwitch
+                    v-model="resultsAutoProgress"
+                    @update:model-value="(value) => setStateFlag('resultsAutoProgress', value)"
+                />
+            </SpinInput>
+            <SpinInput
+                label="Winner Prompt"
+                :hint="autoResults ? 'Not needed with Auto Results' : 'Ask to add a point when a round ends'"
+                type="horizontal"
+            >
+                <SpinSwitch
+                    v-model="winnerPrompt"
+                    :disabled="autoResults"
+                    @update:model-value="setWinnerPrompt"
+                />
             </SpinInput>
         </SpinInputGroup>
         <SpinInputGroup
@@ -86,7 +101,7 @@
                     <input
                         v-model="scoresSetsCurrent"
                         type="number"
-                        min="0"
+                        min="1"
                         :max="scoresSetsMax"
                         placeholder="Current"
                         @change="updateState"
@@ -146,19 +161,19 @@
                 />
             </SpinInput>
             <SpinInput
-                label="Key"
-                hint="WHEP stream key"
-                type="horizontal"
+                label="Ingame Player"
+                :hint="ingamePlayer1 ? (ingameMemberNames.includes(ingamePlayer1) ? 'In room' : 'Not in room') : 'Not linked'"
             >
-                <input
-                    v-model="player1Key"
-                    type="text"
+                <SpinSelect
+                    v-model="ingamePlayer1"
+                    :options="ingameOptions(ingamePlayer1)"
+                    @update:model-value="updateState"
                 />
             </SpinInput>
             <SpinInput
                 v-if="currentScreen === '/screen/match-ingame'"
                 label="Update Players"
-                hint="This restarts the livestream area"
+                hint="Pushes the selected players to the screen"
                 type="horizontal"
             >
                 <SpinButton
@@ -184,19 +199,19 @@
                 />
             </SpinInput>
             <SpinInput
-                label="Key"
-                hint="WHEP stream key"
-                type="horizontal"
+                label="Ingame Player"
+                :hint="ingamePlayer2 ? (ingameMemberNames.includes(ingamePlayer2) ? 'In room' : 'Not in room') : 'Not linked'"
             >
-                <input
-                    v-model="player2Key"
-                    type="text"
+                <SpinSelect
+                    v-model="ingamePlayer2"
+                    :options="ingameOptions(ingamePlayer2)"
+                    @update:model-value="updateState"
                 />
             </SpinInput>
             <SpinInput
                 v-if="currentScreen === '/screen/match-ingame'"
                 label="Update Players"
-                hint="This restarts the livestream area"
+                hint="Pushes the selected players to the screen"
                 type="horizontal"
             >
                 <SpinButton
@@ -213,6 +228,13 @@
                 :icon="refDenIsVisible ? 'comment-text-multiple' : 'comment-text-multiple-outline'"
                 :color="refDenIsVisible ? 'primary' : 'default'"
                 v-tooltip="'Toggle Ref Den'"
+            />
+            <SpinButton
+                @click="toggleResults"
+                :icon="resultsVisible ? 'trophy' : 'trophy-outline'"
+                :color="resultsVisible ? 'primary' : 'default'"
+                :disabled="!resultsVisible && !game.results?.complete"
+                v-tooltip="'Toggle Results'"
             />
 
             <SpinButton
@@ -232,12 +254,16 @@ import SpinButton from '@/components/Common/SpinButton.vue';
 import SpinInput from '@/components/Common/SpinInput.vue';
 import SpinInputGroup from '@/components/Common/SpinInputGroup.vue';
 import SpinSelect from '@/components/Common/SpinSelect.vue';
-import { onMounted, onUnmounted, ref, inject } from 'vue';
+import SpinSwitch from '@/components/Common/SpinSwitch.vue';
+import { computed, onMounted, onUnmounted, ref, inject, watch } from 'vue';
 import useCurrentScreen from '@/modules/useCurrentScreen';
 import useSpinShareApi from '@/modules/useSpinShareApi';
+import { nextRecapSlideAt } from '@/modules/useWinnerPrompt';
+import useSrxd, { chartFromTrack, guessIngameName, matchWinner, pickResults } from '@/modules/useSrxd';
 
 const currentScreen = useCurrentScreen();
 const emitter = inject('emitter');
+const game = useSrxd();
 
 const playerMappings = ref([]);
 const playerSelectOptions = ref([]);
@@ -246,16 +272,163 @@ const player2Id = ref(null);
 
 const loadedPlayer1 = ref(null);
 const loadedPlayer2 = ref(null);
-const player1Key = ref('');
-const player2Key = ref('');
 const chartId = ref(0);
 const loadedChart = ref(null);
-const streamsActive = ref(true);
-const audioActive = ref('left');
-const scoresSetsCurrent = ref(0);
+const scoresSetsCurrent = ref(1);
 const scoresSetsMax = ref(3);
 const scoresScorePlayer1 = ref(0);
 const scoresScorePlayer2 = ref(0);
+
+// False until the first state-get-response, nothing gets pushed before that
+const stateLoaded = ref(false);
+const ingamePlayer1 = ref('');
+const ingamePlayer2 = ref('');
+const autoChart = ref(true);
+const winnerPrompt = ref(true);
+const autoResults = ref(false);
+const resultsAutoProgress = ref(false);
+const resultsSlide = ref(0);
+const historyLength = ref(0);
+
+const recapSlides = computed(() => {
+    const won = matchWinner({ sets: { max: scoresSetsMax.value }, score: { player1: scoresScorePlayer1.value, player2: scoresScorePlayer2.value } });
+    return won && resultsVisible.value ? historyLength.value : 0;
+});
+
+// Ticks while auto recap counts down, so the hint shows the seconds left
+const now = ref(Date.now());
+let nowTimer = null;
+watch(
+    nextRecapSlideAt,
+    (value) => {
+        clearInterval(nowTimer);
+        nowTimer = null;
+        now.value = Date.now();
+        if (value) nowTimer = setInterval(() => (now.value = Date.now()), 250);
+    },
+    { immediate: true },
+);
+onUnmounted(() => clearInterval(nowTimer));
+
+const recapCountdown = computed(() => {
+    if (!resultsAutoProgress.value) return '';
+    if (!nextRecapSlideAt.value) return resultsSlide.value >= recapSlides.value - 1 ? ', auto recap done' : '';
+    return `, next set in ${Math.max(0, Math.ceil((nextRecapSlideAt.value - now.value) / 1000))}s`;
+});
+
+const setResultsSlide = (slide) => {
+    resultsSlide.value = Math.min(recapSlides.value - 1, Math.max(0, slide));
+    window.electronAPI.send(
+        'message',
+        JSON.stringify({
+            command: 'state-set',
+            data: { currentMatch: { resultsSlide: resultsSlide.value } },
+        }),
+    );
+};
+
+const gameStatus = computed(() => {
+    if (!game.value.enabled) return 'Disabled in settings';
+    if (!game.value.connected) return 'Not connected';
+    if (!game.value.room) return 'Connected, not in a room';
+    return `${game.value.room.name} (${game.value.phase})`;
+});
+
+const ingameMemberNames = computed(() => [...(game.value.room?.players ?? []), ...(game.value.room?.spectators ?? [])].map((member) => member.name));
+
+const ingameOptions = (selected) => {
+    // Keep a linked player selectable after they left the room
+    const names = [...ingameMemberNames.value];
+    if (selected && !names.includes(selected)) names.push(selected);
+
+    return [{ icon: 'border-none-variant', label: 'None', value: '' }, ...names.map((name) => ({ icon: 'controller', label: name, value: name }))];
+};
+
+// Links mapped players to room players with the same name, unless already linked
+const guessIngamePlayers = (push) => {
+    const members = [...(game.value.room?.players ?? []), ...(game.value.room?.spectators ?? [])];
+    let changed = false;
+
+    if (!ingamePlayer1.value) {
+        ingamePlayer1.value = guessIngameName(loadedPlayer1.value, members) ?? '';
+        changed ||= ingamePlayer1.value !== '';
+    }
+    if (!ingamePlayer2.value) {
+        ingamePlayer2.value = guessIngameName(loadedPlayer2.value, members) ?? '';
+        changed ||= ingamePlayer2.value !== '';
+    }
+
+    if (changed && push) updateState();
+};
+
+const loadChartFromTrack = async (track) => {
+    let chart = null;
+
+    if (track.fileReference?.startsWith('spinshare_')) {
+        const { loadChart } = useSpinShareApi();
+        chart = await loadChart(track.fileReference);
+    }
+
+    // Base game or not uploaded, the game is the only source for metadata
+    loadedChart.value = chart ?? chartFromTrack(track);
+    chartId.value = loadedChart.value.id ?? 0;
+    updateState();
+};
+
+const setStateFlag = (key, value) => {
+    window.electronAPI.send(
+        'message',
+        JSON.stringify({
+            command: 'state-set',
+            data: {
+                [key]: value,
+            },
+        }),
+    );
+};
+
+// Kept in the state so turning it off sticks when the page is opened again
+const setAutoChart = (value) => {
+    window.electronAPI.send(
+        'message',
+        JSON.stringify({
+            command: 'state-set',
+            data: {
+                autoChart: value,
+            },
+        }),
+    );
+};
+
+// The prompt itself lives in useWinnerPrompt.js (used in App.vue) so it shows on every panel page
+const setWinnerPrompt = (value) => {
+    window.electronAPI.send(
+        'message',
+        JSON.stringify({
+            command: 'state-set',
+            data: {
+                winnerPrompt: value,
+            },
+        }),
+    );
+};
+
+const autoLoadChart = (track, oldTrack) => {
+    // Waits for the saved state, pushing before that would overwrite the match with empty defaults
+    if (!stateLoaded.value || !autoChart.value || !track) return;
+    // Tracks are sent again whenever availability or metadata changes
+    if (track.fileReference === oldTrack?.fileReference && track.title === oldTrack?.title) return;
+    if (track.fileReference && track.fileReference === loadedChart.value?.fileReference) return;
+
+    loadChartFromTrack(track);
+};
+
+watch(() => game.value.track, autoLoadChart);
+
+watch(
+    () => game.value.room,
+    () => guessIngamePlayers(true),
+);
 
 const transition = () => {
     updateState();
@@ -272,17 +445,13 @@ const transition = () => {
 };
 
 const updateState = () => {
+    if (!stateLoaded.value) return;
+
     let screenData = {
         currentMatch: {
             players: {
-                player1: {
-                    ...loadedPlayer1.value,
-                    key: player1Key.value,
-                },
-                player2: {
-                    ...loadedPlayer2.value,
-                    key: player2Key.value,
-                },
+                player1: loadedPlayer1.value,
+                player2: loadedPlayer2.value,
             },
             scores: {
                 sets: {
@@ -295,8 +464,10 @@ const updateState = () => {
                 },
             },
             chart: loadedChart.value,
-            streamsActive: streamsActive.value,
-            audioActive: audioActive.value,
+            ingame: {
+                player1: ingamePlayer1.value,
+                player2: ingamePlayer2.value,
+            },
         },
     };
 
@@ -307,6 +478,11 @@ const updateState = () => {
             data: screenData,
         }),
     );
+};
+
+const onChartIdChange = async () => {
+    await loadChart();
+    if (loadedChart.value) updateState();
 };
 
 const loadChart = async () => {
@@ -331,12 +507,37 @@ const loadPlayers = (newMappings) => {
 
 const setPlayer1 = () => {
     loadedPlayer1.value = playerMappings.value.find((x) => x.id + '' === player1Id.value);
+    ingamePlayer1.value = '';
+    guessIngamePlayers(false);
 };
 const setPlayer2 = () => {
     loadedPlayer2.value = playerMappings.value.find((x) => x.id + '' === player2Id.value);
+    ingamePlayer2.value = '';
+    guessIngamePlayers(false);
 };
 
 const refDenIsVisible = ref(false);
+const resultsVisible = ref(false);
+
+// Shows the last finished round over the gameplay cutout, hidden again when the next song loads
+const toggleResults = () => {
+    resultsVisible.value = !resultsVisible.value;
+
+    const currentMatch = { resultsVisible: resultsVisible.value };
+    if (resultsVisible.value) {
+        currentMatch.results = pickResults(game.value.results, { player1: ingamePlayer1.value, player2: ingamePlayer2.value });
+        currentMatch.resultsSlide = 0;
+        resultsSlide.value = 0;
+    }
+
+    window.electronAPI.send(
+        'message',
+        JSON.stringify({
+            command: 'state-set',
+            data: { currentMatch },
+        }),
+    );
+};
 
 const toggleRefDen = () => {
     refDenIsVisible.value = !refDenIsVisible.value;
@@ -349,12 +550,6 @@ const toggleRefDen = () => {
             },
         }),
     );
-    window.electronAPI.send(
-        'message',
-        JSON.stringify({
-            command: 'state-get',
-        }),
-    );
     console.log('[PANEL-MATCHOVERVIEW] refDenIsVisible toggled:', refDenIsVisible.value);
 };
 
@@ -362,11 +557,9 @@ onMounted(() => {
     emitter.on('state-get-response', (state) => {
         player1Id.value = state?.currentMatch?.players?.player1?.id ? state?.currentMatch?.players?.player1?.id + '' : player1Id.value;
         loadedPlayer1.value = state?.currentMatch?.players?.player1 ?? loadedPlayer1.value;
-        player1Key.value = state?.currentMatch?.players?.player1?.key ?? player1Key.value;
 
         player2Id.value = state?.currentMatch?.players?.player2?.id ? state?.currentMatch?.players?.player2?.id + '' : player2Id.value;
         loadedPlayer2.value = state?.currentMatch?.players?.player2 ?? loadedPlayer2.value;
-        player2Key.value = state?.currentMatch?.players?.player2?.key ?? player2Key.value;
 
         scoresSetsCurrent.value = state?.currentMatch?.scores?.sets?.current ?? scoresSetsCurrent.value;
         scoresSetsMax.value = state?.currentMatch?.scores?.sets?.max ?? scoresSetsMax.value;
@@ -376,10 +569,24 @@ onMounted(() => {
         loadedChart.value = state?.currentMatch?.chart ?? loadedChart.value;
         chartId.value = state?.currentMatch?.chart?.id ?? chartId.value;
 
-        streamsActive.value = state?.currentMatch?.streamsActive ?? streamsActive.value;
-        audioActive.value = state?.currentMatch?.audioActive ?? audioActive.value;
+        ingamePlayer1.value = state?.currentMatch?.ingame?.player1 ?? ingamePlayer1.value;
+        ingamePlayer2.value = state?.currentMatch?.ingame?.player2 ?? ingamePlayer2.value;
 
         refDenIsVisible.value = state?.refDenIsVisible ?? false;
+        resultsVisible.value = state?.currentMatch?.resultsVisible ?? false;
+        winnerPrompt.value = state?.winnerPrompt ?? true;
+        autoResults.value = state?.autoResults ?? false;
+        resultsAutoProgress.value = state?.resultsAutoProgress ?? false;
+        resultsSlide.value = state?.currentMatch?.resultsSlide ?? 0;
+        historyLength.value = state?.currentMatch?.history?.length ?? 0;
+        autoChart.value = state?.autoChart ?? true;
+
+        if (!stateLoaded.value) {
+            stateLoaded.value = true;
+            // Catch up on anything the game sent before the state was there
+            autoLoadChart(game.value.track, null);
+            guessIngamePlayers(true);
+        }
     });
 
     emitter.on('settings-get-full-response', async (settings) => {

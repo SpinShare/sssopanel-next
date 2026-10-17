@@ -113,4 +113,12 @@ const router = VueRouter.createRouter({
     routes,
 });
 
+// Screens with a gameplay cutout, the backdrop opens up for those (OBS browser source)
+export const gameplayScreens = ['/screen/match-ingame'];
+
+router.afterEach((to) => {
+    document.documentElement.classList.toggle('screen', to.path.startsWith('/screen'));
+    document.documentElement.classList.toggle('gameplay', gameplayScreens.includes(to.path));
+});
+
 export default router;

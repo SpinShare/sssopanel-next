@@ -33,13 +33,19 @@
     </transition>
 </template>
 
-<script setup>
-import { ref, inject, onMounted, onUnmounted } from 'vue';
-const emitter = inject('emitter');
+<script>
+import { ref } from 'vue';
 
+// Module scope, AppLayout remounts this on every page but github only needs asking once per session
+const checked = ref(false);
 const currentVersion = ref('0.0.0');
 const latestRelease = ref(null);
 const needsUpdate = ref(false);
+</script>
+
+<script setup>
+import { inject, onMounted, onUnmounted } from 'vue';
+const emitter = inject('emitter');
 
 const isVersionOutdated = (localVersion, latestVersion) => {
     const localParts = localVersion.split('.').map(Number);
@@ -90,6 +96,9 @@ onMounted(() => {
 
         needsUpdate.value = isVersionOutdated(currentVersion.value, latestRelease.value.tag_name.replace('v', '').replace('-preview', ''));
     });
+
+    if (checked.value) return;
+    checked.value = true;
 
     window.electronAPI.send(
         'message',
