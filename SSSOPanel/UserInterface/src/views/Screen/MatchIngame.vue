@@ -287,7 +287,7 @@ const matchWinnerName = computed(() => {
     if (!winner || !history.value.length) return null;
 
     const player = winner === 'player1' ? player1.value : player2.value;
-    return player?.spinshareProfile?.username ?? ingame.value[winner] ?? null;
+    return player?.spinshareProfile?.username || ingame.value[winner] || null;
 });
 
 // Until the first scores of a new song arrive, the last round's are still around
