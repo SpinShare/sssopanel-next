@@ -17,7 +17,7 @@
         >
             <div
                 class="music"
-                v-if="musicActive"
+                v-if="musicActive && !isGameplayScreen"
                 :key="`${musicActive}${musicTitle}${musicArtist}`"
             >
                 <img
@@ -41,8 +41,14 @@
 </template>
 
 <script setup>
-import { inject, onMounted, onUnmounted, ref } from 'vue';
+import { computed, inject, onMounted, onUnmounted, ref } from 'vue';
+import { useRoute } from 'vue-router';
+import { gameplayScreens } from '@/router';
 const emitter = inject('emitter');
+const route = useRoute();
+
+// The game is playing its own music there, so the now playing would just be wrong
+const isGameplayScreen = computed(() => gameplayScreens.includes(route.path));
 
 const promos = ref([
     {
@@ -77,6 +83,8 @@ const musicCoverFailed = ref(false);
 
 let musicUpdateInterval = null;
 const updateMusic = () => {
+    if (isGameplayScreen.value) return;
+
     window.electronAPI.send(
         'message',
         JSON.stringify({
