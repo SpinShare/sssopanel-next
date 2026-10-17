@@ -1,5 +1,31 @@
 <template>
     <AppLayout title="Match (Ingame)">
+        <!-- Match recap carousel, only there while it is on screen -->
+        <SpinInputGroup
+            v-if="recapSlides > 1"
+            header="Match Recap"
+        >
+            <SpinInput
+                label="Set"
+                :hint="`${resultsSlide + 1} of ${recapSlides}${recapCountdown}`"
+                type="horizontal"
+            >
+                <div style="display: flex; gap: 10px">
+                    <SpinButton
+                        @click="setResultsSlide(resultsSlide - 1)"
+                        icon="chevron-left"
+                        :disabled="resultsSlide <= 0"
+                        v-tooltip="'Previous Set'"
+                    />
+                    <SpinButton
+                        @click="setResultsSlide(resultsSlide + 1)"
+                        icon="chevron-right"
+                        :disabled="resultsSlide >= recapSlides - 1"
+                        v-tooltip="'Next Set'"
+                    />
+                </div>
+            </SpinInput>
+        </SpinInputGroup>
         <SpinInputGroup
             header="Game"
             :collapsable="true"
@@ -38,6 +64,16 @@
                 <SpinSwitch
                     v-model="autoResults"
                     @update:model-value="(value) => setStateFlag('autoResults', value)"
+                />
+            </SpinInput>
+            <SpinInput
+                label="Auto Recap"
+                hint="Step through the match recap on its own, spread over a minute"
+                type="horizontal"
+            >
+                <SpinSwitch
+                    v-model="resultsAutoProgress"
+                    @update:model-value="(value) => setStateFlag('resultsAutoProgress', value)"
                 />
             </SpinInput>
             <SpinInput
@@ -222,7 +258,8 @@ import SpinSwitch from '@/components/Common/SpinSwitch.vue';
 import { computed, onMounted, onUnmounted, ref, inject, watch } from 'vue';
 import useCurrentScreen from '@/modules/useCurrentScreen';
 import useSpinShareApi from '@/modules/useSpinShareApi';
-import useSrxd, { chartFromTrack, guessIngameName, pickResults } from '@/modules/useSrxd';
+import { nextRecapSlideAt } from '@/modules/useWinnerPrompt';
+import useSrxd, { chartFromTrack, guessIngameName, matchWinner, pickResults } from '@/modules/useSrxd';
 
 const currentScreen = useCurrentScreen();
 const emitter = inject('emitter');
@@ -249,6 +286,46 @@ const ingamePlayer2 = ref('');
 const autoChart = ref(true);
 const winnerPrompt = ref(true);
 const autoResults = ref(false);
+const resultsAutoProgress = ref(false);
+const resultsSlide = ref(0);
+const historyLength = ref(0);
+
+const recapSlides = computed(() => {
+    const won = matchWinner({ sets: { max: scoresSetsMax.value }, score: { player1: scoresScorePlayer1.value, player2: scoresScorePlayer2.value } });
+    return won && resultsVisible.value ? historyLength.value : 0;
+});
+
+// Ticks while auto recap counts down, so the hint shows the seconds left
+const now = ref(Date.now());
+let nowTimer = null;
+watch(
+    nextRecapSlideAt,
+    (value) => {
+        clearInterval(nowTimer);
+        nowTimer = null;
+        now.value = Date.now();
+        if (value) nowTimer = setInterval(() => (now.value = Date.now()), 250);
+    },
+    { immediate: true },
+);
+onUnmounted(() => clearInterval(nowTimer));
+
+const recapCountdown = computed(() => {
+    if (!resultsAutoProgress.value) return '';
+    if (!nextRecapSlideAt.value) return resultsSlide.value >= recapSlides.value - 1 ? ', auto recap done' : '';
+    return `, next set in ${Math.max(0, Math.ceil((nextRecapSlideAt.value - now.value) / 1000))}s`;
+});
+
+const setResultsSlide = (slide) => {
+    resultsSlide.value = Math.min(recapSlides.value - 1, Math.max(0, slide));
+    window.electronAPI.send(
+        'message',
+        JSON.stringify({
+            command: 'state-set',
+            data: { currentMatch: { resultsSlide: resultsSlide.value } },
+        }),
+    );
+};
 
 const gameStatus = computed(() => {
     if (!game.value.enabled) return 'Disabled in settings';
@@ -449,6 +526,8 @@ const toggleResults = () => {
     const currentMatch = { resultsVisible: resultsVisible.value };
     if (resultsVisible.value) {
         currentMatch.results = pickResults(game.value.results, { player1: ingamePlayer1.value, player2: ingamePlayer2.value });
+        currentMatch.resultsSlide = 0;
+        resultsSlide.value = 0;
     }
 
     window.electronAPI.send(
@@ -497,6 +576,9 @@ onMounted(() => {
         resultsVisible.value = state?.currentMatch?.resultsVisible ?? false;
         winnerPrompt.value = state?.winnerPrompt ?? true;
         autoResults.value = state?.autoResults ?? false;
+        resultsAutoProgress.value = state?.resultsAutoProgress ?? false;
+        resultsSlide.value = state?.currentMatch?.resultsSlide ?? 0;
+        historyLength.value = state?.currentMatch?.history?.length ?? 0;
         autoChart.value = state?.autoChart ?? true;
 
         if (!stateLoaded.value) {

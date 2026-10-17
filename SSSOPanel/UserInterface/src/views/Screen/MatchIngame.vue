@@ -163,6 +163,9 @@
                             :results="results"
                             :player1="player1"
                             :player2="player2"
+                            :winner-name="matchWinnerName"
+                            :history="history"
+                            :slide="resultsSlide"
                         />
                     </transition>
                 </section>
@@ -251,7 +254,7 @@
 <script setup>
 import ScreenLayout from '../../layouts/ScreenLayout.vue';
 import { computed, reactive, ref, inject, onMounted, onUnmounted, watch } from 'vue';
-import useSrxd, { stripRichText } from '@/modules/useSrxd';
+import useSrxd, { matchWinner, stripRichText } from '@/modules/useSrxd';
 import ScreenRollingNumber from '@/components/ScreenRollingNumber/ScreenRollingNumber.vue';
 import ScreenMatchResults from '@/components/ScreenMatchResults/ScreenMatchResults.vue';
 import ScreenStatsBox from '@/components/ScreenStatsBox/ScreenStatsBox.vue';
@@ -275,6 +278,17 @@ const scoresScorePlayer2 = ref(0);
 const ingame = ref({ player1: '', player2: '' });
 const results = ref(null);
 const resultsVisible = ref(false);
+const history = ref([]);
+const resultsSlide = ref(0);
+
+// Only once the recap has something to show, a match won by hand edited scores keeps the normal results
+const matchWinnerName = computed(() => {
+    const winner = matchWinner({ sets: { max: scoresSetsMax.value }, score: { player1: scoresScorePlayer1.value, player2: scoresScorePlayer2.value } });
+    if (!winner || !history.value.length) return null;
+
+    const player = winner === 'player1' ? player1.value : player2.value;
+    return player?.spinshareProfile?.username ?? ingame.value[winner] ?? null;
+});
 
 // Until the first scores of a new song arrive, the last round's are still around
 const liveScores = computed(() => {
@@ -418,6 +432,8 @@ const applyState = (state) => {
     ingame.value = state?.currentMatch?.ingame ?? ingame.value;
     results.value = state?.currentMatch?.results ?? results.value;
     resultsVisible.value = state?.currentMatch?.resultsVisible ?? resultsVisible.value;
+    history.value = state?.currentMatch?.history ?? history.value;
+    resultsSlide.value = state?.currentMatch?.resultsSlide ?? resultsSlide.value;
 
     scoresSetsCurrent.value = state?.currentMatch?.scores?.sets?.current ?? scoresSetsCurrent.value;
     scoresSetsMax.value = state?.currentMatch?.scores?.sets?.max ?? scoresSetsMax.value;

@@ -111,6 +111,15 @@ export const pickResults = (results, ingame) => ({
     player2: results?.entries?.find((entry) => entry.name === ingame?.player2) ?? null,
 });
 
+// 'player1' or 'player2' once someone has the points to win the match (best of sets.max), null before that.
+// Numbers because the state may hold strings from older panel versions
+export const matchWinner = (scores) => {
+    const maxPoints = Math.ceil(Number(scores?.sets?.max ?? 3) / 2);
+    if (Number(scores?.score?.player1 ?? 0) >= maxPoints) return 'player1';
+    if (Number(scores?.score?.player2 ?? 0) >= maxPoints) return 'player2';
+    return null;
+};
+
 // Perfect+ hits, the early key is included in case the game ever reports early ones
 const perfectPlusCount = (entry) => (entry.judgements?.perfectPlus ?? 0) + (entry.judgements?.earlyPerfectPlus ?? 0);
 

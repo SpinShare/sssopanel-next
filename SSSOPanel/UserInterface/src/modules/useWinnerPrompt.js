@@ -1,9 +1,15 @@
-import { inject, onMounted, onUnmounted } from 'vue';
+import { inject, onMounted, onUnmounted, ref } from 'vue';
 import router from '@/router';
-import useSrxd, { pickResults, player1Won as isPlayer1Winner, stripRichText } from '@/modules/useSrxd';
+import useSrxd, { matchWinner, pickResults, player1Won as isPlayer1Winner, stripRichText } from '@/modules/useSrxd';
 
 // How long auto results stay up, the next song loading hides them earlier
 const AUTO_RESULTS_DURATION = 30000;
+// The match recap carousel gets longer, auto progress spreads its slides over RESULTS_CAROUSEL_DURATION
+const AUTO_MATCH_RESULTS_DURATION = 75000;
+const RESULTS_CAROUSEL_DURATION = 60000;
+
+// When auto progress moves the recap to the next set (ms timestamp), null while it isn't counting down
+export const nextRecapSlideAt = ref(null);
 
 // Used once in App.vue, so the prompt shows up no matter which panel page is open
 export default function useWinnerPrompt() {
@@ -16,6 +22,8 @@ export default function useWinnerPrompt() {
     // Set once the next song loads, a late answer to the prompt then still counts the point but won't cover gameplay
     let resultsStale = false;
     let autoHideTimer = null;
+    let slideTimer = null;
+    let slideTimerFor = null;
 
     useSrxd((message) => {
         // App.vue also hosts the screens, those never prompt
@@ -61,11 +69,14 @@ export default function useWinnerPrompt() {
         const [winnerEntry, loserEntry] = player1Won ? [entry1, entry2] : [entry2, entry1];
         // Auto results skip the prompt: the point is added, the results show and hide again after a while
         if (auto) {
-            applyChoice(results, player1Won, true);
+            const matchWon = applyChoice(results, player1Won, true);
             clearTimeout(autoHideTimer);
-            autoHideTimer = setTimeout(() => {
-                if (state.currentMatch?.resultsVisible) setState({ currentMatch: { resultsVisible: false } });
-            }, AUTO_RESULTS_DURATION);
+            autoHideTimer = setTimeout(
+                () => {
+                    if (state.currentMatch?.resultsVisible) setState({ currentMatch: { resultsVisible: false } });
+                },
+                matchWon ? AUTO_MATCH_RESULTS_DURATION : AUTO_RESULTS_DURATION,
+            );
             return;
         }
 
@@ -86,9 +97,10 @@ export default function useWinnerPrompt() {
         });
     };
 
-    // player1Won is null when no point should be added
+    // player1Won is null when no point should be added. Returns whether this point won the match
     const applyChoice = (results, player1Won, showResults) => {
         const currentMatch = {};
+        let matchWon = false;
 
         if (player1Won !== null) {
             // Defensive, the state may hold strings from older panel versions
@@ -108,6 +120,20 @@ export default function useWinnerPrompt() {
                     player2: player1Won ? score2 : Math.min(maxPoints, score2 + 1),
                 },
             };
+
+            // Every counted set for the recap carousel, the first point of a match starts a fresh one
+            const history = score1 + score2 === 0 ? [] : [...(state.currentMatch?.history ?? [])];
+            history.push({
+                chart: {
+                    title: stripRichText(state.currentMatch?.chart?.title ?? ''),
+                    artist: stripRichText(state.currentMatch?.chart?.artist ?? ''),
+                },
+                results: pickResults(results, state.currentMatch?.ingame),
+            });
+            currentMatch.history = history;
+
+            matchWon = !matchWinner(state.currentMatch?.scores) && !!matchWinner(currentMatch.scores);
+            if (matchWon) currentMatch.resultsSlide = 0;
         }
 
         if (showResults && !resultsStale) {
@@ -116,6 +142,29 @@ export default function useWinnerPrompt() {
         }
 
         if (Object.keys(currentMatch).length) setState({ currentMatch });
+        return matchWon;
+    };
+
+    // Auto progress moves the recap carousel along and stops on the last set, a manual step restarts the wait
+    const syncSlideTimer = () => {
+        const match = state.currentMatch ?? {};
+        const count = match.history?.length ?? 0;
+        const slide = match.resultsSlide ?? 0;
+        const running = state.resultsAutoProgress === true && match.resultsVisible === true && !!matchWinner(match.scores) && slide < count - 1;
+        const key = running ? `${slide}/${count}` : null;
+        if (key === slideTimerFor) return;
+
+        clearTimeout(slideTimer);
+        slideTimerFor = key;
+        nextRecapSlideAt.value = null;
+        if (!running) return;
+
+        nextRecapSlideAt.value = Date.now() + RESULTS_CAROUSEL_DURATION / count;
+        slideTimer = setTimeout(() => {
+            slideTimerFor = null;
+            nextRecapSlideAt.value = null;
+            setState({ currentMatch: { resultsSlide: slide + 1 } });
+        }, RESULTS_CAROUSEL_DURATION / count);
     };
 
     const setState = (data) => {
@@ -136,6 +185,7 @@ export default function useWinnerPrompt() {
         if (type !== 'state-get-response' && type !== 'state-set-response') return;
 
         state = data ?? {};
+        syncSlideTimer();
         if (type === 'state-set-response' && refreshAfterSet) {
             refreshAfterSet = false;
             window.electronAPI.send(
@@ -158,6 +208,8 @@ export default function useWinnerPrompt() {
 
     onUnmounted(() => {
         clearTimeout(autoHideTimer);
+        clearTimeout(slideTimer);
+        nextRecapSlideAt.value = null;
         emitter.off('*', onAnyMessage);
     });
 }
