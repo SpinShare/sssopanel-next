@@ -25,6 +25,10 @@ public class Program
                 return;
             }
 
+            // Electron 30 still defaults to X11 (XWayland), auto picks native Wayland when it's there
+            if (OperatingSystem.IsLinux() && Environment.GetEnvironmentVariable("ELECTRON_OZONE_PLATFORM_HINT") == null)
+                Environment.SetEnvironmentVariable("ELECTRON_OZONE_PLATFORM_HINT", "auto");
+
             await runtimeController.Start();
             await runtimeController.WaitReadyTask;
 

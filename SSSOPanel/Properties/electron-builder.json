@@ -5,7 +5,7 @@
     "target": [
       "AppImage"
     ],
-    "executableArgs": [ "--no-sandbox" ],
+    "executableArgs": [ "--no-sandbox", "--ozone-platform-hint=auto" ],
     "artifactName": "${name}-${arch}-${version}.${ext}"
   },
   "win": {
