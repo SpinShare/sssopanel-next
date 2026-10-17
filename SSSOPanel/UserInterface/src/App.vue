@@ -18,11 +18,18 @@
             />
         </transition>
     </router-view>
+    <!-- Outside the pages, so a prompt survives page changes and isn't dropped mid-transition -->
+    <AlertMessage v-if="$route.path.startsWith('/panel')" />
 </template>
 
 <script setup>
 import { inject } from 'vue';
+import useWinnerPrompt from '@/modules/useWinnerPrompt';
+import useTheme from '@/modules/useTheme';
+import AlertMessage from '@/components/Common/AlertMessage.vue';
 const emitter = inject('emitter');
+useWinnerPrompt();
+useTheme();
 
 window.electronAPI.on('message', (rawResponse) => {
     const response = JSON.parse(rawResponse);

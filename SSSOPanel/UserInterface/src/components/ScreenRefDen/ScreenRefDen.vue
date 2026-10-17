@@ -65,13 +65,17 @@ const handleIncomingMessage = (message) => {
     }
 };
 
+const applyState = (state) => {
+    refDenIsVisible.value = state?.refDenIsVisible ?? false;
+    localMessages.value = state?.refDenMessages ?? [];
+};
+
 // --- Lifecycle Hooks ---
 onMounted(() => {
     // Listen for state updates to toggle visibility
-    emitter.on('state-get-response', (state) => {
-        refDenIsVisible.value = state?.refDenIsVisible ?? false;
-        localMessages.value = state?.refDenMessages ?? [];
-    });
+    emitter.on('state-get-response', applyState);
+    // state-set broadcasts the merged state to every screen, so a toggle doesn't need a state-get round trip
+    emitter.on('state-set-response', applyState);
     window.electronAPI.send('message', JSON.stringify({ command: 'state-get' }));
     // Set up the message handler from the VoiceBotService
     VoiceBotService.addMessageHandler(handleIncomingMessage);
@@ -79,7 +83,8 @@ onMounted(() => {
 
 onUnmounted(() => {
     // Clean up event listeners to prevent memory leaks
-    emitter.off('state-get-response');
+    emitter.off('state-get-response', applyState);
+    emitter.off('state-set-response', applyState);
     VoiceBotService.removeMessageHandler(handleIncomingMessage);
 });
 </script>

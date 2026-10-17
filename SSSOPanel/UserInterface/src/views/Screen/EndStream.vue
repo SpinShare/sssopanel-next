@@ -1,13 +1,14 @@
 <template>
     <ScreenLayout>
         <section class="screen-end-stream">
-            <div class="tint summer"></div>
+            <div class="tint themed"></div>
             <div class="noise"></div>
 
             <div class="content">
                 <div class="left">
                     <div class="logo">
                         <img
+                            v-if="EventLogo"
                             :src="EventLogo"
                             class="event-logo"
                         />
@@ -205,9 +206,12 @@
 
 <script setup>
 import ScreenLayout from '../../layouts/ScreenLayout.vue';
-import EventLogo from '@/assets/eventlogo-spring-2026.svg';
+import { currentTheme } from '@/modules/useTheme';
+import { getEventLogo } from '@/modules/eventLogos';
 import { onMounted, onUnmounted, inject, ref, computed } from 'vue';
 const emitter = inject('emitter');
+
+const EventLogo = computed(() => getEventLogo(currentTheme.value.theme, currentTheme.value.year));
 
 const nextStreamDate = ref(new Date());
 const formattedNextStreamDate = computed(() => {
@@ -288,12 +292,8 @@ onUnmounted(() => {
         bottom: 0;
         top: 0;
 
-        &.winter {
-            filter: hue-rotate(160deg);
-        }
-
-        &.summer {
-            filter: hue-rotate(195deg);
+        &.themed {
+            filter: var(--themeFilter);
         }
     }
 
@@ -336,6 +336,8 @@ onUnmounted(() => {
                 & .event-logo {
                     width: 20vw;
                     height: 20vw;
+                    // Keeps png logos in shape like the svg ones
+                    object-fit: contain;
                 }
             }
 

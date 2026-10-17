@@ -1,7 +1,7 @@
 <template>
     <ScreenLayout>
         <section class="screen-match-overview">
-            <div class="tint summer"></div>
+            <div class="tint themed"></div>
             <div class="noise"></div>
 
             <div class="content">
@@ -123,12 +123,8 @@ onUnmounted(() => {
         top: 0;
         z-index: 1;
 
-        &.winter {
-            filter: hue-rotate(160deg);
-        }
-
-        &.summer {
-            filter: hue-rotate(195deg);
+        &.themed {
+            filter: var(--themeFilter);
         }
     }
 

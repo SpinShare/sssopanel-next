@@ -21,8 +21,21 @@
                         v-model="theme"
                         :options="[
                             { icon: 'snowflake', label: 'Winter', value: 'winter' },
+                            { icon: 'flower', label: 'Spring', value: 'spring' },
                             { icon: 'white-balance-sunny', label: 'Summer', value: 'summer' },
+                            { icon: 'leaf-maple', label: 'Autumn', value: 'autumn' },
                         ]"
+                    />
+                </SpinInput>
+                <SpinInput
+                    type="horizontal"
+                    label="Event Year"
+                    :hint="logoYears(theme).length ? 'Logo on Countdown and End (Stream)' : 'No logo for this season yet'"
+                >
+                    <SpinSelect
+                        :disabled="settingsState === SETTING_STATE_SAVING || !logoYears(theme).length"
+                        v-model="eventYear"
+                        :options="eventYearOptions"
                     />
                 </SpinInput>
             </SpinInputGroup>
@@ -142,6 +155,42 @@
                     </SpinInput>
                 </template>
             </SpinInputGroup>
+            <SpinInputGroup header="Spin Rhythm XD">
+                <SpinInput
+                    label="Game Connection"
+                    hint="Live chart, players and scores from the game"
+                    type="horizontal"
+                >
+                    <SpinSwitch
+                        :disabled="settingsState === SETTING_STATE_SAVING"
+                        v-model="srxdEnabled"
+                    />
+                </SpinInput>
+                <template v-if="srxdEnabled">
+                    <SpinInput
+                        label="Address"
+                        hint="Spin Rhythm XD websocket"
+                        type="horizontal"
+                    >
+                        <input
+                            :disabled="settingsState === SETTING_STATE_SAVING"
+                            type="text"
+                            v-model="srxdUrl"
+                            placeholder="ws://localhost:6767"
+                        />
+                    </SpinInput>
+                    <SpinInput
+                        label="Connection"
+                        :hint="srxdStatus"
+                        type="horizontal"
+                    >
+                        <SpinButton
+                            :label="game.connected ? 'Reconnect' : 'Connect'"
+                            @click="connectSrxd"
+                        />
+                    </SpinInput>
+                </template>
+            </SpinInputGroup>
             <SpinInputGroup header="Music">
                 <SpinInput
                     label="Source"
@@ -204,19 +253,33 @@ import SpinInput from '@/components/Common/SpinInput.vue';
 import SpinSelect from '@/components/Common/SpinSelect.vue';
 import SpinButton from '@/components/Common/SpinButton.vue';
 import SpinSwitch from '@/components/Common/SpinSwitch.vue';
-import { onMounted, ref, inject, onUnmounted } from 'vue';
+import { computed, onMounted, ref, inject, onUnmounted, watch } from 'vue';
+import useSrxd from '@/modules/useSrxd';
+import { logoYears } from '@/modules/eventLogos';
 import useTournamentAPI from '@/modules/useStartGGApi';
 import SpinLoader from '@/components/Common/SpinLoader.vue';
 import router from '@/router';
 import SpinInputGroup from '@/components/Common/SpinInputGroup.vue';
 const emitter = inject('emitter');
+const game = useSrxd();
 
 const SETTING_STATE_LOADING = 'loading';
 const SETTING_STATE_SAVING = 'saving';
 const SETTING_STATE_IDLE = 'idle';
 const settingsState = ref(SETTING_STATE_LOADING);
 
-const theme = ref('winter');
+const theme = ref('spring');
+const eventYear = ref('');
+
+// Only years that have a logo for the picked season, empty follows the newest one
+const eventYearOptions = computed(() => {
+    const years = logoYears(theme.value);
+    return [{ icon: 'calendar-star', label: years.length ? `Latest (${years[0]})` : 'None', value: '' }, ...years.map((year) => ({ icon: 'calendar', label: year, value: year }))];
+});
+
+watch(theme, () => {
+    if (eventYear.value && !logoYears(theme.value).includes(eventYear.value)) eventYear.value = '';
+});
 
 const startGGApiToken = ref('');
 const startGGTournamentSlug = ref('');
@@ -244,6 +307,14 @@ const obsScenes = ref([]);
 const obsStatus = ref('Not connected');
 const obsConnecting = ref(false);
 
+const srxdEnabled = ref(true);
+const srxdUrl = ref('ws://localhost:6767');
+const srxdStatus = computed(() => {
+    if (!game.value.enabled) return 'Disabled';
+    if (game.value.connected) return 'Connected';
+    return game.value.error || 'Not connected, is the game running?';
+});
+
 const musicSource = ref('spotify');
 const tunaUrl = ref('http://localhost:1608');
 const tunaShowCover = ref(true);
@@ -269,6 +340,19 @@ const connectObs = () => {
                 enabled: obsEnabled.value,
                 url: obsUrl.value,
                 password: obsPassword.value,
+            },
+        }),
+    );
+};
+
+const connectSrxd = () => {
+    window.electronAPI.send(
+        'message',
+        JSON.stringify({
+            command: 'srxd-connect',
+            data: {
+                enabled: srxdEnabled.value,
+                url: srxdUrl.value,
             },
         }),
     );
@@ -301,7 +385,7 @@ const saveSettings = () => {
     console.log('Saving Settings');
     settingsState.value = SETTING_STATE_SAVING;
 
-    const settings = [{ key: 'theme', value: theme.value }, { key: 'currentEvent.startgg.apiToken', value: startGGApiToken.value }, { key: 'currentEvent.startgg.tournamentSlug', value: startGGTournamentSlug.value }, { key: 'currentEvent.startgg.tournamentId', value: startGGTournamentId.value }, { key: 'currentEvent.startgg.tournamentName', value: startGGTournamentName.value }, { key: 'currentEvent.startgg.eventId', value: startGGEventId.value }, { key: 'obs.enabled', value: obsEnabled.value }, { key: 'obs.url', value: obsUrl.value }, { key: 'obs.password', value: obsPassword.value }, { key: 'music.source', value: musicSource.value }, { key: 'tuna.url', value: tunaUrl.value }, { key: 'tuna.showCover', value: tunaShowCover.value }, ...obsScreens.map((screen) => ({ key: `obs.scene.${screen.key}`, value: obsSceneMapping.value[screen.key] }))];
+    const settings = [{ key: 'theme', value: theme.value }, { key: 'eventYear', value: eventYear.value }, { key: 'currentEvent.startgg.apiToken', value: startGGApiToken.value }, { key: 'currentEvent.startgg.tournamentSlug', value: startGGTournamentSlug.value }, { key: 'currentEvent.startgg.tournamentId', value: startGGTournamentId.value }, { key: 'currentEvent.startgg.tournamentName', value: startGGTournamentName.value }, { key: 'currentEvent.startgg.eventId', value: startGGEventId.value }, { key: 'obs.enabled', value: obsEnabled.value }, { key: 'obs.url', value: obsUrl.value }, { key: 'obs.password', value: obsPassword.value }, { key: 'srxd.enabled', value: srxdEnabled.value }, { key: 'srxd.url', value: srxdUrl.value }, { key: 'music.source', value: musicSource.value }, { key: 'tuna.url', value: tunaUrl.value }, { key: 'tuna.showCover', value: tunaShowCover.value }, ...obsScreens.map((screen) => ({ key: `obs.scene.${screen.key}`, value: obsSceneMapping.value[screen.key] }))];
 
     window.electronAPI.send(
         'message',
@@ -324,7 +408,8 @@ const openGithubReleases = () => {
 
 onMounted(() => {
     emitter.on('settings-get-full-response', async (settings) => {
-        theme.value = settings['theme'] ?? 'winter';
+        theme.value = settings['theme'] || 'spring';
+        eventYear.value = settings['eventYear'] ? String(settings['eventYear']) : '';
 
         startGGApiToken.value = settings['currentEvent.startgg.apiToken'] ?? '';
         startGGTournamentSlug.value = settings['currentEvent.startgg.tournamentSlug'] ?? '';
@@ -335,6 +420,8 @@ onMounted(() => {
         obsEnabled.value = settings['obs.enabled'] ?? false;
         obsUrl.value = settings['obs.url'] || 'ws://localhost:4455';
         obsPassword.value = settings['obs.password'] ?? '';
+        srxdEnabled.value = settings['srxd.enabled'] ?? true;
+        srxdUrl.value = settings['srxd.url'] || 'ws://localhost:6767';
         musicSource.value = settings['music.source'] ?? 'spotify';
         tunaUrl.value = settings['tuna.url'] || 'http://localhost:1608';
         tunaShowCover.value = settings['tuna.showCover'] ?? true;

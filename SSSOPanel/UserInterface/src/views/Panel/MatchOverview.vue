@@ -94,12 +94,6 @@ const toggleRefDen = () => {
             },
         }),
     );
-    window.electronAPI.send(
-        'message',
-        JSON.stringify({
-            command: 'state-get',
-        }),
-    );
     console.log('[PANEL-MATCHOVERVIEW] refDenIsVisible toggled:', refDenIsVisible.value);
 };
 

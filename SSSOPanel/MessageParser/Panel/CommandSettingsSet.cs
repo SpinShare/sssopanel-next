@@ -26,6 +26,14 @@ public class CommandSettingsSet : ICommand
 
         // Connection details or scene mapping may have changed
         ObsManager.ObsManager.GetInstance().Configure();
+        SrxdManager.SrxdManager.GetInstance().Configure();
+
+        // Screens switch their colors right away
+        MessageHandler.SendScreenResponse(new
+        {
+            Command = "theme-get-response",
+            Data = CommandThemeGet.GetTheme(),
+        });
 
         Message response = new() {
             Command = "settings-set-response",

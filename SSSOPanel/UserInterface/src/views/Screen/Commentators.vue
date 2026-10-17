@@ -1,7 +1,7 @@
 <template>
     <ScreenLayout>
         <section class="screen-commentators">
-            <div class="tint summer"></div>
+            <div class="tint themed"></div>
             <div class="noise"></div>
 
             <div class="content">
@@ -80,12 +80,8 @@ onUnmounted(() => {
         bottom: 0;
         top: 0;
 
-        &.winter {
-            filter: hue-rotate(160deg);
-        }
-
-        &.summer {
-            filter: hue-rotate(195deg);
+        &.themed {
+            filter: var(--themeFilter);
         }
     }
 

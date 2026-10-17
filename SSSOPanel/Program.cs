@@ -79,7 +79,10 @@ public class Program
                 Title = "Panel",
                 Width = Convert.ToInt32(400 * ScreenScaleFactor.Get()),
                 Height = Convert.ToInt32(750 * ScreenScaleFactor.Get()),
-                Resizable = false,
+                // The default size is the smallest the panel layout is made for
+                MinWidth = Convert.ToInt32(400 * ScreenScaleFactor.Get()),
+                MinHeight = Convert.ToInt32(750 * ScreenScaleFactor.Get()),
+                Resizable = true,
                 Show = false,
                 AutoHideMenuBar = true,
                 WebPreferences = new WebPreferences
@@ -96,6 +99,10 @@ public class Program
         _panelWindow.OnReadyToShow += () => _panelWindow.Show();
 
         var panelClient = new ElectronClient(_panelWindow);
+        MessageHandler.PanelClient = panelClient;
+
+        // Connected after the panel exists so it gets the first game updates
+        SrxdManager.SrxdManager.GetInstance().Configure();
 
         // Register IPC handler, only the panel talks over IPC
         _ = Electron.IpcMain.On("message", async (args) =>

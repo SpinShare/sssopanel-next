@@ -22,6 +22,9 @@ public class CommandFactory
             "screen-match-update" => new CommandScreenMatchUpdate(),
             "obs-status-get" => new CommandObsStatusGet(),
             "obs-connect" => new CommandObsConnect(),
+            "srxd-get" => new CommandSrxdGet(),
+            "srxd-connect" => new CommandSrxdConnect(),
+            "theme-get" => new CommandThemeGet(),
             _ => throw new Exception($"Unknown command: {command}")
         };
     }

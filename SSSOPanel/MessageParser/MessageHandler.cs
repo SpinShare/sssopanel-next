@@ -12,7 +12,12 @@ public class MessageHandler
         "state-set",
         "settings-get-full",
         "screen-music-get",
+        "srxd-get",
+        "theme-get",
     };
+
+    // Set once the panel window exists, for messages that don't answer a command
+    public static IClient? PanelClient;
 
     private readonly CommandFactory _commandFactory = new();
     private readonly SemaphoreSlim _commandLock = new(1, 1);
