@@ -1,23 +1,22 @@
 namespace SSSOPanel.MessageParser;
 
 /// <summary>
-/// A command that returns the overlay theme (winter, spring, summer, autumn) and the event year for its logo
+/// A command that returns the overlay theme, one event as "<season>-<year>" (e.g. "autumn-2026")
 /// </summary>
 public class CommandThemeGet : ICommand
 {
-    // The season of the current event
-    public const string DefaultTheme = "autumn";
-
     public static object GetTheme()
     {
         var settings = SettingsManager.SettingsManager.GetInstance().GetFull();
+        var theme = settings.GetValueOrDefault("theme") as string ?? "";
 
-        return new
+        // Old settings were a season plus eventYear. Empty or unknown themes fall back to the newest one in the ui
+        if (theme.Length > 0 && !theme.Contains('-') && settings.GetValueOrDefault("eventYear")?.ToString() is { Length: > 0 } year)
         {
-            theme = settings.GetValueOrDefault("theme") as string is { Length: > 0 } theme ? theme : DefaultTheme,
-            // Empty means the latest year that has a logo for the theme
-            year = settings.GetValueOrDefault("eventYear")?.ToString() ?? "",
-        };
+            theme = $"{theme}-{year}";
+        }
+
+        return new { theme };
     }
 
     public async Task Execute(IClient? sender, object? data)

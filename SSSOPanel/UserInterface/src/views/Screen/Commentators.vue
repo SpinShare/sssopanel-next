@@ -22,7 +22,7 @@
                     v-for="n in 10"
                     :key="n"
                 >
-                    <span>SPINSHARE SPEEN OPEN</span>
+                    <span>SPINSHARE SPEENOPEN</span>
                 </template>
             </div>
             <div class="marquee bottom">
@@ -30,7 +30,7 @@
                     v-for="n in 10"
                     :key="n"
                 >
-                    <span>SPINSHARE SPEEN OPEN</span>
+                    <span>SPINSHARE SPEENOPEN</span>
                 </template>
             </div>
         </section>
@@ -81,7 +81,8 @@ onUnmounted(() => {
         top: 0;
 
         &.themed {
-            filter: var(--themeFilter);
+            background-image: var(--themeBackground);
+            filter: none;
         }
     }
 

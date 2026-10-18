@@ -4,7 +4,7 @@
             <SpinInputGroup header="General">
                 <SpinInput
                     label="SSSOPanel Next"
-                    hint="Version 1.3.0"
+                    hint="Version 1.4.0"
                     type="horizontal"
                 >
                     <SpinButton
@@ -19,23 +19,7 @@
                     <SpinSelect
                         :disabled="settingsState === SETTING_STATE_SAVING"
                         v-model="theme"
-                        :options="[
-                            { icon: 'snowflake', label: 'Winter', value: 'winter' },
-                            { icon: 'flower', label: 'Spring', value: 'spring' },
-                            { icon: 'white-balance-sunny', label: 'Summer', value: 'summer' },
-                            { icon: 'leaf-maple', label: 'Autumn', value: 'autumn' },
-                        ]"
-                    />
-                </SpinInput>
-                <SpinInput
-                    type="horizontal"
-                    label="Event Year"
-                    :hint="logoYears(theme).length ? 'Logo on Countdown and End (Stream)' : 'No logo for this season yet'"
-                >
-                    <SpinSelect
-                        :disabled="settingsState === SETTING_STATE_SAVING || !logoYears(theme).length"
-                        v-model="eventYear"
-                        :options="eventYearOptions"
+                        :options="themeOptions"
                     />
                 </SpinInput>
             </SpinInputGroup>
@@ -395,7 +379,7 @@ import { computed, onMounted, ref, inject, onUnmounted, watch } from 'vue';
 import useSrxd from '@/modules/useSrxd';
 import useVoiceBot from '@/modules/useVoiceBot';
 import VoiceBotService from '@/modules/VoiceBotService';
-import { logoYears } from '@/modules/eventLogos';
+import { getTheme, themes } from '@/modules/themes';
 import useTournamentAPI from '@/modules/useStartGGApi';
 import SpinLoader from '@/components/Common/SpinLoader.vue';
 import router from '@/router';
@@ -408,18 +392,8 @@ const SETTING_STATE_SAVING = 'saving';
 const SETTING_STATE_IDLE = 'idle';
 const settingsState = ref(SETTING_STATE_LOADING);
 
-const theme = ref('autumn');
-const eventYear = ref('');
-
-// Only years that have a logo for the picked season, empty follows the newest one
-const eventYearOptions = computed(() => {
-    const years = logoYears(theme.value);
-    return [{ icon: 'calendar-star', label: years.length ? `Latest (${years[0]})` : 'None', value: '' }, ...years.map((year) => ({ icon: 'calendar', label: year, value: year }))];
-});
-
-watch(theme, () => {
-    if (eventYear.value && !logoYears(theme.value).includes(eventYear.value)) eventYear.value = '';
-});
+const theme = ref(getTheme().id);
+const themeOptions = themes.map(({ id, name, icon }) => ({ icon, label: name, value: id }));
 
 const startGGApiToken = ref('');
 const startGGTournamentSlug = ref('');
@@ -620,7 +594,7 @@ const saveSettings = () => {
     console.log('Saving Settings');
     settingsState.value = SETTING_STATE_SAVING;
 
-    const settings = [{ key: 'theme', value: theme.value }, { key: 'eventYear', value: eventYear.value }, { key: 'currentEvent.startgg.apiToken', value: startGGApiToken.value }, { key: 'currentEvent.startgg.tournamentSlug', value: startGGTournamentSlug.value }, { key: 'currentEvent.startgg.tournamentId', value: startGGTournamentId.value }, { key: 'currentEvent.startgg.tournamentName', value: startGGTournamentName.value }, { key: 'currentEvent.startgg.eventId', value: startGGEventId.value }, { key: 'obs.enabled', value: obsEnabled.value }, { key: 'obs.url', value: obsUrl.value }, { key: 'obs.password', value: obsPassword.value }, { key: 'srxd.enabled', value: srxdEnabled.value }, { key: 'srxd.url', value: srxdUrl.value }, { key: 'voicebot.mode', value: voiceBotMode.value }, { key: 'voicebot.url', value: voiceBotUrl.value }, { key: 'voicebot.token', value: voiceBotToken.value }, { key: 'voicebot.port', value: voiceBotPort.value }, { key: 'voicebot.nodePath', value: voiceBotNodePath.value }, { key: 'voicebot.autoJoin', value: voiceBotAutoJoin.value }, { key: 'voicebot.voiceChannelId', value: voiceChannelId.value }, { key: 'music.source', value: musicSource.value }, { key: 'tuna.url', value: tunaUrl.value }, { key: 'tuna.showCover', value: tunaShowCover.value }, ...obsScreens.map((screen) => ({ key: `obs.scene.${screen.key}`, value: obsSceneMapping.value[screen.key] }))];
+    const settings = [{ key: 'theme', value: theme.value }, { key: 'currentEvent.startgg.apiToken', value: startGGApiToken.value }, { key: 'currentEvent.startgg.tournamentSlug', value: startGGTournamentSlug.value }, { key: 'currentEvent.startgg.tournamentId', value: startGGTournamentId.value }, { key: 'currentEvent.startgg.tournamentName', value: startGGTournamentName.value }, { key: 'currentEvent.startgg.eventId', value: startGGEventId.value }, { key: 'obs.enabled', value: obsEnabled.value }, { key: 'obs.url', value: obsUrl.value }, { key: 'obs.password', value: obsPassword.value }, { key: 'srxd.enabled', value: srxdEnabled.value }, { key: 'srxd.url', value: srxdUrl.value }, { key: 'voicebot.mode', value: voiceBotMode.value }, { key: 'voicebot.url', value: voiceBotUrl.value }, { key: 'voicebot.token', value: voiceBotToken.value }, { key: 'voicebot.port', value: voiceBotPort.value }, { key: 'voicebot.nodePath', value: voiceBotNodePath.value }, { key: 'voicebot.autoJoin', value: voiceBotAutoJoin.value }, { key: 'voicebot.voiceChannelId', value: voiceChannelId.value }, { key: 'music.source', value: musicSource.value }, { key: 'tuna.url', value: tunaUrl.value }, { key: 'tuna.showCover', value: tunaShowCover.value }, ...obsScreens.map((screen) => ({ key: `obs.scene.${screen.key}`, value: obsSceneMapping.value[screen.key] }))];
 
     window.electronAPI.send(
         'message',
@@ -643,8 +617,9 @@ const openGithubReleases = () => {
 
 onMounted(() => {
     emitter.on('settings-get-full-response', async (settings) => {
-        theme.value = settings['theme'] || 'autumn';
-        eventYear.value = settings['eventYear'] ? String(settings['eventYear']) : '';
+        // Old settings were a season plus eventYear
+        const year = settings['eventYear'] ? `-${settings['eventYear']}` : '';
+        theme.value = getTheme(settings['theme']?.includes('-') ? settings['theme'] : `${settings['theme'] ?? ''}${year}`).id;
 
         startGGApiToken.value = settings['currentEvent.startgg.apiToken'] ?? '';
         startGGTournamentSlug.value = settings['currentEvent.startgg.tournamentSlug'] ?? '';
