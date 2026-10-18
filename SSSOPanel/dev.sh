@@ -16,6 +16,10 @@ csproj_property() {
 ELECTRON_VERSION="$(csproj_property ElectronVersion)"
 ELECTRON_DIR="bin/Debug/$(csproj_property TargetFramework)/linux-x64/.electron/node_modules/electron"
 
+# Voice bot (pharahp submodule), dev runs it on the system node
+[ -f VoiceBot/index.js ] || git -C .. submodule update --init SSSOPanel/VoiceBot
+[ -d VoiceBot/node_modules ] || (cd VoiceBot && npm ci --omit=dev --no-fund --no-audit)
+
 dotnet build SSSOPanel.csproj -c Debug
 
 # Electron's installer unpacks its binary with extract-zip, which silently stops

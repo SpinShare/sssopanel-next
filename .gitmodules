@@ -1,0 +1,3 @@
+[submodule "SSSOPanel/VoiceBot"]
+	path = SSSOPanel/VoiceBot
+	url = https://github.com/ellitedev/pharahp

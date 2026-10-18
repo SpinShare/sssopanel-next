@@ -20,11 +20,14 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v5
+        with:
+          submodules: true
 
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
-          node-version: 20.x
+          # Also the runtime bundled for the voice bot, @discordjs/voice needs >=22.12
+          node-version: 22.x
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
@@ -43,6 +46,17 @@ jobs:
         run: |
           rm -rf SSSOPanel/Resources/wwwroot/assets
           cp -r SSSOPanel/UserInterface/dist/. SSSOPanel/Resources/wwwroot/
+        shell: bash
+
+      # Runs on each matrix os, so the native @snazzah/davey prebuilt matches the rid
+      - name: Install voice bot dependencies
+        working-directory: SSSOPanel/VoiceBot
+        run: npm ci --omit=dev --no-fund --no-audit
+
+      - name: Bundle node runtime for the voice bot
+        run: |
+          mkdir -p SSSOPanel/node
+          cp "$(node -p process.execPath)" SSSOPanel/node/
         shell: bash
 
       - name: Publish & package (ElectronNET.Core + electron-builder)

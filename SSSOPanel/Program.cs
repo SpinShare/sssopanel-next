@@ -107,6 +107,7 @@ public class Program
 
         // Connected after the panel exists so it gets the first game updates
         SrxdManager.SrxdManager.GetInstance().Configure();
+        VoiceBotManager.VoiceBotManager.GetInstance().Configure();
 
         // Register IPC handler, only the panel talks over IPC
         _ = Electron.IpcMain.On("message", async (args) =>
@@ -124,6 +125,9 @@ public class Program
 
     private static void OnProcessExit(object? sender, EventArgs e)
     {
+        // Leaves the voice channel instead of lingering until discord times it out
+        VoiceBotManager.VoiceBotManager.GetInstance().Stop();
+
         if (_lockFile is null) return;
 
         _lockFile.Close();

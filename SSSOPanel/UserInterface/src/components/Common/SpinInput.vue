@@ -1,5 +1,6 @@
 <template>
-    <label
+    <!-- Not a <label>, that forwards hover and clicks on the text to the first button inside -->
+    <div
         class="setup-input"
         :class="`type-${type}`"
     >
@@ -15,7 +16,7 @@
         <div class="input">
             <slot />
         </div>
-    </label>
+    </div>
 </template>
 
 <script setup>
@@ -69,6 +70,7 @@ defineProps({
         gap: 5px;
 
         & input[type='text'],
+        & input[type='password'],
         & input[type='number'] {
             background: rgba(var(--colorBaseText), 0.07);
             border: 0;

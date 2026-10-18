@@ -52,6 +52,18 @@ rm -rf Resources/wwwroot/assets
 rm -f Resources/wwwroot/index.html Resources/wwwroot/favicon.ico
 cp -r UserInterface/dist/. Resources/wwwroot/
 
+echo "==> [2b/5] Voice bot dependencies + bundled node runtime"
+git -C .. submodule update --init SSSOPanel/VoiceBot
+(
+    cd VoiceBot
+    npm ci --omit=dev --no-fund --no-audit
+)
+# The official build, a brew node would carry its own ld.so path like the .NET SDK does
+NODE_TARBALL="$(curl -fsSL https://nodejs.org/dist/latest-v22.x/SHASUMS256.txt | grep -o 'node-v[0-9.]*-linux-x64.tar.xz' | head -n 1)"
+rm -rf node
+mkdir -p node
+curl -fsSL "https://nodejs.org/dist/latest-v22.x/$NODE_TARBALL" | tar -xJ -C node --strip-components=2 --wildcards '*/bin/node'
+
 echo "==> [3/5] Publishing .NET backend in podman ($DOTNET_IMAGE)"
 # Clear any stale output so the success check below only passes if *this* run
 # actually emitted the apphost binary.
