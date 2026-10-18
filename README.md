@@ -4,6 +4,7 @@ A modern desktop streaming overlay for SpinShare SpeenOpen
 ## Overview
 - [Setup](#setup)
 - [OBS](#obs)
+- [Themes](#themes)
 - [Building](#building)
 
 ### Setup
@@ -41,6 +42,10 @@ The panel can switch OBS scenes together with its screens, using the WebSocket s
 1. In OBS, open **Tools > WebSocket Server Settings**, enable the server and note the password
 2. In the panel settings, enable **Scene Switching** in the OBS group, enter the address (default `ws://localhost:4455`) and password, then press **Connect**
 3. Pick an OBS scene for each screen and save. Screens set to **None** leave the current scene alone
+
+### Themes
+Each theme is a folder in `SSSOPanel/UserInterface/src/assets/themes/` with its background, logo and a `theme.json`, and is picked in the panel settings.
+See [the themes README](SSSOPanel/UserInterface/src/assets/themes/README.md) for how to make your own.
 
 ### Building
 #### Building the UI
