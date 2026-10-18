@@ -49,11 +49,10 @@
 <script setup>
 import ScreenLayout from '../../layouts/ScreenLayout.vue';
 import { currentTheme } from '@/modules/useTheme';
-import { getEventLogo } from '@/modules/eventLogos';
 import { ref, inject, onMounted, onUnmounted, computed } from 'vue';
 const emitter = inject('emitter');
 
-const EventLogo = computed(() => getEventLogo(currentTheme.value.theme, currentTheme.value.year));
+const EventLogo = computed(() => currentTheme.value.logo);
 
 const countdownActive = ref(false);
 const countdownTime = ref(null);
@@ -120,7 +119,8 @@ onUnmounted(() => {
         top: 0;
 
         &.themed {
-            filter: var(--themeFilter);
+            background-image: var(--themeBackground);
+            filter: none;
         }
     }
 

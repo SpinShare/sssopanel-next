@@ -81,7 +81,8 @@ onUnmounted(() => {
         top: 0;
 
         &.themed {
-            filter: var(--themeFilter);
+            background-image: var(--themeBackground);
+            filter: none;
         }
     }
 

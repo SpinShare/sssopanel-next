@@ -21,7 +21,7 @@
                 />
             </mask>
             <image
-                :href="backgroundUrl"
+                :href="currentTheme.background"
                 v-bind="ring.image"
                 :mask="`url(#${maskId})`"
             />
@@ -65,7 +65,7 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import ScreenRollingNumber from '@/components/ScreenRollingNumber/ScreenRollingNumber.vue';
-import backgroundUrl from '@/assets/background.svg';
+import { currentTheme } from '@/modules/useTheme';
 
 const props = defineProps({
     // left drains clockwise, right counter-clockwise, so both sides mirror
@@ -168,10 +168,6 @@ const ring = computed(() => {
             stroke: #fff;
             stroke-linecap: butt;
             transition: stroke-dasharray 0.3s linear;
-        }
-
-        & image {
-            filter: var(--themeFilter);
         }
     }
 

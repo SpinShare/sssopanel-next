@@ -485,10 +485,6 @@ $gameplayMask: linear-gradient(to bottom, #000 calc(50% - #{$gameplayHeight * 0.
         filter: contrast(1) brightness(0.125) grayscale(2);
     }
 
-    &.themed {
-        filter: var(--themeFilter);
-    }
-
     & .noise {
         background: url('../../assets/noise.png');
         background-size: 5em;
@@ -619,7 +615,8 @@ $gameplayMask: linear-gradient(to bottom, #000 calc(50% - #{$gameplayHeight * 0.
                     z-index: 0;
 
                     &.themed {
-                        filter: var(--themeFilter);
+                        background-image: var(--themeBackground);
+                        filter: none;
                     }
                 }
 
@@ -737,7 +734,8 @@ $gameplayMask: linear-gradient(to bottom, #000 calc(50% - #{$gameplayHeight * 0.
                     }
 
                     & .tint {
-                        filter: var(--themeFilter);
+                        background-image: var(--themeBackground);
+                        filter: none;
                     }
                 }
 
@@ -889,11 +887,11 @@ $gameplayMask: linear-gradient(to bottom, #000 calc(50% - #{$gameplayHeight * 0.
                             transition: width 0.3s linear;
 
                             & .tint {
-                                background: url('../../assets/background.svg');
+                                background: var(--themeBackground);
                                 background-size: cover;
                                 position: absolute;
                                 inset: 0;
-                                filter: var(--themeFilter);
+                                filter: none;
                             }
                         }
                     }
@@ -921,7 +919,8 @@ $gameplayMask: linear-gradient(to bottom, #000 calc(50% - #{$gameplayHeight * 0.
                     z-index: 0;
 
                     &.themed {
-                        filter: var(--themeFilter);
+                        background-image: var(--themeBackground);
+                        filter: none;
                     }
                 }
 

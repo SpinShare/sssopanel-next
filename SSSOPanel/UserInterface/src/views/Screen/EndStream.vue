@@ -206,18 +206,13 @@
 <script setup>
 import ScreenLayout from '../../layouts/ScreenLayout.vue';
 import { currentTheme } from '@/modules/useTheme';
-import { getEventLogo, logoYears } from '@/modules/eventLogos';
 import { onMounted, onUnmounted, inject, ref, computed } from 'vue';
 const emitter = inject('emitter');
 
-const EventLogo = computed(() => getEventLogo(currentTheme.value.theme, currentTheme.value.year));
+const EventLogo = computed(() => currentTheme.value.logo);
 
-// e.g. "SSSO Autumn 2026", empty year means the newest one with a logo, like the logo itself
-const eventName = computed(() => {
-    const { theme, year } = currentTheme.value;
-    const season = theme.charAt(0).toUpperCase() + theme.slice(1);
-    return `SSSO ${season} ${year || logoYears(theme)[0] || new Date().getFullYear()}`;
-});
+// e.g. "SSSO Autumn 2026"
+const eventName = computed(() => `SSSO ${currentTheme.value.name}`);
 
 const nextStreamDate = ref(new Date());
 const formattedNextStreamDate = computed(() => {
@@ -299,7 +294,8 @@ onUnmounted(() => {
         top: 0;
 
         &.themed {
-            filter: var(--themeFilter);
+            background-image: var(--themeBackground);
+            filter: none;
         }
     }
 

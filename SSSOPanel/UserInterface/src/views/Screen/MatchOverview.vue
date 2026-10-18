@@ -124,7 +124,8 @@ onUnmounted(() => {
         z-index: 1;
 
         &.themed {
-            filter: var(--themeFilter);
+            background-image: var(--themeBackground);
+            filter: none;
         }
     }
 

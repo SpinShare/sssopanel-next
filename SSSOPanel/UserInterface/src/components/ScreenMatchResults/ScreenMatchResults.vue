@@ -244,7 +244,8 @@ const sides = computed(() => {
             gap: 0.75vw;
 
             & .tint {
-                filter: var(--themeFilter);
+                background-image: var(--themeBackground);
+                filter: none;
             }
 
             & span {
@@ -342,11 +343,11 @@ const sides = computed(() => {
             }
 
             & .tint {
-                background: url('../../assets/background.svg');
+                background: var(--themeBackground);
                 background-size: cover;
                 position: absolute;
                 inset: 0;
-                filter: var(--themeFilter);
+                filter: none;
             }
 
             & .noise {
