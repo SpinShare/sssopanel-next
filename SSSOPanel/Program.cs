@@ -29,6 +29,8 @@ public class Program
             if (OperatingSystem.IsLinux() && Environment.GetEnvironmentVariable("ELECTRON_OZONE_PLATFORM_HINT") == null)
                 Environment.SetEnvironmentVariable("ELECTRON_OZONE_PLATFORM_HINT", "auto");
 
+            WatchElectronProcess(args);
+
             await runtimeController.Start();
             await runtimeController.WaitReadyTask;
 
@@ -81,6 +83,7 @@ public class Program
             new BrowserWindowOptions
             {
                 Title = "Panel",
+                Icon = Path.Combine(AppContext.BaseDirectory, "icon.png"),
                 Width = Convert.ToInt32(400 * ScreenScaleFactor.Get()),
                 Height = Convert.ToInt32(750 * ScreenScaleFactor.Get()),
                 // The default size is the smallest the panel layout is made for
@@ -132,6 +135,34 @@ public class Program
 
         _lockFile.Close();
         _lockFile = null;
+    }
+
+    // Electron only stops us from its quit event, so a killed or crashed Electron left this process
+    // running and holding app.lock, which then blocked every next launch
+    private static void WatchElectronProcess(string[] args)
+    {
+        var pidArg = args.FirstOrDefault(a => a.StartsWith("/electronPID=", StringComparison.OrdinalIgnoreCase));
+        if (pidArg is null || !int.TryParse(pidArg.Split('=')[1], out var pid)) return;
+
+        System.Diagnostics.Process electron;
+        try
+        {
+            electron = System.Diagnostics.Process.GetProcessById(pid);
+        }
+        catch (ArgumentException)
+        {
+            Environment.Exit(0);
+            return;
+        }
+
+        _ = Task.Run(async () =>
+        {
+            while (!electron.HasExited)
+                await Task.Delay(1000);
+
+            Console.WriteLine("[Program] Electron is gone, exiting");
+            Environment.Exit(0);
+        });
     }
 
     static bool IsSingleInstance()

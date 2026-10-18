@@ -23,8 +23,9 @@
 		<ElectronSingleInstance>true</ElectronSingleInstance>
 		<ElectronPackageId>com.spinshare.sssopanel</ElectronPackageId>
 		<Title>SSSOPanel</Title>
-		<ElectronIcon></ElectronIcon>
-		<ElectronSplashScreen></ElectronSplashScreen>
+		<!-- CircleLogo.png of the current event, from https://github.com/SpinShare/media (SSSO/V3/<Season><Year>) -->
+		<ElectronIcon>electron/icon.png</ElectronIcon>
+		<ElectronSplashScreen>electron/splashscreen.html</ElectronSplashScreen>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">
@@ -76,6 +77,13 @@
 		</None>
 		<Content Include="preload.js">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<!-- Panel window icon, ElectronIcon only ends up with electron-builder -->
+		<Content Include="electron\icon.png">
+			<Link>icon.png</Link>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 		</Content>
 		<!-- Voice bot (pharahp submodule) and the node runtime it runs on, next to the exe, never bundled -->
 		<Content Include="VoiceBot\**" Exclude="VoiceBot\.git*;VoiceBot\.git\**;VoiceBot\.github\**;VoiceBot\.idea\**;VoiceBot\Dockerfile;VoiceBot\.dockerignore;VoiceBot\guild_config.json">

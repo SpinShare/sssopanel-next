@@ -69,7 +69,9 @@ echo "==> [3/5] Publishing .NET backend in podman ($DOTNET_IMAGE)"
 # actually emitted the apphost binary.
 rm -rf "$PUBTMP/bin"
 # ElectronNET.Core runs npm while building (Electron host dependencies), but the
-# SDK image ships without Node, so install it first.
+# SDK image ships without Node, so install it first.  Debian's npm 9 fails on
+# ElectronNET's "file:./ElectronHostHook" dependency (that folder has no
+# package.json), newer npm handles it, so upgrade it.
 # The ElectronPublishApp target then tries to package with electron-builder, which
 # can fail inside the container.  The .NET single-file apphost is emitted BEFORE
 # that step and is the only publish output we need, so that failure is harmless.
@@ -79,7 +81,7 @@ podman run --rm \
     -e DOTNET_ROLL_FORWARD=LatestMajor \
     -e RID="$RID" \
     "$DOTNET_IMAGE" \
-    sh -c 'apt-get update -qq && apt-get install -y -qq --no-install-recommends nodejs npm > /dev/null && dotnet publish SSSOPanel.csproj -c Release -r "$RID"' || \
+    sh -c 'apt-get update -qq && apt-get install -y -qq --no-install-recommends nodejs npm > /dev/null && npm install -g -s npm@10 && dotnet publish SSSOPanel.csproj -c Release -r "$RID"' || \
     test -f "$PUBTMP/bin/SSSOPanel"
 
 echo "==> [4/5] Staging wwwroot into publish temp dir"

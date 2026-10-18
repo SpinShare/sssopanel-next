@@ -1,11 +1,13 @@
 {
   "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/refs/heads/master/packages/app-builder-lib/scheme.json",
   "compression": "maximum",
+  "icon": "icon.png",
   "linux": {
     "target": [
       "AppImage"
     ],
     "executableArgs": [ "--no-sandbox", "--ozone-platform-hint=auto" ],
+    "compression": "normal",
     "artifactName": "${name}-${arch}-${version}.${ext}"
   },
   "win": {

@@ -5,8 +5,8 @@ namespace SSSOPanel.MessageParser;
 /// </summary>
 public class CommandThemeGet : ICommand
 {
-    // Spring is what the overlay looked like before themes were hooked up
-    public const string DefaultTheme = "spring";
+    // The season of the current event
+    public const string DefaultTheme = "autumn";
 
     public static object GetTheme()
     {
