@@ -248,6 +248,11 @@ const ring = computed(() => {
     & .inner .list {
         align-self: stretch;
     }
+
+    // Labels on the outside for player 2 too, mirrored like the rest of the row
+    &.right .inner .list > div {
+        flex-direction: row-reverse;
+    }
 }
 
 @keyframes lowHealth {

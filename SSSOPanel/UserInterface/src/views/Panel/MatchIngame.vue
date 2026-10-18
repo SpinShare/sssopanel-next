@@ -2,10 +2,23 @@
     <AppLayout title="Match (Ingame)">
         <!-- Match recap carousel, only there while it is on screen -->
         <SpinInputGroup
-            v-if="recapSlides > 1"
+            v-if="matchWon && resultsVisible && historyLength > 0"
             header="Match Recap"
         >
             <SpinInput
+                v-if="!recapVisible"
+                label="Recap"
+                :hint="`Showing the last set${recapCountdown}`"
+                type="horizontal"
+            >
+                <SpinButton
+                    label="Show Recap"
+                    color="bright"
+                    @click="showRecap"
+                />
+            </SpinInput>
+            <SpinInput
+                v-if="recapSlides > 1"
                 label="Set"
                 :hint="`${resultsSlide + 1} of ${recapSlides}${recapCountdown}`"
                 type="horizontal"
@@ -74,6 +87,16 @@
                 <SpinSwitch
                     v-model="resultsAutoProgress"
                     @update:model-value="(value) => setStateFlag('resultsAutoProgress', value)"
+                />
+            </SpinInput>
+            <SpinInput
+                label="Post Results"
+                hint="Post each set to the ref channel, needs the local voice bot running"
+                type="horizontal"
+            >
+                <SpinSwitch
+                    v-model="postResults"
+                    @update:model-value="(value) => setStateFlag('postResults', value)"
                 />
             </SpinInput>
             <SpinInput
@@ -238,6 +261,13 @@
             />
 
             <SpinButton
+                @click="replayLastSet"
+                icon="replay"
+                :disabled="!canReplay"
+                v-tooltip="'Replay last set'"
+            />
+
+            <SpinButton
                 @click="transition"
                 icon="record"
                 color="primary"
@@ -289,11 +319,79 @@ const autoResults = ref(false);
 const resultsAutoProgress = ref(false);
 const resultsSlide = ref(0);
 const historyLength = ref(0);
+const history = ref([]);
+const recapVisible = ref(false);
+const postResults = ref(false);
+const lastSet = ref(null);
+const savedResults = ref(null);
 
-const recapSlides = computed(() => {
-    const won = matchWinner({ sets: { max: scoresSetsMax.value }, score: { player1: scoresScorePlayer1.value, player2: scoresScorePlayer2.value } });
-    return won && resultsVisible.value ? historyLength.value : 0;
-});
+const matchWon = computed(() => !!matchWinner({ sets: { max: scoresSetsMax.value }, score: { player1: scoresScorePlayer1.value, player2: scoresScorePlayer2.value } }));
+const recapSlides = computed(() => (matchWon.value && resultsVisible.value && recapVisible.value ? historyLength.value : 0));
+
+const sameScores = (a, b) => Number(a?.sets?.current) === Number(b?.sets?.current) && Number(a?.sets?.max) === Number(b?.sets?.max) && Number(a?.score?.player1) === Number(b?.score?.player1) && Number(a?.score?.player2) === Number(b?.score?.player2);
+const canReplay = computed(() => !!lastSet.value && sameScores(lastSet.value.scoresAfter, { sets: { current: scoresSetsCurrent.value, max: scoresSetsMax.value }, score: { player1: scoresScorePlayer1.value, player2: scoresScorePlayer2.value } }));
+
+const showRecap = () => {
+    recapVisible.value = true;
+    resultsSlide.value = 0;
+    window.electronAPI.send(
+        'message',
+        JSON.stringify({
+            command: 'state-set',
+            data: { currentMatch: { recapVisible: true, resultsSlide: 0 } },
+        }),
+    );
+};
+
+// Undoes the last set (its point too, if one was added) and keeps its results, the next attempt
+// at it is merged with them so each player keeps their best run (see useWinnerPrompt)
+const replayLastSet = () => {
+    const set = lastSet.value;
+    if (!canReplay.value) return;
+
+    emitter.emit('alert-show', {
+        title: 'Replay last set?',
+        message: set.counted ? "Removes the point from the last set. The replay counts each player's best attempt." : "The replay counts each player's best attempt.",
+        actions: [
+            { label: 'Cancel' },
+            {
+                label: 'Replay',
+                color: 'primary',
+                click: () => {
+                    const currentMatch = {
+                        replay: { ...set.results, fileReference: set.fileReference ?? null },
+                        lastSet: null,
+                        resultsVisible: false,
+                        recapVisible: false,
+                    };
+                    if (set.counted) {
+                        currentMatch.scores = set.scores;
+                        currentMatch.history = history.value.slice(0, -1);
+                    }
+
+                    window.electronAPI.send(
+                        'message',
+                        JSON.stringify({
+                            command: 'state-set',
+                            data: { currentMatch },
+                        }),
+                    );
+                    // The page only listens for state-get-response, so it follows along by hand
+                    lastSet.value = null;
+                    resultsVisible.value = false;
+                    recapVisible.value = false;
+                    if (set.counted) {
+                        scoresSetsCurrent.value = set.scores?.sets?.current ?? scoresSetsCurrent.value;
+                        scoresScorePlayer1.value = set.scores?.score?.player1 ?? scoresScorePlayer1.value;
+                        scoresScorePlayer2.value = set.scores?.score?.player2 ?? scoresScorePlayer2.value;
+                        history.value = currentMatch.history;
+                        historyLength.value = history.value.length;
+                    }
+                },
+            },
+        ],
+    });
+};
 
 // Ticks while auto recap counts down, so the hint shows the seconds left
 const now = ref(Date.now());
@@ -311,6 +409,7 @@ watch(
 onUnmounted(() => clearInterval(nowTimer));
 
 const recapCountdown = computed(() => {
+    if (!recapVisible.value) return nextRecapSlideAt.value ? `, recap in ${Math.max(0, Math.ceil((nextRecapSlideAt.value - now.value) / 1000))}s` : '';
     if (!resultsAutoProgress.value) return '';
     if (!nextRecapSlideAt.value) return resultsSlide.value >= recapSlides.value - 1 ? ', auto recap done' : '';
     return `, next set in ${Math.max(0, Math.ceil((nextRecapSlideAt.value - now.value) / 1000))}s`;
@@ -525,9 +624,13 @@ const toggleResults = () => {
 
     const currentMatch = { resultsVisible: resultsVisible.value };
     if (resultsVisible.value) {
-        currentMatch.results = pickResults(game.value.results, { player1: ingamePlayer1.value, player2: ingamePlayer2.value });
+        // The saved results can be merged with an earlier attempt (replay), so they win for the same round
+        const picked = pickResults(game.value.results, { player1: ingamePlayer1.value, player2: ingamePlayer2.value });
+        currentMatch.results = savedResults.value?.round === picked.round && (savedResults.value.player1 || savedResults.value.player2) ? savedResults.value : picked;
         currentMatch.resultsSlide = 0;
+        currentMatch.recapVisible = false;
         resultsSlide.value = 0;
+        recapVisible.value = false;
     }
 
     window.electronAPI.send(
@@ -579,6 +682,11 @@ onMounted(() => {
         resultsAutoProgress.value = state?.resultsAutoProgress ?? false;
         resultsSlide.value = state?.currentMatch?.resultsSlide ?? 0;
         historyLength.value = state?.currentMatch?.history?.length ?? 0;
+        history.value = state?.currentMatch?.history ?? [];
+        recapVisible.value = state?.currentMatch?.recapVisible ?? false;
+        lastSet.value = state?.currentMatch?.lastSet ?? null;
+        savedResults.value = state?.currentMatch?.results ?? null;
+        postResults.value = state?.postResults ?? false;
         autoChart.value = state?.autoChart ?? true;
 
         if (!stateLoaded.value) {

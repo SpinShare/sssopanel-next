@@ -133,3 +133,17 @@ export const player1Won = (entry1, entry2) => {
     if (entry1.placement !== entry2.placement) return entry1.placement < entry2.placement;
     return true;
 };
+
+// Merges two attempts at the same set (pickResults shape), each player keeps their higher score.
+// attempts counts how many runs the shown entry was picked from
+export const bestAttempts = (previous, next) => {
+    const best = (key) => {
+        const a = previous?.[key];
+        const b = next?.[key];
+        const attempts = (a?.attempts ?? (a ? 1 : 0)) + (b ? 1 : 0);
+        const entry = !a ? b : !b ? a : b.score > a.score ? b : a;
+        return entry ? { ...entry, attempts } : null;
+    };
+
+    return { round: next?.round ?? previous?.round ?? 0, player1: best('player1'), player2: best('player2') };
+};

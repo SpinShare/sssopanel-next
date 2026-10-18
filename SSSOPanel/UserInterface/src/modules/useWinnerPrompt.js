@@ -1,14 +1,17 @@
 import { inject, onMounted, onUnmounted, ref } from 'vue';
 import router from '@/router';
-import useSrxd, { matchWinner, pickResults, player1Won as isPlayer1Winner, stripRichText } from '@/modules/useSrxd';
+import useSrxd, { bestAttempts, matchWinner, pickResults, player1Won as isPlayer1Winner, stripRichText } from '@/modules/useSrxd';
+import VoiceBotService from '@/modules/VoiceBotService';
 
 // How long auto results stay up, the next song loading hides them earlier
 const AUTO_RESULTS_DURATION = 30000;
 // The match recap carousel gets longer, auto progress spreads its slides over RESULTS_CAROUSEL_DURATION
 const AUTO_MATCH_RESULTS_DURATION = 75000;
 const RESULTS_CAROUSEL_DURATION = 60000;
+// The deciding set's own results stay up this long before the recap takes over (auto results or auto recap)
+const LAST_SET_DURATION = 15000;
 
-// When auto progress moves the recap to the next set (ms timestamp), null while it isn't counting down
+// When auto progress moves the recap to the next set or starts it (ms timestamp), null while it isn't counting down
 export const nextRecapSlideAt = ref(null);
 
 // Used once in App.vue, so the prompt shows up no matter which panel page is open
@@ -24,6 +27,7 @@ export default function useWinnerPrompt() {
     let autoHideTimer = null;
     let slideTimer = null;
     let slideTimerFor = null;
+    let lastPicked = null;
 
     useSrxd((message) => {
         // App.vue also hosts the screens, those never prompt
@@ -35,7 +39,7 @@ export default function useWinnerPrompt() {
             resultsStale = true;
             clearTimeout(autoHideTimer);
             // The next song is coming up, the old results would cover it
-            if (state.currentMatch?.resultsVisible) setState({ currentMatch: { resultsVisible: false } });
+            if (state.currentMatch?.resultsVisible) setState({ currentMatch: { resultsVisible: false, recapVisible: false } });
         }
         if (message.type !== 'results' || !message.results?.complete || message.results.round === lastPromptedRound) return;
 
@@ -56,9 +60,13 @@ export default function useWinnerPrompt() {
         const auto = state.autoResults === true;
         if ((!auto && state.winnerPrompt === false) || !ingame1 || !ingame2) return;
 
-        const entry1 = results.entries.find((entry) => entry.name === ingame1);
-        const entry2 = results.entries.find((entry) => entry.name === ingame2);
-        if (!entry1 && !entry2) return;
+        let picked = pickResults(results, match.ingame);
+        if (!picked.player1 && !picked.player2) return;
+        // A replayed set keeps each player's best attempt, only for the same chart
+        const replay = match.replay;
+        if (replay && (!replay.fileReference || replay.fileReference === match.chart?.fileReference)) picked = bestAttempts(replay, picked);
+        const entry1 = picked.player1;
+        const entry2 = picked.player2;
 
         lastPromptedRound = results.round;
         resultsStale = false;
@@ -69,11 +77,11 @@ export default function useWinnerPrompt() {
         const [winnerEntry, loserEntry] = player1Won ? [entry1, entry2] : [entry2, entry1];
         // Auto results skip the prompt: the point is added, the results show and hide again after a while
         if (auto) {
-            const matchWon = applyChoice(results, player1Won, true);
+            const matchWon = applyChoice(picked, player1Won, true);
             clearTimeout(autoHideTimer);
             autoHideTimer = setTimeout(
                 () => {
-                    if (state.currentMatch?.resultsVisible) setState({ currentMatch: { resultsVisible: false } });
+                    if (state.currentMatch?.resultsVisible) setState({ currentMatch: { resultsVisible: false, recapVisible: false } });
                 },
                 matchWon ? AUTO_MATCH_RESULTS_DURATION : AUTO_RESULTS_DURATION,
             );
@@ -87,19 +95,26 @@ export default function useWinnerPrompt() {
             message: `${stripRichText(match.chart?.title ?? 'This round')}${scoreLine}. Add a point and move on to the next set?`,
             switches: [{ key: 'showResults', label: 'Show results on stream', value: true }],
             actions: [
-                { label: 'No', click: ({ showResults }) => applyChoice(results, null, showResults) },
+                { label: 'Replay', click: ({ showResults }) => applyChoice(picked, null, showResults, true) },
+                { label: 'No', click: ({ showResults }) => applyChoice(picked, null, showResults) },
                 {
                     label: 'Yes',
                     color: 'primary',
-                    click: ({ showResults }) => applyChoice(results, player1Won, showResults),
+                    click: ({ showResults }) => applyChoice(picked, player1Won, showResults),
                 },
             ],
         });
     };
 
-    // player1Won is null when no point should be added. Returns whether this point won the match
-    const applyChoice = (results, player1Won, showResults) => {
-        const currentMatch = {};
+    // picked is pickResults() shaped, player1Won is null when no point should be added. replay keeps the
+    // results so the next attempt at this set is merged with them. Returns whether this point won the match
+    const applyChoice = (picked, player1Won, showResults, replay = false) => {
+        const scoresBefore = state.currentMatch?.scores ?? {};
+        const currentMatch = {
+            replay: replay ? { ...picked, fileReference: state.currentMatch?.chart?.fileReference ?? null } : null,
+            // Lets the panel undo this set and replay it later, e.g. after auto results already counted it
+            lastSet: replay ? null : { scores: scoresBefore, results: picked, counted: player1Won !== null, fileReference: state.currentMatch?.chart?.fileReference ?? null },
+        };
         let matchWon = false;
 
         if (player1Won !== null) {
@@ -128,21 +143,82 @@ export default function useWinnerPrompt() {
                     title: stripRichText(state.currentMatch?.chart?.title ?? ''),
                     artist: stripRichText(state.currentMatch?.chart?.artist ?? ''),
                 },
-                results: pickResults(results, state.currentMatch?.ingame),
+                results: picked,
             });
             currentMatch.history = history;
 
             matchWon = !matchWinner(state.currentMatch?.scores) && !!matchWinner(currentMatch.scores);
-            if (matchWon) currentMatch.resultsSlide = 0;
+            // The deciding set shows on its own first, the recap starting at set 1 right away was confusing
+            if (matchWon) {
+                currentMatch.resultsSlide = 0;
+                currentMatch.recapVisible = false;
+            }
         }
 
         if (showResults && !resultsStale) {
-            currentMatch.results = pickResults(results, state.currentMatch?.ingame);
+            currentMatch.results = picked;
             currentMatch.resultsVisible = true;
         }
 
-        if (Object.keys(currentMatch).length) setState({ currentMatch });
+        // What this set left the scores at, replaying only works while they're unchanged (not after a new match or edits)
+        if (currentMatch.lastSet) currentMatch.lastSet.scoresAfter = currentMatch.scores ?? scoresBefore;
+        setState({ currentMatch });
+        lastPicked = { picked, set: Number(scoresBefore.sets?.current ?? 1), scores: currentMatch.scores ?? scoresBefore, outcome: replay ? 'replay' : player1Won === null ? 'none' : player1Won ? 'player1' : 'player2' };
+        postResults();
         return matchWon;
+    };
+
+    // Posts the set to the ref channel through the local voice bot, the hosted one doesn't take commands
+    const postResults = () => {
+        if (state.postResults !== true || !lastPicked) return;
+
+        const { picked, set, scores, outcome } = lastPicked;
+        lastPicked = null;
+        const match = state.currentMatch ?? {};
+        const player = (key) => ({
+            name: match.players?.[key]?.spinshareProfile?.username ?? picked[key]?.name ?? match.ingame?.[key] ?? 'Unknown',
+            entry: picked[key],
+        });
+
+        VoiceBotService.request('post_results', {
+            results: {
+                chart: {
+                    title: stripRichText(match.chart?.title ?? ''),
+                    artist: stripRichText(match.chart?.artist ?? ''),
+                    id: match.chart?.id ?? null,
+                },
+                set,
+                sets: Number(scores.sets?.max ?? 3),
+                score: { player1: Number(scores.score?.player1 ?? 0), player2: Number(scores.score?.player2 ?? 0) },
+                outcome,
+                matchWinner: matchWinner(scores),
+                player1: player('player1'),
+                player2: player('player2'),
+            },
+        }).catch((error) => {
+            emitter.emit('alert-show', { title: 'Could not post results', message: error.message, actions: [{ label: 'OK', color: 'primary' }] });
+        });
+    };
+
+    // Auto results and auto recap move from the deciding set's results to the recap on their own
+    let recapTimer = null;
+    let recapTimerFor = false;
+    const syncRecapTimer = () => {
+        const match = state.currentMatch ?? {};
+        const running = (state.autoResults === true || state.resultsAutoProgress === true) && match.resultsVisible === true && match.recapVisible !== true && !!matchWinner(match.scores) && !!match.history?.length;
+        if (running === recapTimerFor) return;
+
+        clearTimeout(recapTimer);
+        recapTimerFor = running;
+        nextRecapSlideAt.value = null;
+        if (!running) return;
+
+        nextRecapSlideAt.value = Date.now() + LAST_SET_DURATION;
+        recapTimer = setTimeout(() => {
+            recapTimerFor = false;
+            nextRecapSlideAt.value = null;
+            setState({ currentMatch: { recapVisible: true, resultsSlide: 0 } });
+        }, LAST_SET_DURATION);
     };
 
     // Auto progress moves the recap carousel along and stops on the last set, a manual step restarts the wait
@@ -150,13 +226,13 @@ export default function useWinnerPrompt() {
         const match = state.currentMatch ?? {};
         const count = match.history?.length ?? 0;
         const slide = match.resultsSlide ?? 0;
-        const running = state.resultsAutoProgress === true && match.resultsVisible === true && !!matchWinner(match.scores) && slide < count - 1;
+        const running = state.resultsAutoProgress === true && match.resultsVisible === true && match.recapVisible === true && !!matchWinner(match.scores) && slide < count - 1;
         const key = running ? `${slide}/${count}` : null;
         if (key === slideTimerFor) return;
 
         clearTimeout(slideTimer);
         slideTimerFor = key;
-        nextRecapSlideAt.value = null;
+        if (!recapTimerFor) nextRecapSlideAt.value = null;
         if (!running) return;
 
         nextRecapSlideAt.value = Date.now() + RESULTS_CAROUSEL_DURATION / count;
@@ -185,6 +261,7 @@ export default function useWinnerPrompt() {
         if (type !== 'state-get-response' && type !== 'state-set-response') return;
 
         state = data ?? {};
+        syncRecapTimer();
         syncSlideTimer();
         if (type === 'state-set-response' && refreshAfterSet) {
             refreshAfterSet = false;
@@ -209,6 +286,7 @@ export default function useWinnerPrompt() {
     onUnmounted(() => {
         clearTimeout(autoHideTimer);
         clearTimeout(slideTimer);
+        clearTimeout(recapTimer);
         nextRecapSlideAt.value = null;
         emitter.off('*', onAnyMessage);
     });

@@ -22,8 +22,9 @@
             <!-- One slide per set once the match is won. Both slides share a grid cell, so they cross over in place -->
             <div class="slides">
                 <transition :name="`slide-${direction}`">
+                    <!-- Keyed on recap too, so going from the deciding set to set 1 swipes instead of cutting -->
                     <div
-                        :key="shownSlide"
+                        :key="`${winnerName ? 'recap' : 'set'}-${shownSlide}`"
                         class="slide"
                     >
                         <div
@@ -64,6 +65,7 @@
                                         <span v-if="fullComboLabel(side.entry.fullCombo)">{{ fullComboLabel(side.entry.fullCombo) }}</span>
                                         <span v-if="side.entry.failed">Failed</span>
                                         <span v-if="side.entry.forfeited">Forfeited</span>
+                                        <span v-if="side.entry.attempts > 1">Best of {{ side.entry.attempts }} attempts</span>
                                     </div>
                                     <div class="judgements">
                                         <div

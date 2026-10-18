@@ -144,10 +144,10 @@
                                 <!-- Keyed by side, so a lead change fades out on one side and in on the other -->
                                 <transition name="lead">
                                     <span
-                                        v-if="shownTug.diff !== 0"
-                                        :key="shownTug.diff > 0 ? 'left' : 'right'"
+                                        v-if="leadSide"
+                                        :key="leadSide"
                                         class="tug-lead"
-                                        :class="shownTug.diff > 0 ? 'left' : 'right'"
+                                        :class="leadSide"
                                     >
                                         +<ScreenRollingNumber :value="Math.abs(shownTug.diff).toLocaleString()" />
                                     </span>
@@ -280,9 +280,12 @@ const results = ref(null);
 const resultsVisible = ref(false);
 const history = ref([]);
 const resultsSlide = ref(0);
+const recapVisible = ref(false);
 
-// Only once the recap has something to show, a match won by hand edited scores keeps the normal results
+// Only once the recap has something to show, a match won by hand edited scores keeps the normal results.
+// The deciding set's own results show first, until the panel (or auto results) switches to the recap
 const matchWinnerName = computed(() => {
+    if (!recapVisible.value) return null;
     const winner = matchWinner({ sets: { max: scoresSetsMax.value }, score: { player1: scoresScorePlayer1.value, player2: scoresScorePlayer2.value } });
     if (!winner || !history.value.length) return null;
 
@@ -352,6 +355,36 @@ const shownTug = ref(null);
 watch(tug, (value) => {
     if (value) shownTug.value = value;
 });
+
+// Side of the lead pill. A tie keeps it up for a bit (rolling to +0) instead of blinking out
+const TUG_TIE_LINGER = 3000;
+const leadSide = ref(null);
+let leadTimer = null;
+watch(
+    () => tug.value?.diff ?? 0,
+    (diff) => {
+        if (diff !== 0) {
+            clearTimeout(leadTimer);
+            leadTimer = null;
+            leadSide.value = diff > 0 ? 'left' : 'right';
+        } else if (leadSide.value && !leadTimer) {
+            leadTimer = setTimeout(() => {
+                leadTimer = null;
+                leadSide.value = null;
+            }, TUG_TIE_LINGER);
+        }
+    },
+);
+// A new song starts tied, the old side shouldn't show up as +0
+watch(
+    () => game.value.round,
+    () => {
+        clearTimeout(leadTimer);
+        leadTimer = null;
+        leadSide.value = null;
+    },
+);
+onUnmounted(() => clearTimeout(leadTimer));
 
 // One animated value for both fills. It slides through the middle when the lead changes hands, so the two
 // sides never grow and shrink at the same time (which looked like both were ahead for a moment)
@@ -434,6 +467,7 @@ const applyState = (state) => {
     resultsVisible.value = state?.currentMatch?.resultsVisible ?? resultsVisible.value;
     history.value = state?.currentMatch?.history ?? history.value;
     resultsSlide.value = state?.currentMatch?.resultsSlide ?? resultsSlide.value;
+    recapVisible.value = state?.currentMatch?.recapVisible ?? recapVisible.value;
 
     scoresSetsCurrent.value = state?.currentMatch?.scores?.sets?.current ?? scoresSetsCurrent.value;
     scoresSetsMax.value = state?.currentMatch?.scores?.sets?.max ?? scoresSetsMax.value;
