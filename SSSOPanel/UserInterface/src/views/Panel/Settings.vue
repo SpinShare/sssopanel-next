@@ -408,7 +408,7 @@ const SETTING_STATE_SAVING = 'saving';
 const SETTING_STATE_IDLE = 'idle';
 const settingsState = ref(SETTING_STATE_LOADING);
 
-const theme = ref('spring');
+const theme = ref('autumn');
 const eventYear = ref('');
 
 // Only years that have a logo for the picked season, empty follows the newest one
@@ -643,7 +643,7 @@ const openGithubReleases = () => {
 
 onMounted(() => {
     emitter.on('settings-get-full-response', async (settings) => {
-        theme.value = settings['theme'] || 'spring';
+        theme.value = settings['theme'] || 'autumn';
         eventYear.value = settings['eventYear'] ? String(settings['eventYear']) : '';
 
         startGGApiToken.value = settings['currentEvent.startgg.apiToken'] ?? '';

@@ -2,18 +2,19 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100;200;300;400;500;600;700;800&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
 
 // Overlay themes, a filter on the shared background.svg tint (set as html[data-theme] by useTheme.js)
-:root {
-    --themeFilter: hue-rotate(195deg); // spring, also the default
+:root,
+:root[data-theme='autumn'] {
+    // Hue alone lands too close to summer, so it's deepened a bit. Also the default
+    --themeFilter: hue-rotate(-35deg) saturate(1.8) brightness(0.85);
+}
+:root[data-theme='spring'] {
+    --themeFilter: hue-rotate(195deg);
 }
 :root[data-theme='winter'] {
     --themeFilter: hue-rotate(160deg);
 }
 :root[data-theme='summer'] {
     --themeFilter: hue-rotate(0deg);
-}
-:root[data-theme='autumn'] {
-    // Hue alone lands too close to summer, so it's deepened a bit
-    --themeFilter: hue-rotate(-35deg) saturate(1.8) brightness(0.85);
 }
 
 :root {
