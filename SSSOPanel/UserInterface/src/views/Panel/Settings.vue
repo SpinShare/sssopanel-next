@@ -408,6 +408,7 @@ const obsScreens = [
     { key: 'brackets', label: 'Brackets' },
     { key: 'match-overview', label: 'Match (Overview)' },
     { key: 'match-ingame', label: 'Match (Ingame)' },
+    { key: 'match-results', label: 'Match (Results)' },
     { key: 'commentators', label: 'Commentators' },
     { key: 'end-stream', label: 'End (Stream)' },
     { key: 'end-tournament', label: 'End (Tournament)' },

@@ -5,14 +5,55 @@ import VoiceBotService from '@/modules/VoiceBotService';
 
 // How long auto results stay up, the next song loading hides them earlier
 const AUTO_RESULTS_DURATION = 30000;
-// The match recap carousel gets longer, auto progress spreads its slides over RESULTS_CAROUSEL_DURATION
-const AUTO_MATCH_RESULTS_DURATION = 75000;
+// Auto progress spreads the match results carousel over this
 const RESULTS_CAROUSEL_DURATION = 60000;
-// The deciding set's own results stay up this long before the recap takes over (auto results or auto recap)
+// The deciding set's own results stay up this long before the match results screen takes over (auto results or auto recap)
 const LAST_SET_DURATION = 15000;
 
 // When auto progress moves the recap to the next set or starts it (ms timestamp), null while it isn't counting down
 export const nextRecapSlideAt = ref(null);
+
+// recapVisible marks the match results screen as up, the recap timers below follow it
+export const showMatchResults = () => {
+    window.electronAPI.send(
+        'message',
+        JSON.stringify({
+            command: 'state-set',
+            data: { currentMatch: { recapVisible: true, resultsSlide: 0 } },
+        }),
+    );
+    window.electronAPI.send(
+        'message',
+        JSON.stringify({
+            command: 'screen-navigate',
+            data: {
+                path: 'match-results',
+            },
+        }),
+    );
+};
+
+// Fresh scores and no sets for the next match, players, links, chart and set count stay so a rematch needs nothing else.
+// Explicit values instead of null, screens keep their old value when a key is null
+export const resetMatch = (maxSets = 3) => {
+    window.electronAPI.send(
+        'message',
+        JSON.stringify({
+            command: 'state-set',
+            data: {
+                currentMatch: {
+                    scores: { sets: { current: 1, max: maxSets }, score: { player1: 0, player2: 0 } },
+                    history: [],
+                    resultsVisible: false,
+                    recapVisible: false,
+                    resultsSlide: 0,
+                    lastSet: null,
+                    replay: null,
+                },
+            },
+        }),
+    );
+};
 
 // Used once in App.vue, so the prompt shows up no matter which panel page is open
 export default function useWinnerPrompt() {
@@ -39,7 +80,7 @@ export default function useWinnerPrompt() {
             resultsStale = true;
             clearTimeout(autoHideTimer);
             // The next song is coming up, the old results would cover it
-            if (state.currentMatch?.resultsVisible) setState({ currentMatch: { resultsVisible: false, recapVisible: false } });
+            if (state.currentMatch?.resultsVisible || state.currentMatch?.recapVisible) setState({ currentMatch: { resultsVisible: false, recapVisible: false } });
         }
         if (message.type !== 'results' || !message.results?.complete || message.results.round === lastPromptedRound) return;
 
@@ -75,16 +116,15 @@ export default function useWinnerPrompt() {
         const winner = player1Won ? match.players?.player1 : match.players?.player2;
         const winnerName = winner?.spinshareProfile?.username ?? (player1Won ? ingame1 : ingame2);
         const [winnerEntry, loserEntry] = player1Won ? [entry1, entry2] : [entry2, entry1];
-        // Auto results skip the prompt: the point is added, the results show and hide again after a while
+        // Auto results skip the prompt: the point is added, the results show and hide again after a while.
+        // A won match moves on to the match results screen instead (syncRecapTimer)
         if (auto) {
             const matchWon = applyChoice(picked, player1Won, true);
             clearTimeout(autoHideTimer);
-            autoHideTimer = setTimeout(
-                () => {
-                    if (state.currentMatch?.resultsVisible) setState({ currentMatch: { resultsVisible: false, recapVisible: false } });
-                },
-                matchWon ? AUTO_MATCH_RESULTS_DURATION : AUTO_RESULTS_DURATION,
-            );
+            if (matchWon) return;
+            autoHideTimer = setTimeout(() => {
+                if (state.currentMatch?.resultsVisible) setState({ currentMatch: { resultsVisible: false } });
+            }, AUTO_RESULTS_DURATION);
             return;
         }
 
@@ -185,6 +225,7 @@ export default function useWinnerPrompt() {
                 chart: {
                     title: stripRichText(match.chart?.title ?? ''),
                     artist: stripRichText(match.chart?.artist ?? ''),
+                    charter: stripRichText(match.chart?.charter ?? ''),
                     id: match.chart?.id ?? null,
                 },
                 set,
@@ -200,7 +241,7 @@ export default function useWinnerPrompt() {
         });
     };
 
-    // Auto results and auto recap move from the deciding set's results to the recap on their own
+    // Auto results and auto recap move from the deciding set's results to the match results screen on their own
     let recapTimer = null;
     let recapTimerFor = false;
     const syncRecapTimer = () => {
@@ -217,16 +258,19 @@ export default function useWinnerPrompt() {
         recapTimer = setTimeout(() => {
             recapTimerFor = false;
             nextRecapSlideAt.value = null;
-            setState({ currentMatch: { recapVisible: true, resultsSlide: 0 } });
+            showMatchResults();
+            refreshAfterSet = true;
+            // Follow the screen so the recap controls are right there
+            if (router.currentRoute.value.path !== '/panel/match-results') router.push('/panel/match-results');
         }, LAST_SET_DURATION);
     };
 
-    // Auto progress moves the recap carousel along and stops on the last set, a manual step restarts the wait
+    // Auto progress moves the match results carousel along and stops on the last set, a manual step restarts the wait
     const syncSlideTimer = () => {
         const match = state.currentMatch ?? {};
         const count = match.history?.length ?? 0;
         const slide = match.resultsSlide ?? 0;
-        const running = state.resultsAutoProgress === true && match.resultsVisible === true && match.recapVisible === true && !!matchWinner(match.scores) && slide < count - 1;
+        const running = state.resultsAutoProgress === true && match.recapVisible === true && !!matchWinner(match.scores) && slide < count - 1;
         const key = running ? `${slide}/${count}` : null;
         if (key === slideTimerFor) return;
 
@@ -259,6 +303,8 @@ export default function useWinnerPrompt() {
     // Pages clear every listener of the state events they use when they unmount, a wildcard listener survives that
     const onAnyMessage = (type, data) => {
         if (type !== 'state-get-response' && type !== 'state-set-response') return;
+        // Screens get the same state, their recap timers would push the stream screen to the panel page
+        if (!router.currentRoute.value.path.startsWith('/panel')) return;
 
         state = data ?? {};
         syncRecapTimer();

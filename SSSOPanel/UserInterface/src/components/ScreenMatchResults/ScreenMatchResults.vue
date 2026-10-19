@@ -1,9 +1,12 @@
 <template>
     <section
         class="screen-match-results"
-        :class="{ recap: !!winnerName }"
+        :class="{ recap: !!winnerName, plain: !backdrop }"
     >
-        <div class="backdrop">
+        <div
+            v-if="backdrop"
+            class="backdrop"
+        >
             <div class="tint"></div>
             <div class="noise"></div>
         </div>
@@ -53,6 +56,11 @@
                                 </template>
                                 <template v-if="side.entry">
                                     <div class="headline">
+                                        <div
+                                            v-if="avatars && side.player?.spinshareProfile?.avatar"
+                                            class="avatar"
+                                            :style="`background-image: url(${side.player.spinshareProfile.avatar})`"
+                                        ></div>
                                         <span class="grade">{{ side.entry.grade }}</span>
                                         <div class="numbers">
                                             <span class="score">{{ side.entry.score.toLocaleString() }}</span>
@@ -141,6 +149,15 @@ const props = defineProps({
     slide: {
         type: Number,
         default: 0,
+    },
+    // Off on a full screen page, the dark backdrop is only there to dim the gameplay cutout
+    backdrop: {
+        type: Boolean,
+        default: true,
+    },
+    avatars: {
+        type: Boolean,
+        default: false,
     },
 });
 
@@ -391,6 +408,15 @@ const sides = computed(() => {
                     align-items: center;
                     gap: 1.5vw;
 
+                    & .avatar {
+                        flex-shrink: 0;
+                        width: 6vw;
+                        height: 6vw;
+                        border-radius: 0.75vw;
+                        background-position: center;
+                        background-size: cover;
+                    }
+
                     & .grade {
                         font-size: 3.5vw;
                         font-weight: 900;
@@ -475,7 +501,7 @@ const sides = computed(() => {
     }
 
     // The title and dots need room in the 540px band, so the recap cards are a bit tighter
-    &.recap .content .player .box {
+    &.recap:not(.plain) .content .player .box {
         padding: 1.1vw 1.5vw;
         gap: 0.6vw;
 
@@ -485,6 +511,36 @@ const sides = computed(() => {
 
         & .judgements {
             gap: 0.15vw;
+        }
+    }
+}
+
+// Straight on the themed background, so the loose text goes dark and the title becomes a dark tab like the cards
+.screen-match-results.plain .content {
+    & .match-title {
+        background: #111;
+        color: #ededed;
+        font-size: 2vw;
+        padding: 0.8vw 2.2vw;
+
+        & .tint,
+        & .noise {
+            display: none;
+        }
+    }
+
+    & .carousel {
+        & .label {
+            color: rgba(0, 0, 0, 0.7);
+            font-size: 1vw;
+        }
+
+        & .dots span {
+            background: rgba(0, 0, 0, 0.25);
+
+            &.active {
+                background: #111;
+            }
         }
     }
 }

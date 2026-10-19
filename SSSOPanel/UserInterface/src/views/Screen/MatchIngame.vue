@@ -163,9 +163,6 @@
                             :results="results"
                             :player1="player1"
                             :player2="player2"
-                            :winner-name="matchWinnerName"
-                            :history="history"
-                            :slide="resultsSlide"
                         />
                     </transition>
                 </section>
@@ -186,14 +183,15 @@
                             <span class="mdi mdi-music"></span>
                         </div>
                         <div class="meta">
-                            <span class="title">
-                                {{ chart.title }}
+                            <!-- Separate spans, an ellipsis takes the style of the element it cuts off -->
+                            <div class="title">
+                                <span class="name">{{ chart.title }}</span>
                                 <span
                                     v-if="chartMeta.subtitle"
                                     class="subtitle"
                                     >{{ chartMeta.subtitle }}</span
                                 >
-                            </span>
+                            </div>
                             <span class="artist"
                                 >{{ chart.artist }}<template v-if="chartMeta.featArtists"> feat. {{ chartMeta.featArtists }}</template></span
                             >
@@ -254,7 +252,7 @@
 <script setup>
 import ScreenLayout from '../../layouts/ScreenLayout.vue';
 import { computed, reactive, ref, inject, onMounted, onUnmounted, watch } from 'vue';
-import useSrxd, { matchWinner, stripRichText } from '@/modules/useSrxd';
+import useSrxd, { stripRichText } from '@/modules/useSrxd';
 import ScreenRollingNumber from '@/components/ScreenRollingNumber/ScreenRollingNumber.vue';
 import ScreenMatchResults from '@/components/ScreenMatchResults/ScreenMatchResults.vue';
 import ScreenStatsBox from '@/components/ScreenStatsBox/ScreenStatsBox.vue';
@@ -278,20 +276,6 @@ const scoresScorePlayer2 = ref(0);
 const ingame = ref({ player1: '', player2: '' });
 const results = ref(null);
 const resultsVisible = ref(false);
-const history = ref([]);
-const resultsSlide = ref(0);
-const recapVisible = ref(false);
-
-// Only once the recap has something to show, a match won by hand edited scores keeps the normal results.
-// The deciding set's own results show first, until the panel (or auto results) switches to the recap
-const matchWinnerName = computed(() => {
-    if (!recapVisible.value) return null;
-    const winner = matchWinner({ sets: { max: scoresSetsMax.value }, score: { player1: scoresScorePlayer1.value, player2: scoresScorePlayer2.value } });
-    if (!winner || !history.value.length) return null;
-
-    const player = winner === 'player1' ? player1.value : player2.value;
-    return player?.spinshareProfile?.username || ingame.value[winner] || null;
-});
 
 // Until the first scores of a new song arrive, the last round's are still around
 const liveScores = computed(() => {
@@ -465,9 +449,6 @@ const applyState = (state) => {
     ingame.value = state?.currentMatch?.ingame ?? ingame.value;
     results.value = state?.currentMatch?.results ?? results.value;
     resultsVisible.value = state?.currentMatch?.resultsVisible ?? resultsVisible.value;
-    history.value = state?.currentMatch?.history ?? history.value;
-    resultsSlide.value = state?.currentMatch?.resultsSlide ?? resultsSlide.value;
-    recapVisible.value = state?.currentMatch?.recapVisible ?? recapVisible.value;
 
     scoresSetsCurrent.value = state?.currentMatch?.scores?.sets?.current ?? scoresSetsCurrent.value;
     scoresSetsMax.value = state?.currentMatch?.scores?.sets?.max ?? scoresSetsMax.value;
@@ -551,10 +532,11 @@ $gameplayMask: linear-gradient(to bottom, #000 calc(50% - #{$gameplayHeight * 0.
         z-index: 10;
         color: #eee;
 
-        // player, stats, sets, stats, player. Columns are fixed so the stats boxes can come and go
+        // player, stats, sets, stats, player. Columns are fixed so the stats boxes can come and go.
+        // Stats columns are as wide as ScreenStatsBox, the two boxes leave on different frames and an auto column would shift the sets box
         & .match-info {
             display: grid;
-            grid-template-columns: 1fr auto auto auto 1fr;
+            grid-template-columns: 1fr 12.5vw auto 12.5vw 1fr;
             // No row gap, the tug row brings its own spacing so it can collapse fully
             column-gap: 2vw;
             padding: 0 4vw;
@@ -846,16 +828,32 @@ $gameplayMask: linear-gradient(to bottom, #000 calc(50% - #{$gameplayHeight * 0.
                     gap: 0.5vw;
 
                     & .title {
-                        font-weight: 600;
-                        font-size: 1.5vw;
-                        // overflow: hidden clips at the line box, the reset's line-height: 1 would cut off g, y, p
-                        line-height: 1.3;
-                        letter-spacing: 0.1vw;
-                        overflow: hidden;
-                        word-break: break-all;
+                        display: flex;
+                        align-items: baseline;
+                        gap: 0.5vw;
                         max-width: 50vw;
-                        white-space: nowrap;
-                        text-overflow: ellipsis;
+
+                        & span {
+                            // overflow: hidden clips at the line box, the reset's line-height: 1 would cut off g, y, p
+                            line-height: 1.3;
+                            overflow: hidden;
+                            white-space: nowrap;
+                            text-overflow: ellipsis;
+                        }
+
+                        // The subtitle gives up its space first, the name is only cut off once it is gone
+                        & .name {
+                            font-weight: 600;
+                            font-size: 1.5vw;
+                            letter-spacing: 0.1vw;
+                            flex-shrink: 1;
+                        }
+
+                        & .subtitle {
+                            color: rgba(255, 255, 255, 0.6);
+                            font-size: 1vw;
+                            flex-shrink: 9999;
+                        }
                     }
 
                     & .artist {
@@ -878,13 +876,6 @@ $gameplayMask: linear-gradient(to bottom, #000 calc(50% - #{$gameplayHeight * 0.
                         max-width: 50vw;
                         white-space: nowrap;
                         text-overflow: ellipsis;
-                    }
-
-                    & .title .subtitle {
-                        color: rgba(255, 255, 255, 0.6);
-                        font-size: 1vw;
-                        font-weight: normal;
-                        margin-left: 0.5vw;
                     }
 
                     & .tags {

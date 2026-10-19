@@ -53,6 +53,12 @@ const buttons = [
         screenPath: '/screen/match-ingame',
     },
     {
+        label: 'Match (Results)',
+        icon: 'trophy',
+        panelPath: '/panel/match-results',
+        screenPath: '/screen/match-results',
+    },
+    {
         label: 'Commentators',
         icon: 'microphone-message',
         panelPath: '/panel/commentators',

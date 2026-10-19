@@ -1,18 +1,18 @@
 <template>
     <AppLayout title="Match (Ingame)">
-        <!-- Match recap carousel, only there while it is on screen -->
+        <!-- Once the match is won, the match results screen recaps every set -->
         <SpinInputGroup
-            v-if="matchWon && resultsVisible && historyLength > 0"
-            header="Match Recap"
+            v-if="matchWon && historyLength > 0"
+            header="Match Results"
         >
             <SpinInput
                 v-if="!recapVisible"
-                label="Recap"
-                :hint="`Showing the last set${recapCountdown}`"
+                label="Match Results"
+                :hint="`Every set on its own screen${recapCountdown}`"
                 type="horizontal"
             >
                 <SpinButton
-                    label="Show Recap"
+                    label="Show"
                     color="bright"
                     @click="showRecap"
                 />
@@ -81,7 +81,7 @@
             </SpinInput>
             <SpinInput
                 label="Auto Recap"
-                hint="Step through the match recap on its own, spread over a minute"
+                hint="Show the match results and step through them on their own, spread over a minute"
                 type="horizontal"
             >
                 <SpinSwitch
@@ -288,7 +288,7 @@ import SpinSwitch from '@/components/Common/SpinSwitch.vue';
 import { computed, onMounted, onUnmounted, ref, inject, watch } from 'vue';
 import useCurrentScreen from '@/modules/useCurrentScreen';
 import useSpinShareApi from '@/modules/useSpinShareApi';
-import { nextRecapSlideAt } from '@/modules/useWinnerPrompt';
+import { nextRecapSlideAt, showMatchResults } from '@/modules/useWinnerPrompt';
 import useSrxd, { chartFromTrack, guessIngameName, matchWinner, pickResults } from '@/modules/useSrxd';
 
 const currentScreen = useCurrentScreen();
@@ -326,7 +326,7 @@ const lastSet = ref(null);
 const savedResults = ref(null);
 
 const matchWon = computed(() => !!matchWinner({ sets: { max: scoresSetsMax.value }, score: { player1: scoresScorePlayer1.value, player2: scoresScorePlayer2.value } }));
-const recapSlides = computed(() => (matchWon.value && resultsVisible.value && recapVisible.value ? historyLength.value : 0));
+const recapSlides = computed(() => (matchWon.value && recapVisible.value ? historyLength.value : 0));
 
 const sameScores = (a, b) => Number(a?.sets?.current) === Number(b?.sets?.current) && Number(a?.sets?.max) === Number(b?.sets?.max) && Number(a?.score?.player1) === Number(b?.score?.player1) && Number(a?.score?.player2) === Number(b?.score?.player2);
 const canReplay = computed(() => !!lastSet.value && sameScores(lastSet.value.scoresAfter, { sets: { current: scoresSetsCurrent.value, max: scoresSetsMax.value }, score: { player1: scoresScorePlayer1.value, player2: scoresScorePlayer2.value } }));
@@ -334,13 +334,7 @@ const canReplay = computed(() => !!lastSet.value && sameScores(lastSet.value.sco
 const showRecap = () => {
     recapVisible.value = true;
     resultsSlide.value = 0;
-    window.electronAPI.send(
-        'message',
-        JSON.stringify({
-            command: 'state-set',
-            data: { currentMatch: { recapVisible: true, resultsSlide: 0 } },
-        }),
-    );
+    showMatchResults();
 };
 
 // Undoes the last set (its point too, if one was added) and keeps its results, the next attempt
@@ -409,7 +403,7 @@ watch(
 onUnmounted(() => clearInterval(nowTimer));
 
 const recapCountdown = computed(() => {
-    if (!recapVisible.value) return nextRecapSlideAt.value ? `, recap in ${Math.max(0, Math.ceil((nextRecapSlideAt.value - now.value) / 1000))}s` : '';
+    if (!recapVisible.value) return nextRecapSlideAt.value ? `, showing in ${Math.max(0, Math.ceil((nextRecapSlideAt.value - now.value) / 1000))}s` : '';
     if (!resultsAutoProgress.value) return '';
     if (!nextRecapSlideAt.value) return resultsSlide.value >= recapSlides.value - 1 ? ', auto recap done' : '';
     return `, next set in ${Math.max(0, Math.ceil((nextRecapSlideAt.value - now.value) / 1000))}s`;
@@ -531,6 +525,17 @@ watch(
 
 const transition = () => {
     updateState();
+    // Leaving the match results screen, its auto progress stops and it can be shown again
+    if (recapVisible.value) {
+        recapVisible.value = false;
+        window.electronAPI.send(
+            'message',
+            JSON.stringify({
+                command: 'state-set',
+                data: { currentMatch: { recapVisible: false } },
+            }),
+        );
+    }
 
     window.electronAPI.send(
         'message',

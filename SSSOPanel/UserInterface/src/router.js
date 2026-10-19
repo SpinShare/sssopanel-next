@@ -9,6 +9,7 @@ import ViewPanelCountdown from './views/Panel/Countdown.vue';
 import ViewPanelBrackets from './views/Panel/Brackets.vue';
 import ViewPanelMatchOverview from './views/Panel/MatchOverview.vue';
 import ViewPanelMatchIngame from './views/Panel/MatchIngame.vue';
+import ViewPanelMatchResults from './views/Panel/MatchResults.vue';
 import ViewPanelCommentators from './views/Panel/Commentators.vue';
 import ViewPanelEndStream from './views/Panel/EndStream.vue';
 import ViewPanelEndTournament from './views/Panel/EndTournament.vue';
@@ -18,6 +19,7 @@ import ViewScreenCountdown from './views/Screen/Countdown.vue';
 import ViewScreenBrackets from './views/Screen/Brackets.vue';
 import ViewScreenMatchOverview from './views/Screen/MatchOverview.vue';
 import ViewScreenMatchIngame from './views/Screen/MatchIngame.vue';
+import ViewScreenMatchResults from './views/Screen/MatchResults.vue';
 import ViewScreenCommentators from './views/Screen/Commentators.vue';
 import ViewScreenEndStream from './views/Screen/EndStream.vue';
 import ViewScreenEndTournament from './views/Screen/EndTournament.vue';
@@ -58,6 +60,10 @@ const routes = [
         component: ViewPanelMatchIngame,
     },
     {
+        path: '/panel/match-results',
+        component: ViewPanelMatchResults,
+    },
+    {
         path: '/panel/commentators',
         component: ViewPanelCommentators,
     },
@@ -89,6 +95,10 @@ const routes = [
     {
         path: '/screen/match-ingame',
         component: ViewScreenMatchIngame,
+    },
+    {
+        path: '/screen/match-results',
+        component: ViewScreenMatchResults,
     },
     {
         path: '/screen/commentators',
