@@ -267,16 +267,19 @@ onUnmounted(() => {
         & .marquee {
             white-space: nowrap;
             display: flex;
-            gap: 1em;
             position: absolute;
-            overflow: hidden;
+            will-change: transform;
             font-size: 3vw;
             font-weight: 800;
             color: rgba(0, 0, 0, 0.2);
 
+            & span {
+                padding-right: 1em;
+            }
+
             &.top {
                 top: 0;
-                left: -14.85em;
+                left: 0;
                 animation: marqueeLeft 10s infinite linear;
             }
 
@@ -289,21 +292,22 @@ onUnmounted(() => {
     }
 }
 
+// 10 copies, so -10% is exactly one copy and the loop is seamless
 @keyframes marqueeLeft {
     from {
-        left: -14.85em;
+        transform: translateX(-10%);
     }
     to {
-        left: 0;
+        transform: translateX(0);
     }
 }
 
 @keyframes marqueeRight {
     from {
-        left: 0;
+        transform: translateX(0);
     }
     to {
-        left: -14.85em;
+        transform: translateX(-10%);
     }
 }
 
