@@ -49,6 +49,12 @@
                 v-tooltip="'Toggle Ref Den'"
             />
             <SpinButton
+                @click="newMatch"
+                icon="restart"
+                :disabled="!matchStarted"
+                v-tooltip="matchStarted ? 'New Match (clears scores and sets, keeps players)' : 'Nothing to clear'"
+            />
+            <SpinButton
                 @click="transition"
                 icon="record"
                 color="primary"
@@ -65,6 +71,7 @@ import SpinInput from '@/components/Common/SpinInput.vue';
 import SpinSelect from '@/components/Common/SpinSelect.vue';
 import { ref, computed, watch, inject, onMounted, onUnmounted } from 'vue';
 import useSrxd, { guessIngameName } from '@/modules/useSrxd';
+import { resetMatch } from '@/modules/useWinnerPrompt';
 const emitter = inject('emitter');
 const game = useSrxd();
 
@@ -80,6 +87,17 @@ const ingamePlayer1 = ref('');
 const ingamePlayer2 = ref('');
 
 const refDenIsVisible = ref(false);
+
+const scores = ref({});
+const historyLength = ref(0);
+const matchStarted = computed(() => historyLength.value > 0 || Number(scores.value.score?.player1 ?? 0) + Number(scores.value.score?.player2 ?? 0) > 0);
+
+const newMatch = () => {
+    if (!window.confirm('Clear the scores and sets of the current match?')) return;
+    resetMatch(Number(scores.value.sets?.max ?? 3));
+    scores.value = {};
+    historyLength.value = 0;
+};
 
 const ingameMembers = computed(() => [...(game.value.room?.players ?? []), ...(game.value.room?.spectators ?? [])]);
 const ingameMemberNames = computed(() => ingameMembers.value.map((member) => member.name));
@@ -196,6 +214,8 @@ onMounted(() => {
         ingamePlayer1.value = state?.currentMatch?.ingame?.player1 ?? ingamePlayer1.value;
         ingamePlayer2.value = state?.currentMatch?.ingame?.player2 ?? ingamePlayer2.value;
         refDenIsVisible.value = state?.refDenIsVisible ?? false;
+        scores.value = state?.currentMatch?.scores ?? {};
+        historyLength.value = state?.currentMatch?.history?.length ?? 0;
         guessIngamePlayers();
     });
 
