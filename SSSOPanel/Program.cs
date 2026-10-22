@@ -110,6 +110,7 @@ public class Program
 
         // Connected after the panel exists so it gets the first game updates
         SrxdManager.SrxdManager.GetInstance().Configure();
+        MusicManager.MusicManager.GetInstance().Start();
         VoiceBotManager.VoiceBotManager.GetInstance().Configure();
 
         // Register IPC handler, only the panel talks over IPC

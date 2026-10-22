@@ -82,6 +82,15 @@ const musicCover = ref('');
 const musicCoverFailed = ref(false);
 
 let musicUpdateInterval = null;
+const onMusic = (data) => {
+    // The backend busts the cover url by its content, so a new url means a new image
+    if (data.cover !== musicCover.value) musicCoverFailed.value = false;
+
+    musicActive.value = data.active;
+    musicArtist.value = data.artist;
+    musicTitle.value = data.title;
+    musicCover.value = data.cover;
+};
 const updateMusic = () => {
     if (isGameplayScreen.value) return;
 
@@ -94,16 +103,7 @@ const updateMusic = () => {
 };
 
 onMounted(() => {
-    emitter.on('screen-music-get-response', (data) => {
-        // Tuna serves every cover from the same URL, so tie it to the song to refresh it
-        const cover = data.cover ? `${data.cover}?song=${encodeURIComponent(data.artist + data.title)}` : '';
-        if (cover !== musicCover.value) musicCoverFailed.value = false;
-
-        musicActive.value = data.active;
-        musicArtist.value = data.artist;
-        musicTitle.value = data.title;
-        musicCover.value = cover;
-    });
+    emitter.on('screen-music-get-response', onMusic);
 
     promoUpdateInterval = setInterval(() => {
         activePromoIndex.value = (activePromoIndex.value + 1) % promos.value.length;
@@ -116,7 +116,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-    emitter.off('screen-music-get-response');
+    emitter.off('screen-music-get-response', onMusic);
 
     clearInterval(promoUpdateInterval);
     clearInterval(musicUpdateInterval);

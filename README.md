@@ -8,18 +8,32 @@ A modern desktop streaming overlay for SpinShare SpeenOpen
 - [Building](#building)
 
 ### Setup
-#### Installing all dependencies
+You need the [.NET 10 SDK](https://dotnet.microsoft.com/download), [Node.js](https://nodejs.org) and git.
+Clone with `--recursive` (or run `git submodule update --init`) to get the voice bot.
+
+#### Quick start
+The dev scripts do everything in one go: fetch the voice bot and install its packages, build the backend, install the UI packages, start the vite dev server and launch the panel.
+
+Linux:
 ```sh
-cd SSSOPanel/UserInterface && npm install
+SSSOPanel/dev.sh
 ```
 
-#### Running a dev server
-```sh
-cd SSSOPanel/UserInterface && npm run dev
+Windows:
+```bat
+SSSOPanel\dev.bat
 ```
 
-#### Starting the client
-In a seperate terminal
+On Windows vite gets its own minimized window, close it to stop the dev server. If it's still running, the next run reuses it.
+Both scripts also work around Electron's installer sometimes leaving a half unpacked binary, by unpacking its downloaded zip themselves.
+
+#### Manually
+Install the UI packages and start the dev server
+```sh
+cd SSSOPanel/UserInterface && npm install && npm run dev
+```
+
+Then start the client in a seperate terminal
 ```sh
 cd SSSOPanel && dotnet run
 ```
