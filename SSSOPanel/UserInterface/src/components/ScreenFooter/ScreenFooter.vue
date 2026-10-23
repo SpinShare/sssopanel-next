@@ -30,11 +30,13 @@
                     v-else
                     class="mdi mdi-music"
                 ></span>
-                <span class="title">{{ musicTitle }}</span>
-                <template v-if="musicArtist">
-                    <span>-</span>
-                    <span class="artist">{{ musicArtist }}</span>
-                </template>
+                <ScreenMarquee>
+                    <span class="title">{{ musicTitle }}</span>
+                    <template v-if="musicArtist">
+                        <span>-</span>
+                        <span class="artist">{{ musicArtist }}</span>
+                    </template>
+                </ScreenMarquee>
             </div>
         </transition>
     </div>
@@ -44,6 +46,7 @@
 import { computed, inject, onMounted, onUnmounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { gameplayScreens } from '@/router';
+import ScreenMarquee from '@/components/ScreenMarquee/ScreenMarquee.vue';
 const emitter = inject('emitter');
 const route = useRoute();
 
@@ -191,22 +194,17 @@ onUnmounted(() => {
             object-fit: cover;
             border-radius: 0.25vw;
         }
+        // Too long scrolls instead of cutting off
         & span {
-            text-overflow: ellipsis;
             white-space: nowrap;
-            overflow: hidden;
-            flex-shrink: 0;
-            // overflow: hidden clips at the line box, the reset's line-height: 1 would cut off g, y, p
+            // The marquee clips at the line box, the reset's line-height: 1 would cut off g, y, p
             line-height: 1.3;
 
-            // The artists give up their space first, the title is only cut off once they are gone
             &.title {
                 color: rgba(255, 255, 255, 0.8);
-                flex-shrink: 1;
             }
             &.artist {
                 font-weight: bold;
-                flex-shrink: 9999;
             }
         }
     }

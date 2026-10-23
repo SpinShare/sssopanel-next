@@ -6,7 +6,7 @@ import VoiceBotService from './VoiceBotService';
 export default function useVoiceBot() {
     const emitter = inject('emitter');
 
-    const status = ref({ status: 'stopped', mode: 'remote', url: '', error: '', logs: [] });
+    const status = ref({ status: 'stopped', mode: 'local', url: '', error: '', logs: [] });
 
     const onStatus = (next) => {
         status.value = next;

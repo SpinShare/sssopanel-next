@@ -27,7 +27,7 @@ public class VoiceBotManager
     // Lets the panel send commands to the local bot, screens never get it
     private string _key = "";
 
-    public string Mode { get; private set; } = "remote";
+    public string Mode { get; private set; } = "local";
     public string Status { get; private set; } = "stopped";
     public string Error { get; private set; } = "";
     private string _url = DefaultRemoteUrl;
@@ -140,7 +140,7 @@ public class VoiceBotManager
     {
         var settings = SettingsManager.SettingsManager.GetInstance().GetFull();
 
-        var mode = settings.GetValueOrDefault("voicebot.mode") as string == "local" ? "local" : "remote";
+        var mode = settings.GetValueOrDefault("voicebot.mode") as string == "remote" ? "remote" : "local";
         var token = settings.GetValueOrDefault("voicebot.token") as string ?? "";
         var nodePath = settings.GetValueOrDefault("voicebot.nodePath") as string ?? "";
 

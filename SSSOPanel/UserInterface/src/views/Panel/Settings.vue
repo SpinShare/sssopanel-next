@@ -431,7 +431,7 @@ const srxdStatus = computed(() => {
 });
 
 const { status: voiceBot, bot: voiceBotConnection } = useVoiceBot();
-const voiceBotMode = ref('remote');
+const voiceBotMode = ref('local');
 const voiceBotUrl = ref('');
 const voiceBotToken = ref('');
 const voiceBotPort = ref('8765');
@@ -453,10 +453,10 @@ const voiceBotStatusText = computed(() => {
 });
 
 // Start uses what's saved, not what's typed
-const savedVoiceBot = ref({ mode: 'remote', token: '' });
+const savedVoiceBot = ref({ mode: 'local', token: '' });
 const voiceBotCanStart = computed(() => savedVoiceBot.value.mode === 'local' && savedVoiceBot.value.token !== '');
 const applySavedVoiceBot = (settings) => {
-    savedVoiceBot.value = { mode: settings['voicebot.mode'] === 'local' ? 'local' : 'remote', token: (settings['voicebot.token'] ?? '').trim() };
+    savedVoiceBot.value = { mode: settings['voicebot.mode'] === 'remote' ? 'remote' : 'local', token: (settings['voicebot.token'] ?? '').trim() };
 };
 
 // Channel controls, only the local bot takes commands
@@ -633,7 +633,7 @@ onMounted(() => {
         obsPassword.value = settings['obs.password'] ?? '';
         srxdEnabled.value = settings['srxd.enabled'] ?? true;
         srxdUrl.value = settings['srxd.url'] || 'ws://localhost:6767';
-        voiceBotMode.value = settings['voicebot.mode'] === 'local' ? 'local' : 'remote';
+        voiceBotMode.value = settings['voicebot.mode'] === 'remote' ? 'remote' : 'local';
         voiceBotUrl.value = settings['voicebot.url'] ?? '';
         voiceBotToken.value = settings['voicebot.token'] ?? '';
         voiceBotPort.value = settings['voicebot.port'] ? String(settings['voicebot.port']) : '8765';
