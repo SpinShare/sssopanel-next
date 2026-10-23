@@ -73,6 +73,15 @@ public class OverlayServer
                 await HandleScreen(socket, messageHandler);
             });
 
+            // Covers are cached by MusicManager, so the footer only switches songs once the image is ready
+            _app.MapGet("/music/cover/{hash}", (string hash) =>
+            {
+                var bytes = MusicManager.MusicManager.GetInstance().GetCover(hash);
+                if (bytes == null) return Results.NotFound();
+                var type = bytes.Length > 1 && bytes[0] == 0xFF && bytes[1] == 0xD8 ? "image/jpeg" : "image/png";
+                return Results.File(bytes, type);
+            });
+
             if (Directory.Exists(wwwrootPath))
             {
                 var fileProvider = new PhysicalFileProvider(wwwrootPath);
