@@ -82,10 +82,28 @@ const musicCover = ref('');
 const musicCoverFailed = ref(false);
 
 let musicUpdateInterval = null;
+let preloadingCover = '';
 const onMusic = (data) => {
     // The backend busts the cover url by its content, so a new url means a new image
+    if (data.cover && data.cover !== musicCover.value) {
+        // Keep showing the old song until the new cover is loaded, so they switch together
+        if (preloadingCover === data.cover) return;
+        preloadingCover = data.cover;
+        const image = new Image();
+        image.onload = image.onerror = () => {
+            if (preloadingCover !== data.cover) return;
+            preloadingCover = '';
+            musicCoverFailed.value = false;
+            showMusic(data);
+        };
+        image.src = data.cover;
+        return;
+    }
+    preloadingCover = '';
     if (data.cover !== musicCover.value) musicCoverFailed.value = false;
-
+    showMusic(data);
+};
+const showMusic = (data) => {
     musicActive.value = data.active;
     musicArtist.value = data.artist;
     musicTitle.value = data.title;
