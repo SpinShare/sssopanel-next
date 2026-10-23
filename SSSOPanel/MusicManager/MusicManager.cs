@@ -26,6 +26,10 @@ public class MusicManager
     private static readonly HttpClient HttpClient = new() { Timeout = TimeSpan.FromSeconds(2) };
     private static readonly HttpClient RemoteHttpClient = new() { Timeout = TimeSpan.FromSeconds(5) };
 
+    // Online cover per song for when tuna has none, misses included so we don't hit the rate limits every poll
+    private static readonly TimeSpan LookupRetry = TimeSpan.FromMinutes(1);
+    private readonly Dictionary<string, (string Url, DateTime At, bool Failed)> _lookups = new();
+
     private static MusicManager? _instance;
     private static readonly object Lock = new();
 
@@ -125,11 +129,15 @@ public class MusicManager
 
         var url = settingsManager.Get<string>("tuna.url");
         if (string.IsNullOrWhiteSpace(url)) url = DefaultTunaUrl;
-        url = url.TrimEnd('/');
+        url = url.Trim().TrimEnd('/');
+        // "localhost:1609" would otherwise be read as a url with the scheme "localhost"
+        if (!url.Contains("://")) url = "http://" + url;
 
         var (song, key, coverSource) = await GetTunaSong(url);
         var showCover = !settingsManager.Exists("tuna.showCover") || settingsManager.Get<bool>("tuna.showCover");
         if (!showCover) coverSource = "";
+        // Not found online still tries cover.png, in case a source writes one without a cover_path
+        else if (coverSource == LookupCover) coverSource = song.Active ? await LookupCoverOnline(song, key) is var found && found != "" ? found : url + "/cover.png" : "";
 
         if (song.Active && coverSource != "") await FetchCover(coverSource, coverSource != url + "/cover.png");
         Apply(song, key, coverSource);
@@ -153,6 +161,9 @@ public class MusicManager
             // Not written or reachable yet, try again next poll
             return;
         }
+
+        // Placeholder pages or empty files aren't covers
+        if (!IsImage(bytes)) return;
 
         var hash = Convert.ToHexString(SHA1.HashData(bytes))[..12];
         lock (Lock)
@@ -248,6 +259,89 @@ public class MusicManager
         return song;
     }
 
+    private static bool IsImage(byte[] bytes)
+    {
+        if (bytes.Length < 12) return false;
+        var png = bytes[0] == 0x89 && bytes[1] == 'P' && bytes[2] == 'N' && bytes[3] == 'G';
+        var jpeg = bytes[0] == 0xFF && bytes[1] == 0xD8 && bytes[2] == 0xFF;
+        var webp = bytes[0] == 'R' && bytes[1] == 'I' && bytes[2] == 'F' && bytes[3] == 'F' && bytes[8] == 'W' && bytes[9] == 'E' && bytes[10] == 'B' && bytes[11] == 'P';
+        var gif = bytes[0] == 'G' && bytes[1] == 'I' && bytes[2] == 'F';
+        return png || jpeg || webp || gif;
+    }
+
+    private async Task<string> LookupCoverOnline(Song song, string key)
+    {
+        lock (Lock)
+        {
+            if (_lookups.TryGetValue(key, out var cached) && (!cached.Failed || DateTime.UtcNow - cached.At < LookupRetry)) return cached.Url;
+        }
+
+        // Offline or rate limited, try again later
+        var failed = false;
+        string? url = null;
+        try
+        {
+            url = await LookupItunes(song);
+        }
+        catch (Exception)
+        {
+            failed = true;
+        }
+        if (url == null)
+        {
+            try
+            {
+                url = await LookupDeezer(song);
+            }
+            catch (Exception)
+            {
+                failed = true;
+            }
+        }
+        url ??= "";
+        if (url != "") failed = false;
+
+        lock (Lock)
+        {
+            if (_lookups.Count > 200) _lookups.Clear();
+            _lookups[key] = (url, DateTime.UtcNow, failed);
+        }
+        return url;
+    }
+
+    // Only trust the same artist and song, a wrong cover is worse than none
+    private static bool SameSong(Song song, string? artist, string? title)
+    {
+        return Similar(song.Artist.Split(", ")[0], artist) && Similar(song.Title, title);
+    }
+
+    // Loose on punctuation and "(feat. x)" style extras
+    private static bool Similar(string a, string? b)
+    {
+        static string Normalize(string s) => new(s.ToLowerInvariant().Where(char.IsLetterOrDigit).ToArray());
+        var (x, y) = (Normalize(a), Normalize(b ?? ""));
+        return x != "" && y != "" && (x.Contains(y) || y.Contains(x));
+    }
+
+    private static async Task<string?> LookupItunes(Song song)
+    {
+        var term = Uri.EscapeDataString(song.Artist + " " + song.Title);
+        var json = JObject.Parse(await RemoteHttpClient.GetStringAsync($"https://itunes.apple.com/search?media=music&entity=song&limit=5&term={term}"));
+        var match = json["results"]?.FirstOrDefault(r => SameSong(song, r.Value<string>("artistName"), r.Value<string>("trackName")));
+        // The 100x100 url takes any size
+        return match?.Value<string>("artworkUrl100")?.Replace("100x100bb", "600x600bb");
+    }
+
+    private static async Task<string?> LookupDeezer(Song song)
+    {
+        var query = Uri.EscapeDataString($"artist:\"{song.Artist.Split(", ")[0]}\" track:\"{song.Title}\"");
+        var json = JObject.Parse(await RemoteHttpClient.GetStringAsync($"https://api.deezer.com/search?limit=5&q={query}"));
+        var match = json["data"]?.FirstOrDefault(r => SameSong(song, r["artist"]?.Value<string>("name"), r.Value<string>("title")));
+        return match?["album"]?.Value<string>("cover_xl");
+    }
+
+    private const string LookupCover = "lookup";
+
     private static async Task<(Song Song, string Key, string CoverSource)> GetTunaSong(string url)
     {
         try
@@ -260,10 +354,12 @@ public class MusicManager
             var active = song.Value<string>("status") == "playing" && title != "";
 
             // cover_path is the player's own art url for some players (e.g. tidal), which is per track and right away.
+            // "n/a" means tuna found no art (e.g. mpd without a music folder), cover.png is then missing or stale, so look it up online.
             // Otherwise use cover.png, but from our tuna url since cover_url always says localhost
             var coverPath = song.Value<string>("cover_path") ?? "";
             var coverSource = coverPath.StartsWith("http://") || coverPath.StartsWith("https://")
                 ? coverPath
+                : coverPath is "" or "n/a" ? LookupCover
                 : string.IsNullOrEmpty(song.Value<string>("cover_url")) ? "" : url + "/cover.png";
 
             var key = string.Join("\n", artist, title, song.Value<string>("album") ?? "", coverPath);

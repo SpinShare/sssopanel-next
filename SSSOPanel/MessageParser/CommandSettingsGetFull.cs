@@ -10,7 +10,7 @@ public class CommandSettingsGetFull : ICommand
 
         Message response = new() {
             Command = "settings-get-full-response",
-            Data = settingsManager.GetFull()
+            Data = sender?.IsPanel == true ? settingsManager.GetFull() : settingsManager.GetFullWithoutSecrets()
         };
         
         await Task.Yield();
