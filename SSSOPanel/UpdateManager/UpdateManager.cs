@@ -51,10 +51,9 @@ public class UpdateManager
 
     private async Task<List<GithubRelease>> FetchReleases()
     {
-        // TODO: Change Owner/Repo
         try
         {
-            using var request = new HttpRequestMessage(HttpMethod.Get, "https://api.github.com/repos/LauraWebdev/sssopanel-next/releases");
+            using var request = new HttpRequestMessage(HttpMethod.Get, "https://api.github.com/repos/SpinShare/sssopanel-next/releases");
             request.Headers.UserAgent.Add(new("SSSOPanel", CurrentVersion));
 
             using var response = await HttpClient.SendAsync(request);

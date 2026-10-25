@@ -118,12 +118,12 @@
                                     >
                                         <span
                                             class="pronouns"
-                                            v-if="player.spinshareProfile.pronouns"
+                                            v-if="player.spinshareProfile?.pronouns"
                                         >
-                                            {{ player.spinshareProfile.pronouns }}
+                                            {{ player.spinshareProfile?.pronouns }}
                                         </span>
                                         <span>
-                                            {{ player.spinshareProfile.username }}
+                                            {{ player.spinshareProfile?.username ?? player.name }}
                                         </span>
                                     </span>
                                 </div>

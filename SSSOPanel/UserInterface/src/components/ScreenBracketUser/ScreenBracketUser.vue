@@ -9,7 +9,7 @@
                 v-if="player?.entrant?.spinshareProfile?.pronouns"
                 >({{ player?.entrant?.spinshareProfile?.pronouns }})</span
             >
-            <span class="username">{{ player?.entrant?.spinshareProfile?.username }}</span>
+            <span class="username">{{ player?.entrant?.spinshareProfile?.username ?? player?.entrant?.name }}</span>
         </div>
         <span class="score">{{ player?.score }}</span>
     </div>

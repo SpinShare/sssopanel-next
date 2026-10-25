@@ -90,13 +90,27 @@ const refDenIsVisible = ref(false);
 
 const scores = ref({});
 const historyLength = ref(0);
+// Who the current match is between, so picking someone else can offer a fresh match
+const matchPlayerIds = ref([]);
 const matchStarted = computed(() => historyLength.value > 0 || Number(scores.value.score?.player1 ?? 0) + Number(scores.value.score?.player2 ?? 0) > 0);
 
 const newMatch = () => {
-    if (!window.confirm('Clear the scores and sets of the current match?')) return;
-    resetMatch(Number(scores.value.sets?.max ?? 3));
-    scores.value = {};
-    historyLength.value = 0;
+    emitter.emit('alert-show', {
+        title: 'New match?',
+        message: 'Clears the scores and sets of the current match, players and chart stay.',
+        actions: [
+            { label: 'Cancel' },
+            {
+                label: 'New Match',
+                color: 'primary',
+                click: () => {
+                    resetMatch(Number(scores.value.sets?.max ?? 3));
+                    scores.value = {};
+                    historyLength.value = 0;
+                },
+            },
+        ],
+    });
 };
 
 const ingameMembers = computed(() => [...(game.value.room?.players ?? []), ...(game.value.room?.spectators ?? [])]);
@@ -137,6 +151,35 @@ const pushIngame = () => {
 };
 
 const transition = () => {
+    // Different players with points still on the board, the last match was probably never restarted
+    const ids = [loadedPlayer1.value?.id, loadedPlayer2.value?.id].map(String).sort();
+    const newPlayers = matchPlayerIds.value.length > 0 && ids.join() !== matchPlayerIds.value.join();
+    if (!newPlayers || !matchStarted.value) {
+        showPlayers();
+        return;
+    }
+
+    emitter.emit('alert-show', {
+        title: 'New match?',
+        message: 'These are different players, but the last match still has scores and sets. Clear them for this match?',
+        actions: [
+            { label: 'Keep Scores', click: showPlayers },
+            {
+                label: 'New Match',
+                color: 'primary',
+                click: () => {
+                    resetMatch(Number(scores.value.sets?.max ?? 3));
+                    scores.value = {};
+                    historyLength.value = 0;
+                    showPlayers();
+                },
+            },
+        ],
+    });
+};
+
+const showPlayers = () => {
+    matchPlayerIds.value = [loadedPlayer1.value?.id, loadedPlayer2.value?.id].map(String).sort();
     window.electronAPI.send(
         'message',
         JSON.stringify({
@@ -188,7 +231,7 @@ const loadPlayers = (newMappings) => {
     playerMappings.value.forEach((mapping) => {
         playerSelectOptions.value.push({
             icon: 'account-box',
-            label: mapping.spinshareProfile.username,
+            label: mapping.spinshareProfile?.username ?? mapping.name,
             value: mapping.id + '',
         });
     });
@@ -216,6 +259,8 @@ onMounted(() => {
         refDenIsVisible.value = state?.refDenIsVisible ?? false;
         scores.value = state?.currentMatch?.scores ?? {};
         historyLength.value = state?.currentMatch?.history?.length ?? 0;
+        const players = state?.currentMatch?.players;
+        matchPlayerIds.value = players?.player1 || players?.player2 ? [players?.player1?.id, players?.player2?.id].map(String).sort() : [];
         guessIngamePlayers();
     });
 

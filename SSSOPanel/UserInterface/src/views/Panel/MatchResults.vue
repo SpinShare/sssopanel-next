@@ -114,8 +114,21 @@ const transition = () => {
 
 // Back to overview to pick the next players, or transition right away for a rematch
 const newMatch = () => {
-    resetMatch(Number(scores.value.sets?.max ?? 3));
-    router.push('/panel/match-overview');
+    emitter.emit('alert-show', {
+        title: 'New match?',
+        message: 'Clears the scores and sets of the current match, players and chart stay.',
+        actions: [
+            { label: 'Cancel' },
+            {
+                label: 'New Match',
+                color: 'primary',
+                click: () => {
+                    resetMatch(Number(scores.value.sets?.max ?? 3));
+                    router.push('/panel/match-overview');
+                },
+            },
+        ],
+    });
 };
 
 const toggleRefDen = () => {

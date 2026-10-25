@@ -23,7 +23,7 @@
                                 {{ player1?.spinshareProfile?.pronouns }}
                             </div>
                             <div class="username">
-                                {{ player1?.spinshareProfile?.username }}
+                                {{ player1?.spinshareProfile?.username ?? player1?.name }}
                             </div>
                             <div
                                 v-if="playerDifficulty1"
@@ -101,7 +101,7 @@
                                 {{ player2?.spinshareProfile?.pronouns }}
                             </div>
                             <div class="username">
-                                {{ player2?.spinshareProfile?.username }}
+                                {{ player2?.spinshareProfile?.username ?? player2?.name }}
                             </div>
                             <div
                                 v-if="playerDifficulty2"

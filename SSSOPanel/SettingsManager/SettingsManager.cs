@@ -8,6 +8,8 @@ public class SettingsManager
     private static SettingsManager? _instance;
     private static readonly object Lock = new();
     private Dictionary<string, object?> _settings = new();
+    // MusicManager reads from a background thread while commands write
+    private readonly object _settingsLock = new();
     private readonly string _settingsFilePath;
 
     // Only these are encrypted on disk, in memory everything stays plaintext for the managers
@@ -51,9 +53,12 @@ public class SettingsManager
 
     public T? Get<T>(string key)
     {
-        if (_settings.TryGetValue(key, out var value))
+        lock (_settingsLock)
         {
-            return (T)Convert.ChangeType(value, typeof(T))!;
+            if (_settings.TryGetValue(key, out var value))
+            {
+                return (T)Convert.ChangeType(value, typeof(T))!;
+            }
         }
 
         return default;
@@ -61,30 +66,46 @@ public class SettingsManager
 
     public void Set<T>(string key, T? value)
     {
-        _settings[key] = value;
-        SaveSettings();
+        lock (_settingsLock)
+        {
+            _settings[key] = value;
+            SaveSettings();
+        }
     }
 
     public bool Exists(string key)
     {
-        return _settings.ContainsKey(key);
+        lock (_settingsLock)
+        {
+            return _settings.ContainsKey(key);
+        }
     }
 
     public void Clear()
     {
-        _settings.Clear();
-        SaveSettings();
+        lock (_settingsLock)
+        {
+            _settings.Clear();
+            SaveSettings();
+        }
     }
 
+    // A copy, so callers can read it while settings are written
     public Dictionary<string, object?> GetFull()
     {
-        return _settings;
+        lock (_settingsLock)
+        {
+            return new Dictionary<string, object?>(_settings);
+        }
     }
 
     // For the screens, they never need the secrets and anything on the overlay port could ask for them
     public Dictionary<string, object?> GetFullWithoutSecrets()
     {
-        return _settings.Where(setting => !SecretKeys.Contains(setting.Key)).ToDictionary();
+        lock (_settingsLock)
+        {
+            return _settings.Where(setting => !SecretKeys.Contains(setting.Key)).ToDictionary();
+        }
     }
 
     public static bool SettingsFileExists()

@@ -15,18 +15,18 @@
                             <div class="avatar-box">
                                 <div
                                     class="avatar"
-                                    :style="`background-image: url(${player1.spinshareProfile.avatar})`"
+                                    :style="`background-image: url(${player1.spinshareProfile?.avatar ?? ''})`"
                                 ></div>
                             </div>
                             <div class="meta">
                                 <div
-                                    v-if="player1.spinshareProfile.pronouns"
+                                    v-if="player1.spinshareProfile?.pronouns"
                                     class="pronouns"
                                 >
-                                    {{ player1.spinshareProfile.pronouns }}
+                                    {{ player1.spinshareProfile?.pronouns }}
                                 </div>
                                 <div class="username">
-                                    {{ player1.spinshareProfile.username }}
+                                    {{ player1.spinshareProfile?.username ?? player1.name }}
                                 </div>
                             </div>
                         </div>
@@ -38,18 +38,18 @@
                             <div class="avatar-box">
                                 <div
                                     class="avatar"
-                                    :style="`background-image: url(${player2.spinshareProfile.avatar})`"
+                                    :style="`background-image: url(${player2.spinshareProfile?.avatar ?? ''})`"
                                 ></div>
                             </div>
                             <div class="meta">
                                 <div
-                                    v-if="player2.spinshareProfile.pronouns"
+                                    v-if="player2.spinshareProfile?.pronouns"
                                     class="pronouns"
                                 >
-                                    {{ player2.spinshareProfile.pronouns }}
+                                    {{ player2.spinshareProfile?.pronouns }}
                                 </div>
                                 <div class="username">
-                                    {{ player2.spinshareProfile.username }}
+                                    {{ player2.spinshareProfile?.username ?? player2.name }}
                                 </div>
                             </div>
                         </div>
