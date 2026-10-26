@@ -72,7 +72,7 @@ const voiceMembers = computed(() => bot.voiceMembers);
     align-items: center;
     justify-content: space-between;
     position: relative;
-    font-family: 'Orbitron', sans-serif;
+    font-family: 'Orbitron', 'Noto Sans JP', sans-serif;
     flex-wrap: nowrap;
 }
 

@@ -27,12 +27,15 @@ import { inject } from 'vue';
 import useWinnerPrompt from '@/modules/useWinnerPrompt';
 import useTheme from '@/modules/useTheme';
 import useVoiceBot from '@/modules/useVoiceBot';
+import useRefDenRelay from '@/modules/useRefDenRelay';
 import AlertMessage from '@/components/Common/AlertMessage.vue';
 const emitter = inject('emitter');
 useWinnerPrompt();
 useTheme();
 // Keeps the panel connected to the voice bot on every page, results get posted through it
 useVoiceBot();
+// Ref channel messages go into the state from the panel only
+useRefDenRelay();
 
 window.electronAPI.on('message', (rawResponse) => {
     const response = JSON.parse(rawResponse);

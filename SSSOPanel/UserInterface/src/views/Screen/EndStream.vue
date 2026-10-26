@@ -366,7 +366,7 @@ onUnmounted(() => {
                     color: #ededed;
                     padding: 2vw 0;
                     border-radius: 0 0.5vw 0.5vw 0.5vw;
-                    font-family: 'JetBrains Mono', monospace;
+                    font-family: 'JetBrains Mono', 'Noto Sans JP', monospace;
                     font-weight: 900;
                     display: flex;
                     flex-direction: column;
