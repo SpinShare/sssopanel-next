@@ -58,7 +58,8 @@ onMounted(() => {
         dialogActions.value = options.actions ?? [{ label: 'Close' }];
         dialogSwitches.value = (options.switches ?? []).map((toggle) => ({ ...toggle }));
 
-        dialogRef.value.showModal();
+        // A newer alert replaces the open one, showModal throws on an already open dialog
+        if (!dialogRef.value.open) dialogRef.value.showModal();
     });
 
     emitter.on('alert-close', () => {

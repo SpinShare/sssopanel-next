@@ -23,7 +23,7 @@
                                 {{ player1?.spinshareProfile?.pronouns }}
                             </div>
                             <div class="username">
-                                {{ player1?.spinshareProfile?.username }}
+                                {{ player1?.spinshareProfile?.username ?? player1?.name }}
                             </div>
                             <div
                                 v-if="playerDifficulty1"
@@ -101,7 +101,7 @@
                                 {{ player2?.spinshareProfile?.pronouns }}
                             </div>
                             <div class="username">
-                                {{ player2?.spinshareProfile?.username }}
+                                {{ player2?.spinshareProfile?.username ?? player2?.name }}
                             </div>
                             <div
                                 v-if="playerDifficulty2"
@@ -168,9 +168,12 @@
                 </section>
                 <section
                     class="chart-info"
-                    v-if="!!chart"
+                    v-if="!!chart || refDenIsVisible"
                 >
-                    <div class="chart">
+                    <div
+                        v-if="chart"
+                        class="chart"
+                    >
                         <div
                             v-if="chart.paths?.cover"
                             class="cover"
@@ -230,18 +233,24 @@
                         </div>
                     </div>
 
-                    <div
-                        class="banner"
-                        v-if="chart.id"
-                    >
-                        <div class="tint themed"></div>
-                        <div class="noise"></div>
+                    <!-- The ref den takes the banner's place while it's toggled on -->
+                    <div class="side">
+                        <transition name="side">
+                            <div
+                                class="banner"
+                                v-if="chart?.id && !refDenIsVisible"
+                            >
+                                <div class="tint themed"></div>
+                                <div class="noise"></div>
 
-                        <div class="text">
-                            <span>Get this chart on SpinSha.re!</span>
-                            <span>spinsha.re/song/{{ chart.id }}</span>
-                        </div>
-                        <span class="mdi mdi-archive-music-outline"></span>
+                                <div class="text">
+                                    <span>Get this chart on SpinSha.re!</span>
+                                    <span>spinsha.re/song/{{ chart.id }}</span>
+                                </div>
+                                <span class="mdi mdi-archive-music-outline"></span>
+                            </div>
+                        </transition>
+                        <ScreenRefDen variant="inline" />
                     </div>
                 </section>
             </div>
@@ -256,6 +265,7 @@ import useSrxd, { stripRichText } from '@/modules/useSrxd';
 import ScreenRollingNumber from '@/components/ScreenRollingNumber/ScreenRollingNumber.vue';
 import ScreenMatchResults from '@/components/ScreenMatchResults/ScreenMatchResults.vue';
 import ScreenStatsBox from '@/components/ScreenStatsBox/ScreenStatsBox.vue';
+import ScreenRefDen from '@/components/ScreenRefDen/ScreenRefDen.vue';
 const emitter = inject('emitter');
 const game = useSrxd();
 
@@ -276,6 +286,7 @@ const scoresScorePlayer2 = ref(0);
 const ingame = ref({ player1: '', player2: '' });
 const results = ref(null);
 const resultsVisible = ref(false);
+const refDenIsVisible = ref(false);
 
 // Until the first scores of a new song arrive, the last round's are still around
 const liveScores = computed(() => {
@@ -449,6 +460,7 @@ const applyState = (state) => {
     ingame.value = state?.currentMatch?.ingame ?? ingame.value;
     results.value = state?.currentMatch?.results ?? results.value;
     resultsVisible.value = state?.currentMatch?.resultsVisible ?? resultsVisible.value;
+    refDenIsVisible.value = state?.refDenIsVisible ?? false;
 
     scoresSetsCurrent.value = state?.currentMatch?.scores?.sets?.current ?? scoresSetsCurrent.value;
     scoresSetsMax.value = state?.currentMatch?.scores?.sets?.max ?? scoresSetsMax.value;
@@ -923,6 +935,19 @@ $gameplayMask: linear-gradient(to bottom, #000 calc(50% - #{$gameplayHeight * 0.
                 }
             }
 
+            // Banner and ref den share one cell so they cross fade in place
+            & .side {
+                // Stays in the right column when there's no chart
+                grid-column: 2;
+                display: grid;
+                justify-items: end;
+                align-items: center;
+
+                & > * {
+                    grid-area: 1 / 1;
+                }
+            }
+
             & .banner {
                 background: #111;
                 padding: 1.25vw 2vw;
@@ -984,6 +1009,16 @@ $gameplayMask: linear-gradient(to bottom, #000 calc(50% - #{$gameplayHeight * 0.
             }
         }
     }
+}
+
+.side-enter-active,
+.side-leave-active {
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.side-enter-from,
+.side-leave-to {
+    opacity: 0;
+    transform: translateY(1vw);
 }
 
 @keyframes tugLowHealth {

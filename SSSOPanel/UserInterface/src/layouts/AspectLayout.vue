@@ -48,7 +48,7 @@ onMounted(() => {
     overflow: hidden;
     align-self: center;
     justify-self: center;
-    font-family: 'Orbitron', sans-serif;
+    font-family: 'Orbitron', 'Noto Sans JP', sans-serif;
 
     &.transparent {
         background: transparent;

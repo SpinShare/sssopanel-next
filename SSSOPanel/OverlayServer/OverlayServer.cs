@@ -78,7 +78,13 @@ public class OverlayServer
             {
                 var bytes = MusicManager.MusicManager.GetInstance().GetCover(hash);
                 if (bytes == null) return Results.NotFound();
-                var type = bytes.Length > 1 && bytes[0] == 0xFF && bytes[1] == 0xD8 ? "image/jpeg" : "image/png";
+                var type = bytes[0] switch
+                {
+                    0xFF => "image/jpeg",
+                    (byte)'R' => "image/webp",
+                    (byte)'G' => "image/gif",
+                    _ => "image/png",
+                };
                 return Results.File(bytes, type);
             });
 

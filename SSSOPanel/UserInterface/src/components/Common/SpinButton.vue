@@ -81,7 +81,7 @@ button {
         }
     }
     & .label {
-        font-family: 'Work Sans', sans-serif;
+        font-family: 'Work Sans', 'Noto Sans JP', sans-serif;
         font-size: 1rem;
     }
 

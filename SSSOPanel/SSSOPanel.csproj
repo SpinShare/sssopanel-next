@@ -6,7 +6,7 @@
 		<Platforms>AnyCPU</Platforms>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<Version>1.4.0</Version>
+		<Version>1.4.1</Version>
 		<RollForward>LatestMajor</RollForward>
 		<NoWarn>$(NoWarn);ELECTRON001;CA1416</NoWarn>
 	</PropertyGroup>
@@ -45,8 +45,6 @@
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.0" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="Sentry" Version="3.33.0" />
-		<PackageReference Include="SixLabors.ImageSharp" Version="3.0.1" />
-		<PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta15" />
 	</ItemGroup>
 
 	<ItemGroup>

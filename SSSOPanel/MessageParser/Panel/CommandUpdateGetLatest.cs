@@ -13,7 +13,8 @@ public class CommandUpdateGetLatest : ICommand
         Console.WriteLine("Getting latest Version");
 
         var releases = await updateManager.LoadReleases();
-        var latestRelease = releases.FirstOrDefault(x => x.Prerelease == false);
+        // Only version tags, the repo also has dated and other one-off releases that can't be compared
+        var latestRelease = releases.FirstOrDefault(x => !x.Prerelease && Version.TryParse(x.TagName.TrimStart('v').Replace("-preview", ""), out _));
 
         Message response = new() {
             Command = "update-get-latest-response",

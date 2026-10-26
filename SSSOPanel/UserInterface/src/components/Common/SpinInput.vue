@@ -75,7 +75,7 @@ defineProps({
             background: rgba(var(--colorBaseText), 0.07);
             border: 0;
             color: rgb(var(--colorBaseText));
-            font-family: 'Work Sans', sans-serif;
+            font-family: 'Work Sans', 'Noto Sans JP', sans-serif;
             font-size: 1rem;
             border-radius: 4px;
             padding: 0 15px;
@@ -100,7 +100,7 @@ defineProps({
                 background: rgba(var(--colorBaseText), 0.07);
                 border: 0;
                 color: rgb(var(--colorBaseText));
-                font-family: 'Work Sans', sans-serif;
+                font-family: 'Work Sans', 'Noto Sans JP', sans-serif;
                 font-size: 1rem;
                 border-radius: 4px;
                 padding: 0 15px;

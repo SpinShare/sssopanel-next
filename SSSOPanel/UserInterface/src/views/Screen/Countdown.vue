@@ -173,7 +173,7 @@ onUnmounted(() => {
             }
 
             & .time-left {
-                font-family: 'JetBrains Mono', monospace;
+                font-family: 'JetBrains Mono', 'Noto Sans JP', monospace;
                 font-weight: 900;
                 display: flex;
                 align-items: flex-end;

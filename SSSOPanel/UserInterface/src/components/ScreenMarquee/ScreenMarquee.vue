@@ -52,6 +52,8 @@ const update = async () => {
     if (fits) return;
 
     await nextTick();
+    // Another update may have run meanwhile and found that it fits after all
+    if (!overflowing.value || animation || !track.value?.children[1]) return;
     // One copy plus the gap, the second copy then sits exactly where the first started
     const distance = track.value.children[1].offsetLeft - track.value.children[0].offsetLeft;
     const scrollTime = (distance / SPEED) * 1000;

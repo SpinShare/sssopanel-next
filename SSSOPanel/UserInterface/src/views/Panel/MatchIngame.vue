@@ -603,7 +603,7 @@ const loadPlayers = (newMappings) => {
     playerMappings.value.forEach((mapping) => {
         playerSelectOptions.value.push({
             icon: 'account-box',
-            label: mapping.spinshareProfile.username,
+            label: mapping.spinshareProfile?.username ?? mapping.name,
             value: mapping.id + '',
         });
     });
@@ -631,7 +631,9 @@ const toggleResults = () => {
     if (resultsVisible.value) {
         // The saved results can be merged with an earlier attempt (replay), so they win for the same round
         const picked = pickResults(game.value.results, { player1: ingamePlayer1.value, player2: ingamePlayer2.value });
-        currentMatch.results = savedResults.value?.round === picked.round && (savedResults.value.player1 || savedResults.value.player2) ? savedResults.value : picked;
+        // They also stand in when the game has no results (reconnected or restarted since)
+        const saved = savedResults.value?.player1 || savedResults.value?.player2 ? savedResults.value : null;
+        currentMatch.results = saved && (saved.round === picked.round || (!picked.player1 && !picked.player2)) ? saved : picked;
         currentMatch.resultsSlide = 0;
         currentMatch.recapVisible = false;
         resultsSlide.value = 0;

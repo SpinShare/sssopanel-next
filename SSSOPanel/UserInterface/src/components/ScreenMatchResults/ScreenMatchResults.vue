@@ -46,15 +46,18 @@
                                 <span>{{ side.player?.spinshareProfile?.username ?? side.entry?.name ?? 'Unknown' }}</span>
                             </header>
                             <div class="box">
-                                <!-- Winner only, a tinted frame that joins up with the tinted header tab -->
-                                <template v-if="side.won">
-                                    <div class="frame">
-                                        <div class="tint themed"></div>
-                                        <div class="noise"></div>
-                                    </div>
-                                    <div class="fill"></div>
-                                </template>
-                                <template v-if="side.entry">
+                                <!-- Winner only, the tinted rim around the card -->
+                                <div
+                                    v-if="side.won"
+                                    class="frame"
+                                >
+                                    <div class="tint themed"></div>
+                                    <div class="noise"></div>
+                                </div>
+                                <div
+                                    v-if="side.entry"
+                                    class="inner"
+                                >
                                     <div class="headline">
                                         <div
                                             v-if="avatars && side.player?.spinshareProfile?.avatar"
@@ -87,10 +90,10 @@
                                             <span class="count">{{ count(side.entry, judgement.key) + (judgement.early ? count(side.entry, judgement.early) : 0) }}</span>
                                         </div>
                                     </div>
-                                </template>
+                                </div>
                                 <div
                                     v-else
-                                    class="missing"
+                                    class="inner missing"
                                 >
                                     Did not finish
                                 </div>
@@ -317,10 +320,13 @@ const sides = computed(() => {
         }
 
         & .player {
+            // Rim width of the winner's tinted frame, 0 for the other card
+            --rim: 0vw;
             width: 32vw;
             display: flex;
             flex-direction: column;
             align-items: flex-start;
+            position: relative;
 
             &.right {
                 align-items: flex-end;
@@ -355,10 +361,32 @@ const sides = computed(() => {
                 }
             }
 
-            // Same tint as the sets box and the spinshare banner, dark text on top
-            &.won header {
-                background: transparent;
-                color: #111;
+            // Same tint as the sets box and the spinshare banner, dark text on top.
+            // The tab and the rim share one tint the size of the whole card, positioned against .player, so the
+            // gradient and grain run through where they meet. header and box only cut it out with clip-path,
+            // which (unlike overflow) also clips descendants positioned against an ancestor
+            &.won {
+                --rim: 0.25vw;
+
+                & header,
+                & .box {
+                    position: static;
+                    background: transparent;
+                }
+
+                & header {
+                    color: #111;
+                    // A pixel into the box, so no antialiased seam shows between the two clips
+                    clip-path: inset(0 0 -1px 0 round 0.5vw 0.5vw 0 0);
+                }
+
+                & .box {
+                    clip-path: inset(0 round 0 0.5vw 0.5vw 0.5vw);
+                }
+
+                &.right .box {
+                    clip-path: inset(0 round 0.5vw 0 0.5vw 0.5vw);
+                }
             }
 
             & .tint {
@@ -377,30 +405,28 @@ const sides = computed(() => {
                 align-self: stretch;
                 display: flex;
                 flex-direction: column;
-                gap: 1vw;
                 background: #111;
                 color: #ededed;
-                padding: 1.5vw;
+                padding: var(--rim);
                 border-radius: 0 0.5vw 0.5vw 0.5vw;
                 position: relative;
                 overflow: hidden;
-
-                & > *:not(.frame):not(.fill) {
-                    position: relative;
-                    z-index: 10;
-                }
 
                 & .frame {
                     position: absolute;
                     inset: 0;
                 }
 
-                & .fill {
-                    position: absolute;
-                    inset: 0.25vw;
+                & .inner {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 1vw;
+                    // Content stays put whether the rim is there or not
+                    padding: calc(1.5vw - var(--rim));
                     background: #111;
                     border-radius: 0.3vw;
-                    z-index: 5;
+                    position: relative;
+                    z-index: 10;
                 }
 
                 & .headline {
@@ -488,7 +514,7 @@ const sides = computed(() => {
                 & .missing {
                     color: rgba(255, 255, 255, 0.6);
                     font-size: 1.15vw;
-                    padding: 2vw 0;
+                    padding: calc(3.5vw - var(--rim)) calc(1.5vw - var(--rim));
                 }
             }
         }
@@ -501,8 +527,8 @@ const sides = computed(() => {
     }
 
     // The title and dots need room in the 540px band, so the recap cards are a bit tighter
-    &.recap:not(.plain) .content .player .box {
-        padding: 1.1vw 1.5vw;
+    &.recap:not(.plain) .content .player .inner:not(.missing) {
+        padding: calc(1.1vw - var(--rim)) calc(1.5vw - var(--rim));
         gap: 0.6vw;
 
         & .headline .grade {

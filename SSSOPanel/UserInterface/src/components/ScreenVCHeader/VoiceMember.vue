@@ -47,7 +47,7 @@ export default {
     border: 1px solid transparent;
     min-width: max-content;
     white-space: nowrap;
-    font-family: 'Orbitron', sans-serif;
+    font-family: 'Orbitron', 'Noto Sans JP', sans-serif;
     color: rgba(255, 255, 255, 75%);
 }
 

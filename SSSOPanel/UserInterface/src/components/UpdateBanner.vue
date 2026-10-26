@@ -65,7 +65,7 @@ const openUpdate = () => {
         'message',
         JSON.stringify({
             command: 'open-in-browser',
-            data: 'https://github.com/SpinShare/client-next/releases/latest',
+            data: `https://github.com/SpinShare/sssopanel-next/releases/tag/${latestRelease.value.tag_name}`,
         }),
     );
 };

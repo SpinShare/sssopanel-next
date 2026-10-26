@@ -6,7 +6,12 @@
             :style="{ gridTemplateRows }"
         >
             <ScreenVCHeader v-if="showHeader" />
-            <ScreenRefDen />
+            <!-- Gameplay screens place it themselves, there's no room to float it -->
+            <!-- Shorter on the overview, the player cards reach down close to it -->
+            <ScreenRefDen
+                v-if="!gameplayScreens.includes(route.path)"
+                :compact="route.path === '/screen/match-overview'"
+            />
 
             <slot />
 
@@ -18,7 +23,7 @@
 <script setup>
 import { inject, onMounted, onUnmounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
-import router from '@/router';
+import router, { gameplayScreens } from '@/router';
 import AspectLayout from '@/layouts/AspectLayout.vue';
 import ScreenFooter from '@/components/ScreenFooter/ScreenFooter.vue';
 import ScreenVCHeader from '../components/ScreenVCHeader/ScreenVCHeader.vue';
@@ -85,7 +90,7 @@ onUnmounted(() => {
     display: grid;
     //grid-template-rows: auto 1fr auto;
     background: #222;
-    font-family: 'Orbitron', sans-serif;
+    font-family: 'Orbitron', 'Noto Sans JP', sans-serif;
 
     &.transparent {
         background: transparent;

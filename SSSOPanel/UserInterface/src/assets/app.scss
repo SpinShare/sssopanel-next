@@ -1,4 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;500;700&display=swap');
+// Fallback for japanese names and chat, electron doesn't always pick up a system CJK font. Split by unicode-range, so it only loads when such text shows up
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100;200;300;400;500;600;700;800&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
 
 // Overlay themes are html[data-theme] (useTheme.js), which also sets --themeBackground to the event's
@@ -53,7 +56,7 @@ html, body {
     cursor: default;
 }
 body {
-    font-family: 'Work Sans', sans-serif;
+    font-family: 'Work Sans', 'Noto Sans JP', sans-serif;
     font-size: 1rem;
     background: rgb(var(--colorBase));
     color: rgb(var(--colorBaseText));
@@ -117,7 +120,7 @@ a {
     --mx-menu-placeholder-width: 25px;
     --mx-menu-icon-size: 18px;
     
-    font-family: 'Work Sans', sans-serif;
+    font-family: 'Work Sans', 'Noto Sans JP', sans-serif;
     font-size: 16px;
     border-radius: 6px;
     padding: 6px 0;
