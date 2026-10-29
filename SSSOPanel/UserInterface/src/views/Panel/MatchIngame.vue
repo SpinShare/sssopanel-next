@@ -279,6 +279,7 @@
 </template>
 
 <script setup>
+import useRefDenToggle from '@/modules/useRefDenToggle';
 import AppLayout from '../../layouts/AppLayout.vue';
 import SpinButton from '@/components/Common/SpinButton.vue';
 import SpinInput from '@/components/Common/SpinInput.vue';
@@ -620,7 +621,7 @@ const setPlayer2 = () => {
     guessIngamePlayers(false);
 };
 
-const refDenIsVisible = ref(false);
+const { refDenIsVisible, toggleRefDen } = useRefDenToggle();
 const resultsVisible = ref(false);
 
 // Shows the last finished round over the gameplay cutout, hidden again when the next song loads
@@ -649,20 +650,6 @@ const toggleResults = () => {
     );
 };
 
-const toggleRefDen = () => {
-    refDenIsVisible.value = !refDenIsVisible.value;
-    window.electronAPI.send(
-        'message',
-        JSON.stringify({
-            command: 'state-set',
-            data: {
-                refDenIsVisible: refDenIsVisible.value,
-            },
-        }),
-    );
-    console.log('[PANEL-MATCHOVERVIEW] refDenIsVisible toggled:', refDenIsVisible.value);
-};
-
 onMounted(() => {
     emitter.on('state-get-response', (state) => {
         player1Id.value = state?.currentMatch?.players?.player1?.id ? state?.currentMatch?.players?.player1?.id + '' : player1Id.value;
@@ -682,7 +669,6 @@ onMounted(() => {
         ingamePlayer1.value = state?.currentMatch?.ingame?.player1 ?? ingamePlayer1.value;
         ingamePlayer2.value = state?.currentMatch?.ingame?.player2 ?? ingamePlayer2.value;
 
-        refDenIsVisible.value = state?.refDenIsVisible ?? false;
         resultsVisible.value = state?.currentMatch?.resultsVisible ?? false;
         winnerPrompt.value = state?.winnerPrompt ?? true;
         autoResults.value = state?.autoResults ?? false;

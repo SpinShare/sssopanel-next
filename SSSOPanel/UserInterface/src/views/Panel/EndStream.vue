@@ -29,12 +29,13 @@
 </template>
 
 <script setup>
+import useRefDenToggle from '@/modules/useRefDenToggle';
 import AppLayout from '../../layouts/AppLayout.vue';
 import SpinButton from '@/components/Common/SpinButton.vue';
 import SpinInput from '@/components/Common/SpinInput.vue';
 import { ref, inject, onMounted, onUnmounted } from 'vue';
 const emitter = inject('emitter');
-const refDenIsVisible = ref(false);
+const { refDenIsVisible, toggleRefDen } = useRefDenToggle();
 const nextStreamDate = ref(new Date());
 
 const transition = () => {
@@ -61,27 +62,9 @@ const transition = () => {
     );
 };
 
-const toggleRefDen = () => {
-    refDenIsVisible.value = !refDenIsVisible.value;
-    window.electronAPI.send(
-        'message',
-        JSON.stringify({
-            command: 'state-set',
-            data: {
-                refDenIsVisible: refDenIsVisible.value,
-            },
-        }),
-    );
-    console.log('[PANEL-ENDSTREAM] refDenIsVisible toggled:', refDenIsVisible.value);
-};
-
 onMounted(() => {
     emitter.on('state-get-response', (state) => {
         nextStreamDate.value = state?.endOfStream?.nextStreamDate ?? nextStreamDate.value;
-    });
-
-    emitter.on('state-get-response', (state) => {
-        refDenIsVisible.value = state?.refDenIsVisible ?? false;
     });
 
     window.electronAPI.send(

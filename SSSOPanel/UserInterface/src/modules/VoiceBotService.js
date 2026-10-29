@@ -256,4 +256,5 @@ export default {
     join: (channelId) => request('join', { channel_id: channelId }),
     leave: (guildId) => request('leave', { guild_id: guildId }),
     setRefChannel: (guildId, channelId) => request('set_ref_channel', { guild_id: guildId, channel_id: channelId }),
+    setSpotlightRole: (guildId, roleId) => request('set_spotlight_role', { guild_id: guildId, role_id: roleId }),
 };

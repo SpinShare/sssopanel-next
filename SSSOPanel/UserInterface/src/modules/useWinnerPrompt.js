@@ -184,6 +184,8 @@ export default function useWinnerPrompt() {
                     artist: stripRichText(state.currentMatch?.chart?.artist ?? ''),
                 },
                 results: picked,
+                // Who got the point, not always the higher score when the ref picks
+                winner: player1Won ? 'player1' : 'player2',
             });
             currentMatch.history = history;
 
@@ -203,7 +205,7 @@ export default function useWinnerPrompt() {
         // What this set left the scores at, replaying only works while they're unchanged (not after a new match or edits)
         if (currentMatch.lastSet) currentMatch.lastSet.scoresAfter = currentMatch.scores ?? scoresBefore;
         setState({ currentMatch });
-        lastPicked = { picked, set: Number(scoresBefore.sets?.current ?? 1), scores: currentMatch.scores ?? scoresBefore, outcome: replay ? 'replay' : player1Won === null ? 'none' : player1Won ? 'player1' : 'player2' };
+        lastPicked = { picked, set: Number(scoresBefore.sets?.current ?? 1), scores: currentMatch.scores ?? scoresBefore, history: matchWon ? currentMatch.history : [], outcome: replay ? 'replay' : player1Won === null ? 'none' : player1Won ? 'player1' : 'player2' };
         postResults();
         return matchWon;
     };
@@ -212,7 +214,7 @@ export default function useWinnerPrompt() {
     const postResults = () => {
         if (state.postResults !== true || !lastPicked) return;
 
-        const { picked, set, scores, outcome } = lastPicked;
+        const { picked, set, scores, history, outcome } = lastPicked;
         lastPicked = null;
         const match = state.currentMatch ?? {};
         const player = (key) => ({
@@ -233,6 +235,13 @@ export default function useWinnerPrompt() {
                 score: { player1: Number(scores.score?.player1 ?? 0), player2: Number(scores.score?.player2 ?? 0) },
                 outcome,
                 matchWinner: matchWinner(scores),
+                // Only from the set that won the match, the bot adds a match results embed for it
+                history: history.map((entry) => ({
+                    title: entry.chart?.title ?? '',
+                    player1: entry.results?.player1 ?? null,
+                    player2: entry.results?.player2 ?? null,
+                    winner: entry.winner ?? (isPlayer1Winner(entry.results?.player1, entry.results?.player2) ? 'player1' : 'player2'),
+                })),
                 player1: player('player1'),
                 player2: player('player2'),
             },

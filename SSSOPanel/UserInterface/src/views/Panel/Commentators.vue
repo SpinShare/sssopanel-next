@@ -41,30 +41,17 @@
 </template>
 
 <script setup>
+import useRefDenToggle from '@/modules/useRefDenToggle';
 import AppLayout from '../../layouts/AppLayout.vue';
 import SpinButton from '@/components/Common/SpinButton.vue';
 import SpinInputGroup from '@/components/Common/SpinInputGroup.vue';
 import SpinInput from '@/components/Common/SpinInput.vue';
 import { onMounted, onUnmounted, ref, inject } from 'vue';
 const emitter = inject('emitter');
-const refDenIsVisible = ref(false);
+const { refDenIsVisible, toggleRefDen } = useRefDenToggle();
 
 const roomId = ref('');
 const roomPassword = ref('');
-
-const toggleRefDen = () => {
-    refDenIsVisible.value = !refDenIsVisible.value;
-    window.electronAPI.send(
-        'message',
-        JSON.stringify({
-            command: 'state-set',
-            data: {
-                refDenIsVisible: refDenIsVisible.value,
-            },
-        }),
-    );
-    console.log('[PANEL-COMMENTATORS] refDenIsVisible toggled:', refDenIsVisible.value);
-};
 
 const transition = () => {
     window.electronAPI.send(
@@ -95,7 +82,6 @@ onMounted(() => {
     emitter.on('state-get-response', (state) => {
         roomId.value = state?.commentators?.roomId ?? roomId.value;
         roomPassword.value = state?.commentators?.roomPassword ?? roomPassword.value;
-        refDenIsVisible.value = state?.refDenIsVisible ?? false;
     });
 
     window.electronAPI.send(

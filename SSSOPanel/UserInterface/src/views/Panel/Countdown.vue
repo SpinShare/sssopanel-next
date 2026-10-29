@@ -43,35 +43,16 @@
 </template>
 
 <script setup>
+import useRefDenToggle from '@/modules/useRefDenToggle';
 import AppLayout from '../../layouts/AppLayout.vue';
 import { onMounted, ref, inject, onUnmounted } from 'vue';
 import SpinButton from '@/components/Common/SpinButton.vue';
 import SpinInput from '@/components/Common/SpinInput.vue';
 import SpinSwitch from '@/components/Common/SpinSwitch.vue';
 const emitter = inject('emitter');
-const refDenIsVisible = ref(false);
+const { refDenIsVisible, toggleRefDen } = useRefDenToggle();
 const countdownActive = ref(false);
 const countdownTime = ref(new Date());
-
-const toggleRefDen = () => {
-    refDenIsVisible.value = !refDenIsVisible.value;
-    window.electronAPI.send(
-        'message',
-        JSON.stringify({
-            command: 'state-set',
-            data: {
-                refDenIsVisible: refDenIsVisible.value,
-            },
-        }),
-    );
-    window.electronAPI.send(
-        'message',
-        JSON.stringify({
-            command: 'state-get',
-        }),
-    );
-    console.log('[PANEL-COUNTDOWN] refDenIsVisible toggled:', refDenIsVisible.value);
-};
 
 const transition = () => {
     window.electronAPI.send(
@@ -102,7 +83,6 @@ onMounted(() => {
     emitter.on('state-get-response', (state) => {
         countdownActive.value = state?.countdown?.active ?? countdownActive.value;
         countdownTime.value = state?.countdown?.time ?? countdownTime.value;
-        refDenIsVisible.value = state?.refDenIsVisible ?? false;
     });
 
     window.electronAPI.send(
