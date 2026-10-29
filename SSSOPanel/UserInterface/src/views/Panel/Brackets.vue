@@ -49,6 +49,7 @@
 </template>
 
 <script setup>
+import useRefDenToggle from '@/modules/useRefDenToggle';
 import AppLayout from '../../layouts/AppLayout.vue';
 import SpinButton from '@/components/Common/SpinButton.vue';
 import SpinInput from '@/components/Common/SpinInput.vue';
@@ -58,7 +59,7 @@ import useTournamentAPI from '@/modules/useStartGGApi';
 import SpinLoader from '@/components/Common/SpinLoader.vue';
 
 const emitter = inject('emitter');
-const refDenIsVisible = ref(false);
+const { refDenIsVisible, toggleRefDen } = useRefDenToggle();
 
 const loading = ref(false);
 const phases = ref([]);
@@ -73,26 +74,6 @@ const screenData = ref(null);
 const startGGApiToken = ref('');
 const startGGEventId = ref('-1');
 const startGGPhases = ref(null);
-
-const toggleRefDen = () => {
-    refDenIsVisible.value = !refDenIsVisible.value;
-    window.electronAPI.send(
-        'message',
-        JSON.stringify({
-            command: 'state-set',
-            data: {
-                refDenIsVisible: refDenIsVisible.value,
-            },
-        }),
-    );
-    window.electronAPI.send(
-        'message',
-        JSON.stringify({
-            command: 'state-get',
-        }),
-    );
-    console.log('[PANEL-BRACKETS] refDenIsVisible toggled:', refDenIsVisible.value);
-};
 
 const transition = () => {
     window.electronAPI.send(
@@ -181,10 +162,6 @@ onMounted(() => {
         }
 
         loading.value = false;
-    });
-
-    emitter.on('state-get-response', (state) => {
-        refDenIsVisible.value = state?.refDenIsVisible ?? false;
     });
 
     window.electronAPI.send(

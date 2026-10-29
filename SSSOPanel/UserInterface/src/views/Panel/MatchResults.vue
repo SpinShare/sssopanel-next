@@ -51,6 +51,7 @@
 </template>
 
 <script setup>
+import useRefDenToggle from '@/modules/useRefDenToggle';
 import AppLayout from '../../layouts/AppLayout.vue';
 import SpinButton from '@/components/Common/SpinButton.vue';
 import SpinInput from '@/components/Common/SpinInput.vue';
@@ -60,7 +61,7 @@ import { nextRecapSlideAt, resetMatch, showMatchResults } from '@/modules/useWin
 import router from '@/router';
 const emitter = inject('emitter');
 
-const refDenIsVisible = ref(false);
+const { refDenIsVisible, toggleRefDen } = useRefDenToggle();
 const players = ref({});
 const ingame = ref({});
 const scores = ref({});
@@ -131,15 +132,9 @@ const newMatch = () => {
     });
 };
 
-const toggleRefDen = () => {
-    refDenIsVisible.value = !refDenIsVisible.value;
-    send('state-set', { refDenIsVisible: refDenIsVisible.value });
-};
-
 onMounted(() => {
     emitter.on('state-get-response', (state) => {
         const match = state?.currentMatch ?? {};
-        refDenIsVisible.value = state?.refDenIsVisible ?? false;
         players.value = match.players ?? {};
         ingame.value = match.ingame ?? {};
         scores.value = match.scores ?? {};

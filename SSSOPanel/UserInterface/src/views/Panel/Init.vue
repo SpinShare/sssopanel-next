@@ -18,11 +18,10 @@
 </template>
 
 <script setup>
+import useRefDenToggle from '@/modules/useRefDenToggle';
 import AppLayout from '../../layouts/AppLayout.vue';
 import SpinButton from '@/components/Common/SpinButton.vue';
-import { inject, onMounted, ref } from 'vue';
-const refDenIsVisible = ref(false);
-const emitter = inject('emitter');
+const { refDenIsVisible, toggleRefDen } = useRefDenToggle();
 
 const transition = () => {
     window.electronAPI.send(
@@ -37,32 +36,6 @@ const transition = () => {
         }),
     );
 };
-
-const toggleRefDen = () => {
-    refDenIsVisible.value = !refDenIsVisible.value;
-    window.electronAPI.send(
-        'message',
-        JSON.stringify({
-            command: 'state-set',
-            data: {
-                refDenIsVisible: refDenIsVisible.value,
-            },
-        }),
-    );
-    window.electronAPI.send(
-        'message',
-        JSON.stringify({
-            command: 'state-get',
-        }),
-    );
-    console.log('[PANEL-INIT] refDenIsVisible toggled:', refDenIsVisible.value);
-};
-
-onMounted(() => {
-    emitter.on('state-get-response', (state) => {
-        refDenIsVisible.value = state?.refDenIsVisible ?? false;
-    });
-});
 </script>
 
 <style lang="scss" scoped></style>

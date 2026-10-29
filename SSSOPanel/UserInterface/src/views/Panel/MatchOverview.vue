@@ -65,6 +65,7 @@
 </template>
 
 <script setup>
+import useRefDenToggle from '@/modules/useRefDenToggle';
 import AppLayout from '../../layouts/AppLayout.vue';
 import SpinButton from '@/components/Common/SpinButton.vue';
 import SpinInput from '@/components/Common/SpinInput.vue';
@@ -86,7 +87,7 @@ const loadedPlayer2 = ref(null);
 const ingamePlayer1 = ref('');
 const ingamePlayer2 = ref('');
 
-const refDenIsVisible = ref(false);
+const { refDenIsVisible, toggleRefDen } = useRefDenToggle();
 
 const scores = ref({});
 const historyLength = ref(0);
@@ -210,20 +211,6 @@ const showPlayers = () => {
     );
 };
 
-const toggleRefDen = () => {
-    refDenIsVisible.value = !refDenIsVisible.value;
-    window.electronAPI.send(
-        'message',
-        JSON.stringify({
-            command: 'state-set',
-            data: {
-                refDenIsVisible: refDenIsVisible.value,
-            },
-        }),
-    );
-    console.log('[PANEL-MATCHOVERVIEW] refDenIsVisible toggled:', refDenIsVisible.value);
-};
-
 const loadPlayers = (newMappings) => {
     playerMappings.value = newMappings;
     playerSelectOptions.value = [];
@@ -256,7 +243,6 @@ onMounted(() => {
         loadedPlayer2.value = state?.currentMatch?.players?.player2 ?? loadedPlayer2.value;
         ingamePlayer1.value = state?.currentMatch?.ingame?.player1 ?? ingamePlayer1.value;
         ingamePlayer2.value = state?.currentMatch?.ingame?.player2 ?? ingamePlayer2.value;
-        refDenIsVisible.value = state?.refDenIsVisible ?? false;
         scores.value = state?.currentMatch?.scores ?? {};
         historyLength.value = state?.currentMatch?.history?.length ?? 0;
         const players = state?.currentMatch?.players;

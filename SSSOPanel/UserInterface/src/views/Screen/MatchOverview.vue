@@ -1,8 +1,13 @@
 <template>
     <ScreenLayout>
-        <section class="screen-match-overview">
+        <section
+            class="screen-match-overview"
+            :class="{ 'ref-den': refDenIsVisible }"
+        >
             <div class="tint themed"></div>
             <div class="noise"></div>
+            <!-- Tall column on the right, the cards move over while it's up -->
+            <ScreenRefDen variant="column" />
 
             <div class="content">
                 <section
@@ -82,16 +87,25 @@
 <script setup>
 import ScreenLayout from '../../layouts/ScreenLayout.vue';
 import { onMounted, onUnmounted, ref, inject } from 'vue';
+import ScreenRefDen from '@/components/ScreenRefDen/ScreenRefDen.vue';
 const emitter = inject('emitter');
 
 const player1 = ref(null);
 const player2 = ref(null);
+const refDenIsVisible = ref(false);
+
+// The toggle comes in through state-set, it doesn't touch the players
+const applyRefDen = (state) => {
+    refDenIsVisible.value = state?.refDenIsVisible ?? false;
+};
 
 onMounted(() => {
     emitter.on('state-get-response', (state) => {
         player1.value = state?.currentMatch?.players?.player1 ?? player1.value;
         player2.value = state?.currentMatch?.players?.player2 ?? player2.value;
+        applyRefDen(state);
     });
+    emitter.on('state-set-response', applyRefDen);
 
     window.electronAPI.send(
         'message',
@@ -102,6 +116,7 @@ onMounted(() => {
 });
 onUnmounted(() => {
     emitter.off('state-get-response');
+    emitter.off('state-set-response', applyRefDen);
 });
 </script>
 
@@ -151,6 +166,9 @@ onUnmounted(() => {
         display: grid;
         grid-template-rows: 1fr;
         gap: 5vw;
+        // One transform instead of animating sizes, nothing reflows while it moves.
+        // Growing back waits for the ref den column to fade out first
+        transition: transform 0.5s ease-in-out 0.2s;
 
         & .player-info {
             display: grid;
@@ -321,5 +339,11 @@ onUnmounted(() => {
     to {
         transform: scale(1);
     }
+}
+
+// Room for the ref den column on the right (starts at 72vw): scaled around the middle, then centered in what's left
+.screen-match-overview.ref-den .content {
+    transform: translateX(-14vw) scale(0.72);
+    transition-delay: 0s;
 }
 </style>

@@ -30,7 +30,7 @@
                     v-else
                     class="mdi mdi-music"
                 ></span>
-                <ScreenMarquee>
+                <ScreenMarquee overlap-start>
                     <span class="title">{{ musicTitle }}</span>
                     <template v-if="musicArtist">
                         <span>-</span>
@@ -184,6 +184,12 @@ onUnmounted(() => {
         font-size: 1.25vw;
         max-width: 35vw;
 
+        // Above the marquee's fade, which runs under them
+        & .mdi,
+        & img {
+            position: relative;
+            z-index: 1;
+        }
         & .mdi {
             font-size: 2vw;
         }

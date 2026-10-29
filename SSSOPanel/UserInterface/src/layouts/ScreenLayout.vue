@@ -6,11 +6,11 @@
             :style="{ gridTemplateRows }"
         >
             <ScreenVCHeader v-if="showHeader" />
-            <!-- Gameplay screens place it themselves, there's no room to float it -->
-            <!-- Shorter on the overview, the player cards reach down close to it -->
+            <!-- Gameplay screens and the overview place it themselves -->
+            <!-- Brackets and match results fill the whole screen, it stays short there -->
             <ScreenRefDen
-                v-if="!gameplayScreens.includes(route.path)"
-                :compact="route.path === '/screen/match-overview'"
+                v-if="!gameplayScreens.includes(route.path) && route.path !== '/screen/match-overview'"
+                :short="['/screen/brackets', '/screen/match-results'].includes(route.path)"
             />
 
             <slot />

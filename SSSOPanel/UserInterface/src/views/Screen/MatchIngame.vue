@@ -1,6 +1,8 @@
 <template>
     <ScreenLayout transparent>
         <section class="screen-match-ingame">
+            <!-- New ref den messages float over the gameplay for a bit -->
+            <ScreenRefDen variant="float" />
             <div class="tint"></div>
             <div class="noise"></div>
 
@@ -168,7 +170,7 @@
                 </section>
                 <section
                     class="chart-info"
-                    v-if="!!chart || refDenIsVisible"
+                    v-if="!!chart"
                 >
                     <div
                         v-if="chart"
@@ -233,12 +235,11 @@
                         </div>
                     </div>
 
-                    <!-- The ref den takes the banner's place while it's toggled on -->
                     <div class="side">
                         <transition name="side">
                             <div
                                 class="banner"
-                                v-if="chart?.id && !refDenIsVisible"
+                                v-if="chart?.id"
                             >
                                 <div class="tint themed"></div>
                                 <div class="noise"></div>
@@ -250,7 +251,6 @@
                                 <span class="mdi mdi-archive-music-outline"></span>
                             </div>
                         </transition>
-                        <ScreenRefDen variant="inline" />
                     </div>
                 </section>
             </div>
@@ -286,7 +286,6 @@ const scoresScorePlayer2 = ref(0);
 const ingame = ref({ player1: '', player2: '' });
 const results = ref(null);
 const resultsVisible = ref(false);
-const refDenIsVisible = ref(false);
 
 // Until the first scores of a new song arrive, the last round's are still around
 const liveScores = computed(() => {
@@ -460,7 +459,6 @@ const applyState = (state) => {
     ingame.value = state?.currentMatch?.ingame ?? ingame.value;
     results.value = state?.currentMatch?.results ?? results.value;
     resultsVisible.value = state?.currentMatch?.resultsVisible ?? resultsVisible.value;
-    refDenIsVisible.value = state?.refDenIsVisible ?? false;
 
     scoresSetsCurrent.value = state?.currentMatch?.scores?.sets?.current ?? scoresSetsCurrent.value;
     scoresSetsMax.value = state?.currentMatch?.scores?.sets?.max ?? scoresSetsMax.value;
@@ -935,7 +933,7 @@ $gameplayMask: linear-gradient(to bottom, #000 calc(50% - #{$gameplayHeight * 0.
                 }
             }
 
-            // Banner and ref den share one cell so they cross fade in place
+            // The spinshare banner's cell, it fades in and out with the chart
             & .side {
                 // Stays in the right column when there's no chart
                 grid-column: 2;

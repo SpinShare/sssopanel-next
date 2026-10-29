@@ -20,6 +20,7 @@
     </router-view>
     <!-- Outside the pages, so a prompt survives page changes and isn't dropped mid-transition -->
     <AlertMessage v-if="$route.path.startsWith('/panel')" />
+    <RefDenSpotlightPrompt v-if="$route.path.startsWith('/panel')" />
 </template>
 
 <script setup>
@@ -29,6 +30,7 @@ import useTheme from '@/modules/useTheme';
 import useVoiceBot from '@/modules/useVoiceBot';
 import useRefDenRelay from '@/modules/useRefDenRelay';
 import AlertMessage from '@/components/Common/AlertMessage.vue';
+import RefDenSpotlightPrompt from '@/components/RefDenSpotlightPrompt.vue';
 const emitter = inject('emitter');
 useWinnerPrompt();
 useTheme();

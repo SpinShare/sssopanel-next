@@ -295,6 +295,18 @@
                             />
                         </SpinInput>
                         <SpinInput
+                            label="Referee Role"
+                            hint="Their ref channel messages can be shown big on stream, the panel asks first"
+                        >
+                            <SpinSelect
+                                class="channel-select"
+                                :disabled="voiceBotBusy || !selectedGuildId"
+                                :model-value="spotlightRoleId"
+                                :options="spotlightRoleOptions"
+                                @update:model-value="setSpotlightRole"
+                            />
+                        </SpinInput>
+                        <SpinInput
                             label="Auto Join"
                             hint="Join the voice channel when the bot starts"
                             type="horizontal"
@@ -478,6 +490,9 @@ const selectedGuildId = computed(() => allVoiceChannels.value.find((channel) => 
 const refChannelId = computed(() => voiceBotState.value?.ref_channels?.[selectedGuildId.value] ?? '');
 const refChannelOptions = computed(() => [{ icon: 'border-none-variant', label: 'None', value: '' }, ...(voiceBotGuilds.value.find((guild) => guild.id === selectedGuildId.value)?.text ?? []).map((channel) => ({ icon: 'pound', label: channel.name, value: channel.id }))]);
 
+const spotlightRoleId = computed(() => voiceBotState.value?.spotlight_roles?.[selectedGuildId.value] ?? '');
+const spotlightRoleOptions = computed(() => [{ icon: 'border-none-variant', label: 'None', value: '' }, ...(voiceBotGuilds.value.find((guild) => guild.id === selectedGuildId.value)?.roles ?? []).map((role) => ({ icon: 'account-tie', label: role.name, value: role.id }))]);
+
 const runVoiceBot = async (action) => {
     voiceBotBusy.value = true;
     voiceBotError.value = '';
@@ -511,6 +526,7 @@ const toggleJoin = () =>
     });
 
 const setRefChannel = (channelId) => runVoiceBot(() => VoiceBotService.setRefChannel(selectedGuildId.value, channelId || null));
+const setSpotlightRole = (roleId) => runVoiceBot(() => VoiceBotService.setSpotlightRole(selectedGuildId.value, roleId || null));
 
 // Channels only exist once the bot is logged in, this flips on every (re)connect
 watch(
