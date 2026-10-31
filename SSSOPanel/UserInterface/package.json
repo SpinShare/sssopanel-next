@@ -9,28 +9,25 @@
     "prettier": "prettier"
   },
   "dependencies": {
-    "@imengyu/vue3-context-menu": "^1.2.10",
-    "@mdi/font": "^7.2.96",
-    "floating-vue": "^2.0.0-beta.20",
-    "mitt": "^3.0.0",
-    "moment": "^2.29.4",
-    "sass": "^1.62.1",
+    "@imengyu/vue3-context-menu": "^1.5.7",
+    "@mdi/font": "^7.4.47",
+    "floating-vue": "^5.4.0",
+    "mitt": "^3.0.1",
+    "sass": "^1.107.1",
     "shiki": "^4.5.0",
-    "vue": "^3.2.38",
-    "vue-router": "^4.2.0"
+    "vue": "^3.5.44",
+    "vue-router": "^4.6.4"
   },
   "devDependencies": {
-    "@rushstack/eslint-patch": "^1.1.4",
-    "@vitejs/plugin-vue": "^3.0.3",
-    "@vitejs/plugin-vue-jsx": "^2.0.1",
-    "@vue/eslint-config-prettier": "^7.0.0",
-    "eslint": "^8.22.0",
-    "eslint-plugin-vue": "^9.3.0",
-    "prettier": "^2.7.1",
-    "vite": "^3.0.9",
-    "vite-plugin-markdown": "^2.1.0"
+    "@rushstack/eslint-patch": "^1.16.1",
+    "@vitejs/plugin-vue": "^6.0.10",
+    "@vue/eslint-config-prettier": "^7.1.0",
+    "eslint": "^8.57.1",
+    "eslint-plugin-vue": "^9.33.0",
+    "prettier": "^2.8.8",
+    "vite": "^7.3.7"
   },
   "allowScripts": {
-    "esbuild@0.15.18": true
+    "esbuild@0.28.2": true
   }
 }
