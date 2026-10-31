@@ -608,7 +608,6 @@ const loadStartGGEvents = async () => {
 };
 
 const saveSettings = () => {
-    console.log('Saving Settings');
     settingsState.value = SETTING_STATE_SAVING;
 
     const settings = [{ key: 'theme', value: theme.value }, { key: 'currentEvent.startgg.apiToken', value: startGGApiToken.value }, { key: 'currentEvent.startgg.tournamentSlug', value: startGGTournamentSlug.value }, { key: 'currentEvent.startgg.tournamentId', value: startGGTournamentId.value }, { key: 'currentEvent.startgg.tournamentName', value: startGGTournamentName.value }, { key: 'currentEvent.startgg.eventId', value: startGGEventId.value }, { key: 'obs.enabled', value: obsEnabled.value }, { key: 'obs.url', value: obsUrl.value }, { key: 'obs.password', value: obsPassword.value }, { key: 'srxd.enabled', value: srxdEnabled.value }, { key: 'srxd.url', value: srxdUrl.value }, { key: 'voicebot.mode', value: voiceBotMode.value }, { key: 'voicebot.url', value: voiceBotUrl.value }, { key: 'voicebot.token', value: voiceBotToken.value }, { key: 'voicebot.port', value: voiceBotPort.value }, { key: 'voicebot.nodePath', value: voiceBotNodePath.value }, { key: 'voicebot.autoJoin', value: voiceBotAutoJoin.value }, { key: 'voicebot.voiceChannelId', value: voiceChannelId.value }, { key: 'music.source', value: musicSource.value }, { key: 'tuna.url', value: tunaUrl.value }, { key: 'tuna.showCover', value: tunaShowCover.value }, ...obsScreens.map((screen) => ({ key: `obs.scene.${screen.key}`, value: obsSceneMapping.value[screen.key] }))];

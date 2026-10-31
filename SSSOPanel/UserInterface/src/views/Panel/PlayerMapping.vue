@@ -122,8 +122,6 @@ const loadStartGGEventEntrants = async () => {
 };
 
 const loadEntrantSpinShareProfile = async (playerMapping) => {
-    console.log('Loading User');
-
     if (!playerMapping.spinshareId) {
         delete playerMapping.spinshareProfile;
         return;
@@ -255,7 +253,6 @@ const openAttendees = () => {
 };
 
 const saveMapping = () => {
-    console.log('Saving Mapping');
     state.value = STATE_SAVING;
 
     const settings = [{ key: 'currentEvent.playerMapping', value: playerMappings.value }];
