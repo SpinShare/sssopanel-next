@@ -8,7 +8,7 @@ import '@imengyu/vue3-context-menu/lib/vue3-context-menu.css';
 
 import './assets/reset.scss';
 import './assets/app.scss';
-import '@mdi/font/scss/materialdesignicons.scss';
+import '@mdi/font/css/materialdesignicons.css';
 
 import mitt from 'mitt';
 import { installTransport } from '@/modules/transport';
