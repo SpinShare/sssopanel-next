@@ -427,7 +427,7 @@ const obsScreens = [
 ];
 
 const obsEnabled = ref(false);
-const obsUrl = ref('ws://localhost:4455');
+const obsUrl = ref('');
 const obsPassword = ref('');
 const obsSceneMapping = ref(Object.fromEntries(obsScreens.map((screen) => [screen.key, ''])));
 const obsScenes = ref([]);
@@ -435,7 +435,7 @@ const obsStatus = ref('Not connected');
 const obsConnecting = ref(false);
 
 const srxdEnabled = ref(true);
-const srxdUrl = ref('ws://localhost:6767');
+const srxdUrl = ref('');
 const srxdStatus = computed(() => {
     if (!game.value.enabled) return 'Disabled';
     if (game.value.connected) return 'Connected';
@@ -446,7 +446,7 @@ const { status: voiceBot, bot: voiceBotConnection } = useVoiceBot();
 const voiceBotMode = ref('local');
 const voiceBotUrl = ref('');
 const voiceBotToken = ref('');
-const voiceBotPort = ref('8765');
+const voiceBotPort = ref('');
 const voiceBotNodePath = ref('');
 const showVoiceBotLog = ref(false);
 const voiceBotRunning = computed(() => voiceBot.value.status === 'starting' || voiceBot.value.status === 'running');
@@ -542,7 +542,7 @@ const toggleVoiceBot = () => {
 };
 
 const musicSource = ref('spotify');
-const tunaUrl = ref('http://localhost:1608');
+const tunaUrl = ref('');
 const tunaShowCover = ref(true);
 
 const obsSceneOptions = (screenKey) => {
@@ -644,20 +644,20 @@ onMounted(() => {
         startGGEventId.value = settings['currentEvent.startgg.eventId'] ?? '-1';
 
         obsEnabled.value = settings['obs.enabled'] ?? false;
-        obsUrl.value = settings['obs.url'] || 'ws://localhost:4455';
+        obsUrl.value = settings['obs.url'] ?? '';
         obsPassword.value = settings['obs.password'] ?? '';
         srxdEnabled.value = settings['srxd.enabled'] ?? true;
-        srxdUrl.value = settings['srxd.url'] || 'ws://localhost:6767';
+        srxdUrl.value = settings['srxd.url'] ?? '';
         voiceBotMode.value = settings['voicebot.mode'] === 'remote' ? 'remote' : 'local';
         voiceBotUrl.value = settings['voicebot.url'] ?? '';
         voiceBotToken.value = settings['voicebot.token'] ?? '';
-        voiceBotPort.value = settings['voicebot.port'] ? String(settings['voicebot.port']) : '8765';
+        voiceBotPort.value = settings['voicebot.port'] ? String(settings['voicebot.port']) : '';
         voiceBotNodePath.value = settings['voicebot.nodePath'] ?? '';
         voiceBotAutoJoin.value = settings['voicebot.autoJoin'] ?? false;
         if (!voiceChannelId.value) voiceChannelId.value = settings['voicebot.voiceChannelId'] ?? '';
         applySavedVoiceBot(settings);
         musicSource.value = settings['music.source'] ?? 'spotify';
-        tunaUrl.value = settings['tuna.url'] || 'http://localhost:1608';
+        tunaUrl.value = settings['tuna.url'] ?? '';
         tunaShowCover.value = settings['tuna.showCover'] ?? true;
         obsScreens.forEach((screen) => {
             obsSceneMapping.value[screen.key] = settings[`obs.scene.${screen.key}`] ?? '';
