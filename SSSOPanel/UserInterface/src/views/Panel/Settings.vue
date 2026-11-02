@@ -438,7 +438,8 @@ const srxdEnabled = ref(true);
 const srxdUrl = ref('');
 const srxdStatus = computed(() => {
     if (!game.value.enabled) return 'Disabled';
-    if (game.value.connected) return 'Connected';
+    // The error can be set while connected too, for an unsupported feed schema
+    if (game.value.connected) return game.value.error || 'Connected';
     return game.value.error || 'Not connected, is the game running?';
 });
 

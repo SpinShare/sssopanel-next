@@ -225,7 +225,7 @@
 <script setup>
 import ScreenLayout from '../../layouts/ScreenLayout.vue';
 import { computed, reactive, ref, inject, onMounted, onUnmounted, watch } from 'vue';
-import useSrxd, { stripRichText } from '@/modules/useSrxd';
+import useSrxd, { difficultyLabel, stripRichText } from '@/modules/useSrxd';
 import ScreenRollingNumber from '@/components/ScreenRollingNumber/ScreenRollingNumber.vue';
 import ScreenMatchResults from '@/components/ScreenMatchResults/ScreenMatchResults.vue';
 import ScreenStatsBox from '@/components/ScreenStatsBox/ScreenStatsBox.vue';
@@ -323,7 +323,8 @@ const chartMeta = computed(() => {
     const scores = track.value ? liveScores.value : null;
 
     // Unlocked rooms show each player's difficulty instead, the track only has the local client's pick
-    if (track.value?.difficulty && game.value.room?.lockDifficulty !== false) tags.push(`${track.value.difficulty}${track.value.difficultyRating ? ' ' + track.value.difficultyRating : ''}`);
+    const difficulty = difficultyLabel(track.value);
+    if (difficulty && game.value.room?.lockDifficulty !== false) tags.push(difficulty);
 
     const bpmLow = Math.round(track.value?.bpmLow ?? 0);
     const bpmHigh = Math.round(track.value?.bpmHigh ?? 0);
@@ -347,10 +348,7 @@ const playerDifficulty = (name) => {
     if (!name || game.value.room?.lockDifficulty !== false) return null;
 
     const lane = liveScores.value?.lanes?.find((x) => x.name === name);
-    const member = lane ?? game.value.room.players?.find((x) => x.name === name);
-    if (!member?.difficulty) return null;
-
-    return `${member.difficulty}${member.difficultyRating ? ' ' + member.difficultyRating : ''}`;
+    return difficultyLabel(lane ?? game.value.room.players?.find((x) => x.name === name));
 };
 const playerDifficulty1 = computed(() => playerDifficulty(ingame.value.player1));
 const playerDifficulty2 = computed(() => playerDifficulty(ingame.value.player2));

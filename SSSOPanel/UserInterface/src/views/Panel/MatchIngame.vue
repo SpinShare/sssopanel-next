@@ -510,6 +510,8 @@ const setWinnerPrompt = (value) => {
 const autoLoadChart = (track, oldTrack) => {
     // Waits for the saved state, pushing before that would overwrite the match with empty defaults
     if (!stateLoaded.value || !autoChart.value || !track) return;
+    // Only available and difficulty are guaranteed, there is no chart to show without these
+    if (!track.fileReference && !track.title) return;
     // Tracks are sent again whenever availability or metadata changes
     if (track.fileReference === oldTrack?.fileReference && track.title === oldTrack?.title) return;
     if (track.fileReference && track.fileReference === loadedChart.value?.fileReference) return;

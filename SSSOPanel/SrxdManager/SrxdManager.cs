@@ -13,6 +13,9 @@ public class SrxdManager
 {
     public const string DefaultUrl = "ws://localhost:6767";
 
+    // New fields don't bump this, so a different number means the format really changed
+    private const int SupportedSchema = 1;
+
     private const int ReconnectDelay = 5000;
 
     private static SrxdManager? _instance;
@@ -186,6 +189,13 @@ public class SrxdManager
                 case "hello":
                     // Copied, Broadcast adds fields to the message outside the lock
                     _game["hello"] = message.DeepClone();
+
+                    var schema = message["schema"]?.ToObject<int?>();
+                    if (schema != SupportedSchema)
+                    {
+                        Console.WriteLine("[SrxdManager] Unsupported feed schema {0}, expected {1}", schema, SupportedSchema);
+                        Error = $"Connected, but the game uses feed schema {schema} (expected {SupportedSchema}), update the panel";
+                    }
                     break;
                 case "state":
                     foreach (var key in new[] { "room", "track", "phase", "round", "scores", "results" })
@@ -244,7 +254,7 @@ public class SrxdManager
             message.Write(buffer, 0, result.Count);
         } while (!result.EndOfMessage);
 
-        // One message per frame so far, but the format is newline delimited
+        // The schema says one message per frame, the split just keeps a batched frame working
         var messages = new List<JObject>();
         foreach (var line in Encoding.UTF8.GetString(message.ToArray()).Split('\n'))
         {
