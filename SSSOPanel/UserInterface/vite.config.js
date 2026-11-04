@@ -10,6 +10,11 @@ export default defineConfig({
     build: {
         target: 'chrome87',
     },
+    // Off the default 5173 so other projects' dev servers don't end up in the panel, Program.cs loads this port
+    server: {
+        port: 5274,
+        strictPort: true,
+    },
     plugins: [vue()],
     resolve: {
         alias: {

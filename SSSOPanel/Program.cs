@@ -72,7 +72,7 @@ public class Program
 
 #if DEBUG
         Console.WriteLine("Debug Mode, starting dev site");
-        var panelUrl = "http://localhost:5173/#/panel";
+        var panelUrl = "http://localhost:5274/#/panel";
 #else
         Console.WriteLine("Production Mode, starting built site");
         var panelUrl = $"file://{wwwrootPath}/index.html#/panel";
