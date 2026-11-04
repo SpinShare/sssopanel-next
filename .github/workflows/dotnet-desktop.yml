@@ -82,6 +82,13 @@ jobs:
     permissions: write-all
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v5
+
+      # Dispatch runs on a branch, so the tag comes from the csproj version
+      - name: Read version
+        id: version
+        run: echo "value=$(grep -oP '(?<=<Version>)[^<]+' SSSOPanel/SSSOPanel.csproj)" >> "$GITHUB_OUTPUT"
+
       - name: Retrieve Linux artifacts
         uses: actions/download-artifact@v7
         with:
@@ -102,11 +109,13 @@ jobs:
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.version.outputs.value }}
+          target_commitish: ${{ github.sha }}
           files: |
             SSSOPanel-linux-x64/*.AppImage
             SSSOPanel-win-x64/*-setup.exe
           token: ${{ secrets.GITHUB_TOKEN }}
           generate_release_notes: true
-          name: Release ${{ github.event.repository.updated_at }}
+          name: Release ${{ steps.version.outputs.value }}
           draft: true
           prerelease: true
