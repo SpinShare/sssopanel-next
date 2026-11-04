@@ -48,7 +48,7 @@ The panel is only the control surface. The overlay itself is rendered in an OBS 
 The Match (Ingame) screen has a transparent 1920x540 cutout in the center for the gameplay, all other screens are opaque.
 The overlay reconnects on its own when the panel is restarted.
 
-When running a dev server, use `http://localhost:5173/#/screen` instead.
+When running a dev server, use `http://localhost:5274/#/screen` instead.
 
 #### Scene switching
 The panel can switch OBS scenes together with its screens, using the WebSocket server built into OBS 28 and newer.

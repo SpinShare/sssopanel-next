@@ -61,5 +61,5 @@ dotnet run --no-build -c Debug -- -unpackeddotnet
 exit /b %errorlevel%
 
 :port_open
-powershell -NoProfile -Command "try { (New-Object Net.Sockets.TcpClient).Connect('localhost', 5173); exit 0 } catch { exit 1 }"
+powershell -NoProfile -Command "try { (New-Object Net.Sockets.TcpClient).Connect('localhost', 5274); exit 0 } catch { exit 1 }"
 exit /b %errorlevel%

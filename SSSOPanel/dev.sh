@@ -38,7 +38,7 @@ if [ ! -x "$ELECTRON_DIR/dist/electron" ]; then
 fi
 
 # The debug build loads the panel from the vite dev server, start it unless one is running already
-if ! (exec 3<>/dev/tcp/localhost/5173) 2>/dev/null; then
+if ! (exec 3<>/dev/tcp/localhost/5274) 2>/dev/null; then
     echo "==> Starting vite dev server"
     (
         cd UserInterface
@@ -49,7 +49,7 @@ if ! (exec 3<>/dev/tcp/localhost/5173) 2>/dev/null; then
     trap 'kill "$VITE_PID" 2>/dev/null' EXIT
 
     for _ in $(seq 1 60); do
-        (exec 3<>/dev/tcp/localhost/5173) 2>/dev/null && break
+        (exec 3<>/dev/tcp/localhost/5274) 2>/dev/null && break
         sleep 0.5
     done
 fi

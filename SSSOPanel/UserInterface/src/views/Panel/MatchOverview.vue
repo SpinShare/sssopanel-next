@@ -49,6 +49,12 @@
                 v-tooltip="'Toggle Ref Den'"
             />
             <SpinButton
+                @click="swapPlayers"
+                icon="swap-horizontal"
+                :disabled="!loadedPlayer1 && !loadedPlayer2"
+                v-tooltip="'Swap Players'"
+            />
+            <SpinButton
                 @click="newMatch"
                 icon="restart"
                 :disabled="!matchStarted"
@@ -93,6 +99,8 @@ const scores = ref({});
 const historyLength = ref(0);
 // Who the current match is between, so picking someone else can offer a fresh match
 const matchPlayerIds = ref([]);
+// The match as it is on screen, so a swapped transition can flip everything per side with it
+const currentMatch = ref({});
 const matchStarted = computed(() => historyLength.value > 0 || Number(scores.value.score?.player1 ?? 0) + Number(scores.value.score?.player2 ?? 0) > 0);
 
 const newMatch = () => {
@@ -179,24 +187,47 @@ const transition = () => {
     });
 };
 
+const flipSides = (sides) => (sides ? { ...sides, player1: sides.player2, player2: sides.player1 } : sides);
+
+// Same players on the other sides, their points, sets and results have to move with them
+const swappedMatch = () => {
+    const players = currentMatch.value.players;
+    const swapped = players?.player1 && players?.player2 && String(players.player1.id) === String(loadedPlayer2.value?.id) && String(players.player2.id) === String(loadedPlayer1.value?.id);
+    if (!swapped || !matchStarted.value) return {};
+
+    const match = currentMatch.value;
+    return {
+        scores: { ...match.scores, score: flipSides(match.scores?.score ?? {}) },
+        history: (match.history ?? []).map((entry) => ({ ...entry, results: flipSides(entry.results), winner: entry.winner === 'player1' ? 'player2' : 'player1' })),
+        ...(match.results ? { results: flipSides(match.results) } : {}),
+        // Undo and replay remember the old sides
+        lastSet: null,
+        replay: null,
+    };
+};
+
 const showPlayers = () => {
     matchPlayerIds.value = [loadedPlayer1.value?.id, loadedPlayer2.value?.id].map(String).sort();
+    const match = {
+        ...swappedMatch(),
+        players: {
+            player1: loadedPlayer1.value,
+            player2: loadedPlayer2.value,
+        },
+        ingame: {
+            player1: ingamePlayer1.value,
+            player2: ingamePlayer2.value,
+        },
+    };
+    // This page only reads the state on mount, a second transition must not flip it back
+    currentMatch.value = { ...currentMatch.value, ...match };
+    if (match.scores) scores.value = match.scores;
+
     window.electronAPI.send(
         'message',
         JSON.stringify({
             command: 'state-set',
-            data: {
-                currentMatch: {
-                    players: {
-                        player1: loadedPlayer1.value,
-                        player2: loadedPlayer2.value,
-                    },
-                    ingame: {
-                        player1: ingamePlayer1.value,
-                        player2: ingamePlayer2.value,
-                    },
-                },
-            },
+            data: { currentMatch: match },
         }),
     );
 
@@ -235,6 +266,13 @@ const setPlayer2 = () => {
     guessIngamePlayers();
 };
 
+// Only flips the selection, like picking players it shows on the next transition
+const swapPlayers = () => {
+    [player1Id.value, player2Id.value] = [player2Id.value, player1Id.value];
+    [loadedPlayer1.value, loadedPlayer2.value] = [loadedPlayer2.value, loadedPlayer1.value];
+    [ingamePlayer1.value, ingamePlayer2.value] = [ingamePlayer2.value, ingamePlayer1.value];
+};
+
 onMounted(() => {
     emitter.on('state-get-response', (state) => {
         player1Id.value = state?.currentMatch?.players?.player1?.id ? state?.currentMatch?.players?.player1?.id + '' : player1Id.value;
@@ -243,6 +281,7 @@ onMounted(() => {
         loadedPlayer2.value = state?.currentMatch?.players?.player2 ?? loadedPlayer2.value;
         ingamePlayer1.value = state?.currentMatch?.ingame?.player1 ?? ingamePlayer1.value;
         ingamePlayer2.value = state?.currentMatch?.ingame?.player2 ?? ingamePlayer2.value;
+        currentMatch.value = state?.currentMatch ?? {};
         scores.value = state?.currentMatch?.scores ?? {};
         historyLength.value = state?.currentMatch?.history?.length ?? 0;
         const players = state?.currentMatch?.players;
