@@ -104,6 +104,13 @@ export const chartFromTrack = (track) => ({
     paths: { cover: null },
 });
 
+// "XD 42" for a track, member, lane or results entry, null when the game has no difficulty for it yet.
+// Only the difficulty is required by the feed schema, the rating may be missing
+export const difficultyLabel = (item) => {
+    if (!item?.difficulty || item.difficulty === 'Unknown') return null;
+    return item.difficultyRating ? `${item.difficulty} ${item.difficultyRating}` : item.difficulty;
+};
+
 // The linked players' entries from a results message, the shape the screens keep in currentMatch.results
 export const pickResults = (results, ingame) => ({
     round: results?.round ?? 0,

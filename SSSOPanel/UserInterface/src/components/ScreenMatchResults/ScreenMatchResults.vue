@@ -71,14 +71,17 @@
                                         </div>
                                     </div>
                                     <div class="tags">
-                                        <span>{{ side.entry.difficulty }} {{ side.entry.difficultyRating }}</span>
+                                        <span v-if="difficultyLabel(side.entry)">{{ difficultyLabel(side.entry) }}</span>
                                         <span>{{ side.entry.maxCombo }}x Max Combo</span>
                                         <span v-if="fullComboLabel(side.entry.fullCombo)">{{ fullComboLabel(side.entry.fullCombo) }}</span>
                                         <span v-if="side.entry.failed">Failed</span>
                                         <span v-if="side.entry.forfeited">Forfeited</span>
                                         <span v-if="side.entry.attempts > 1">Best of {{ side.entry.attempts }} attempts</span>
                                     </div>
-                                    <div class="judgements">
+                                    <div
+                                        v-if="side.entry.judgements"
+                                        class="judgements"
+                                    >
                                         <div
                                             v-for="judgement in judgements"
                                             :key="judgement.key"
@@ -124,7 +127,7 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue';
-import { player1Won as isPlayer1Winner } from '@/modules/useSrxd';
+import { difficultyLabel, player1Won as isPlayer1Winner } from '@/modules/useSrxd';
 
 const props = defineProps({
     results: {

@@ -427,7 +427,7 @@ const obsScreens = [
 ];
 
 const obsEnabled = ref(false);
-const obsUrl = ref('ws://localhost:4455');
+const obsUrl = ref('');
 const obsPassword = ref('');
 const obsSceneMapping = ref(Object.fromEntries(obsScreens.map((screen) => [screen.key, ''])));
 const obsScenes = ref([]);
@@ -435,10 +435,11 @@ const obsStatus = ref('Not connected');
 const obsConnecting = ref(false);
 
 const srxdEnabled = ref(true);
-const srxdUrl = ref('ws://localhost:6767');
+const srxdUrl = ref('');
 const srxdStatus = computed(() => {
     if (!game.value.enabled) return 'Disabled';
-    if (game.value.connected) return 'Connected';
+    // The error can be set while connected too, for an unsupported feed schema
+    if (game.value.connected) return game.value.error || 'Connected';
     return game.value.error || 'Not connected, is the game running?';
 });
 
@@ -446,7 +447,7 @@ const { status: voiceBot, bot: voiceBotConnection } = useVoiceBot();
 const voiceBotMode = ref('local');
 const voiceBotUrl = ref('');
 const voiceBotToken = ref('');
-const voiceBotPort = ref('8765');
+const voiceBotPort = ref('');
 const voiceBotNodePath = ref('');
 const showVoiceBotLog = ref(false);
 const voiceBotRunning = computed(() => voiceBot.value.status === 'starting' || voiceBot.value.status === 'running');
@@ -542,7 +543,7 @@ const toggleVoiceBot = () => {
 };
 
 const musicSource = ref('spotify');
-const tunaUrl = ref('http://localhost:1608');
+const tunaUrl = ref('');
 const tunaShowCover = ref(true);
 
 const obsSceneOptions = (screenKey) => {
@@ -608,7 +609,6 @@ const loadStartGGEvents = async () => {
 };
 
 const saveSettings = () => {
-    console.log('Saving Settings');
     settingsState.value = SETTING_STATE_SAVING;
 
     const settings = [{ key: 'theme', value: theme.value }, { key: 'currentEvent.startgg.apiToken', value: startGGApiToken.value }, { key: 'currentEvent.startgg.tournamentSlug', value: startGGTournamentSlug.value }, { key: 'currentEvent.startgg.tournamentId', value: startGGTournamentId.value }, { key: 'currentEvent.startgg.tournamentName', value: startGGTournamentName.value }, { key: 'currentEvent.startgg.eventId', value: startGGEventId.value }, { key: 'obs.enabled', value: obsEnabled.value }, { key: 'obs.url', value: obsUrl.value }, { key: 'obs.password', value: obsPassword.value }, { key: 'srxd.enabled', value: srxdEnabled.value }, { key: 'srxd.url', value: srxdUrl.value }, { key: 'voicebot.mode', value: voiceBotMode.value }, { key: 'voicebot.url', value: voiceBotUrl.value }, { key: 'voicebot.token', value: voiceBotToken.value }, { key: 'voicebot.port', value: voiceBotPort.value }, { key: 'voicebot.nodePath', value: voiceBotNodePath.value }, { key: 'voicebot.autoJoin', value: voiceBotAutoJoin.value }, { key: 'voicebot.voiceChannelId', value: voiceChannelId.value }, { key: 'music.source', value: musicSource.value }, { key: 'tuna.url', value: tunaUrl.value }, { key: 'tuna.showCover', value: tunaShowCover.value }, ...obsScreens.map((screen) => ({ key: `obs.scene.${screen.key}`, value: obsSceneMapping.value[screen.key] }))];
@@ -645,20 +645,20 @@ onMounted(() => {
         startGGEventId.value = settings['currentEvent.startgg.eventId'] ?? '-1';
 
         obsEnabled.value = settings['obs.enabled'] ?? false;
-        obsUrl.value = settings['obs.url'] || 'ws://localhost:4455';
+        obsUrl.value = settings['obs.url'] ?? '';
         obsPassword.value = settings['obs.password'] ?? '';
         srxdEnabled.value = settings['srxd.enabled'] ?? true;
-        srxdUrl.value = settings['srxd.url'] || 'ws://localhost:6767';
+        srxdUrl.value = settings['srxd.url'] ?? '';
         voiceBotMode.value = settings['voicebot.mode'] === 'remote' ? 'remote' : 'local';
         voiceBotUrl.value = settings['voicebot.url'] ?? '';
         voiceBotToken.value = settings['voicebot.token'] ?? '';
-        voiceBotPort.value = settings['voicebot.port'] ? String(settings['voicebot.port']) : '8765';
+        voiceBotPort.value = settings['voicebot.port'] ? String(settings['voicebot.port']) : '';
         voiceBotNodePath.value = settings['voicebot.nodePath'] ?? '';
         voiceBotAutoJoin.value = settings['voicebot.autoJoin'] ?? false;
         if (!voiceChannelId.value) voiceChannelId.value = settings['voicebot.voiceChannelId'] ?? '';
         applySavedVoiceBot(settings);
         musicSource.value = settings['music.source'] ?? 'spotify';
-        tunaUrl.value = settings['tuna.url'] || 'http://localhost:1608';
+        tunaUrl.value = settings['tuna.url'] ?? '';
         tunaShowCover.value = settings['tuna.showCover'] ?? true;
         obsScreens.forEach((screen) => {
             obsSceneMapping.value[screen.key] = settings[`obs.scene.${screen.key}`] ?? '';

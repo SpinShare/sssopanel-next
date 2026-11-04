@@ -1,0 +1,763 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spinrhythmxd.local/online-overlay-feed.v1.json",
+  "title": "Spin Rhythm XD online overlay feed, schema v1",
+  "description": "One message per WebSocket text frame. Additive fields may appear without a version bump (additionalProperties stays open).",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/HelloMessage"
+    },
+    {
+      "$ref": "#/$defs/StateMessage"
+    },
+    {
+      "$ref": "#/$defs/RoomMessage"
+    },
+    {
+      "$ref": "#/$defs/TrackMessage"
+    },
+    {
+      "$ref": "#/$defs/PhaseMessage"
+    },
+    {
+      "$ref": "#/$defs/ScoresMessage"
+    },
+    {
+      "$ref": "#/$defs/ResultsMessage"
+    }
+  ],
+  "$defs": {
+    "HelloMessage": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "hello"
+        },
+        "v": {
+          "type": "integer"
+        },
+        "t": {
+          "type": "integer"
+        },
+        "game": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "schema": {
+          "type": "integer"
+        },
+        "port": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "type",
+        "v",
+        "t",
+        "game",
+        "version",
+        "schema",
+        "port"
+      ],
+      "additionalProperties": true
+    },
+    "StateMessage": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "state"
+        },
+        "v": {
+          "type": "integer"
+        },
+        "t": {
+          "type": "integer"
+        },
+        "room": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Room"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "track": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Track"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "phase": {
+          "$ref": "#/$defs/RoundPhase"
+        },
+        "round": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "scores": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Scores"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "results": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Results"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "v",
+        "t",
+        "room",
+        "track",
+        "phase",
+        "round",
+        "scores",
+        "results"
+      ],
+      "additionalProperties": true
+    },
+    "RoomMessage": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "room"
+        },
+        "v": {
+          "type": "integer"
+        },
+        "t": {
+          "type": "integer"
+        },
+        "room": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Room"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "v",
+        "t",
+        "room"
+      ],
+      "additionalProperties": true
+    },
+    "TrackMessage": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "track"
+        },
+        "v": {
+          "type": "integer"
+        },
+        "t": {
+          "type": "integer"
+        },
+        "track": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Track"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "v",
+        "t",
+        "track"
+      ],
+      "additionalProperties": true
+    },
+    "PhaseMessage": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "phase"
+        },
+        "v": {
+          "type": "integer"
+        },
+        "t": {
+          "type": "integer"
+        },
+        "phase": {
+          "$ref": "#/$defs/RoundPhase"
+        },
+        "round": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "type",
+        "v",
+        "t",
+        "phase",
+        "round"
+      ],
+      "additionalProperties": true
+    },
+    "ScoresMessage": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "scores"
+        },
+        "v": {
+          "type": "integer"
+        },
+        "t": {
+          "type": "integer"
+        },
+        "scores": {
+          "$ref": "#/$defs/Scores"
+        }
+      },
+      "required": [
+        "type",
+        "v",
+        "t",
+        "scores"
+      ],
+      "additionalProperties": true
+    },
+    "ResultsMessage": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "results"
+        },
+        "v": {
+          "type": "integer"
+        },
+        "t": {
+          "type": "integer"
+        },
+        "results": {
+          "$ref": "#/$defs/Results"
+        }
+      },
+      "required": [
+        "type",
+        "v",
+        "t",
+        "results"
+      ],
+      "additionalProperties": true
+    },
+    "Room": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "visibility": {
+          "$ref": "#/$defs/Visibility"
+        },
+        "requiresAccessCode": {
+          "type": "boolean"
+        },
+        "maxPlayers": {
+          "type": "integer"
+        },
+        "lockDifficulty": {
+          "type": "boolean"
+        },
+        "onFail": {
+          "$ref": "#/$defs/FailMode"
+        },
+        "allowCustoms": {
+          "type": "boolean"
+        },
+        "allowSpectators": {
+          "type": "boolean"
+        },
+        "networked": {
+          "type": "boolean"
+        },
+        "localIsHost": {
+          "type": "boolean"
+        },
+        "localIsSpectator": {
+          "type": "boolean"
+        },
+        "players": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Member"
+          }
+        },
+        "spectators": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Member"
+          }
+        }
+      },
+      "required": [
+        "name",
+        "visibility",
+        "requiresAccessCode",
+        "maxPlayers",
+        "lockDifficulty",
+        "onFail",
+        "allowCustoms",
+        "allowSpectators",
+        "networked",
+        "localIsHost",
+        "localIsSpectator",
+        "players",
+        "spectators"
+      ],
+      "additionalProperties": true
+    },
+    "Track": {
+      "type": "object",
+      "properties": {
+        "available": {
+          "type": "boolean"
+        },
+        "difficulty": {
+          "$ref": "#/$defs/Difficulty"
+        },
+        "fileReference": {
+          "type": "string"
+        },
+        "chartHash": {
+          "type": "string"
+        },
+        "audioHash": {
+          "type": "string"
+        },
+        "custom": {
+          "type": "boolean"
+        },
+        "title": {
+          "type": "string"
+        },
+        "subtitle": {
+          "type": "string"
+        },
+        "artist": {
+          "type": "string"
+        },
+        "featArtists": {
+          "type": "string"
+        },
+        "charter": {
+          "type": "string"
+        },
+        "difficultyRating": {
+          "type": "integer"
+        },
+        "duration": {
+          "type": "number"
+        },
+        "bpmLow": {
+          "type": "number"
+        },
+        "bpmHigh": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "available",
+        "difficulty"
+      ],
+      "additionalProperties": true
+    },
+    "Scores": {
+      "type": "object",
+      "properties": {
+        "round": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "songTime": {
+          "type": "number"
+        },
+        "songLength": {
+          "type": "number"
+        },
+        "progress": {
+          "type": "number"
+        },
+        "lanes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Lane"
+          }
+        }
+      },
+      "required": [
+        "round",
+        "songTime",
+        "songLength",
+        "progress",
+        "lanes"
+      ],
+      "additionalProperties": true
+    },
+    "Results": {
+      "type": "object",
+      "properties": {
+        "round": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "complete": {
+          "type": "boolean"
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ResultEntry"
+          }
+        }
+      },
+      "required": [
+        "round",
+        "complete",
+        "entries"
+      ],
+      "additionalProperties": true
+    },
+    "Member": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string"
+        },
+        "host": {
+          "type": "boolean"
+        },
+        "local": {
+          "type": "boolean"
+        },
+        "state": {
+          "$ref": "#/$defs/MemberState"
+        },
+        "difficulty": {
+          "$ref": "#/$defs/Difficulty"
+        },
+        "connected": {
+          "type": "boolean"
+        },
+        "queuePosition": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "host",
+        "local",
+        "state",
+        "difficulty",
+        "connected"
+      ],
+      "additionalProperties": true
+    },
+    "Lane": {
+      "type": "object",
+      "properties": {
+        "lane": {
+          "type": "integer"
+        },
+        "id": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string"
+        },
+        "local": {
+          "type": "boolean"
+        },
+        "placement": {
+          "type": "integer"
+        },
+        "score": {
+          "type": "integer"
+        },
+        "combo": {
+          "type": "integer"
+        },
+        "multiplier": {
+          "type": "integer"
+        },
+        "health": {
+          "type": "number"
+        },
+        "accuracy": {
+          "type": "number"
+        },
+        "difficulty": {
+          "$ref": "#/$defs/Difficulty"
+        },
+        "failed": {
+          "type": "boolean"
+        },
+        "finished": {
+          "type": "boolean"
+        },
+        "lost": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "lane",
+        "id",
+        "name",
+        "local",
+        "placement",
+        "score",
+        "combo",
+        "multiplier",
+        "health",
+        "accuracy",
+        "difficulty",
+        "failed",
+        "finished",
+        "lost"
+      ],
+      "additionalProperties": true
+    },
+    "ResultEntry": {
+      "type": "object",
+      "properties": {
+        "placement": {
+          "type": "integer"
+        },
+        "id": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string"
+        },
+        "score": {
+          "type": "integer"
+        },
+        "percent": {
+          "type": "number"
+        },
+        "grade": {
+          "type": "string",
+          "enum": [
+            "-",
+            "D",
+            "D+",
+            "C",
+            "C+",
+            "B",
+            "B+",
+            "A",
+            "A+",
+            "S",
+            "S+"
+          ]
+        },
+        "maxCombo": {
+          "type": "integer"
+        },
+        "fullCombo": {
+          "$ref": "#/$defs/FullCombo"
+        },
+        "difficulty": {
+          "$ref": "#/$defs/Difficulty"
+        },
+        "cleared": {
+          "type": "boolean"
+        },
+        "failed": {
+          "type": "boolean"
+        },
+        "forfeited": {
+          "type": "boolean"
+        },
+        "judgements": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Judgements"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "placement",
+        "id",
+        "name",
+        "score",
+        "percent",
+        "grade",
+        "maxCombo",
+        "fullCombo",
+        "difficulty",
+        "cleared",
+        "failed",
+        "forfeited",
+        "judgements"
+      ],
+      "additionalProperties": true
+    },
+    "Judgements": {
+      "type": "object",
+      "properties": {
+        "failed": {
+          "type": "integer"
+        },
+        "okay": {
+          "type": "integer"
+        },
+        "good": {
+          "type": "integer"
+        },
+        "great": {
+          "type": "integer"
+        },
+        "perfect": {
+          "type": "integer"
+        },
+        "perfectPlus": {
+          "type": "integer"
+        },
+        "earlyOkay": {
+          "type": "integer"
+        },
+        "earlyGood": {
+          "type": "integer"
+        },
+        "earlyGreat": {
+          "type": "integer"
+        },
+        "earlyPerfect": {
+          "type": "integer"
+        },
+        "earlyPerfectPlus": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "failed",
+        "okay",
+        "good",
+        "great",
+        "perfect",
+        "perfectPlus",
+        "earlyOkay",
+        "earlyGood",
+        "earlyGreat",
+        "earlyPerfect",
+        "earlyPerfectPlus"
+      ],
+      "additionalProperties": true
+    },
+    "MessageType": {
+      "type": "string",
+      "enum": [
+        "hello",
+        "state",
+        "room",
+        "track",
+        "phase",
+        "scores",
+        "results"
+      ]
+    },
+    "RoundPhase": {
+      "type": "string",
+      "enum": [
+        "none",
+        "lobby",
+        "picking",
+        "loading",
+        "countdown",
+        "playing",
+        "results"
+      ]
+    },
+    "Visibility": {
+      "type": "string",
+      "enum": [
+        "public",
+        "private",
+        "friends"
+      ]
+    },
+    "FailMode": {
+      "type": "string",
+      "enum": [
+        "keepPlaying",
+        "spectate",
+        "failOff"
+      ]
+    },
+    "Difficulty": {
+      "type": "string",
+      "enum": [
+        "Unknown",
+        "Easy",
+        "Normal",
+        "Hard",
+        "Expert",
+        "XD",
+        "RemiXD"
+      ]
+    },
+    "MemberState": {
+      "type": "string",
+      "enum": [
+        "connecting",
+        "notReady",
+        "ready",
+        "missingChart"
+      ]
+    },
+    "FullCombo": {
+      "type": "string",
+      "enum": [
+        "none",
+        "okay",
+        "good",
+        "great",
+        "perfect",
+        "perfectPlus"
+      ]
+    }
+  }
+}

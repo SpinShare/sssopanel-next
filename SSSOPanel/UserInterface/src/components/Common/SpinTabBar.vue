@@ -36,7 +36,6 @@ const handleTabChange = (i) => {
 watch(
     () => props.selected,
     (oldSelected, newSelected) => {
-        console.log('change ' + oldSelected + ',' + newSelected);
         activeTab.value = newSelected;
     },
 );
