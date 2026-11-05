@@ -131,11 +131,18 @@
                             :player2="player2"
                         />
                     </transition>
+                    <!-- spulti, set results win over the board, the coin toss opens the board -->
+                    <transition name="results">
+                        <ScreenPickBan
+                            v-if="pickBanVisible && !resultsVisible && spulti.match"
+                            :spulti="spulti"
+                            :players="{ player1, player2 }"
+                            :coin-flip-key="coinFlipKey"
+                            :coin-flip-at="coinFlipAt"
+                        />
+                    </transition>
                 </section>
-                <section
-                    class="chart-info"
-                    v-if="!!chart"
-                >
+                <section class="chart-info">
                     <div
                         v-if="chart"
                         class="chart"
@@ -198,6 +205,21 @@
                             </div>
                         </div>
                     </div>
+                    <!-- Before the pick/ban there is no chart yet -->
+                    <div
+                        v-else
+                        class="chart waiting"
+                    >
+                        <div class="cover placeholder">
+                            <span class="mdi mdi-timer-sand"></span>
+                        </div>
+                        <div class="meta">
+                            <div class="title">
+                                <span class="name">Waiting for info...</span>
+                            </div>
+                            <span class="artist">The chart shows up once it's picked</span>
+                        </div>
+                    </div>
 
                     <div class="side">
                         <transition name="side">
@@ -231,6 +253,8 @@ import ScreenMatchResults from '@/components/ScreenMatchResults/ScreenMatchResul
 import ScreenStatsBox from '@/components/ScreenStatsBox/ScreenStatsBox.vue';
 import ScreenRefDen from '@/components/ScreenRefDen/ScreenRefDen.vue';
 import ScreenTugOfWar from '@/components/ScreenTugOfWar/ScreenTugOfWar.vue';
+import ScreenPickBan from '@/components/ScreenSpulti/ScreenPickBan.vue';
+import useSpulti from '@/modules/useSpulti';
 const emitter = inject('emitter');
 const game = useSrxd();
 
@@ -251,6 +275,11 @@ const scoresScorePlayer2 = ref(0);
 const ingame = ref({ player1: '', player2: '' });
 const results = ref(null);
 const resultsVisible = ref(false);
+
+const spulti = useSpulti();
+const pickBanVisible = ref(false);
+const coinFlipKey = ref(null);
+const coinFlipAt = ref(0);
 
 // Until the first scores of a new song arrive, the last round's are still around
 const liveScores = computed(() => {
@@ -360,6 +389,9 @@ const applyState = (state) => {
     ingame.value = state?.currentMatch?.ingame ?? ingame.value;
     results.value = state?.currentMatch?.results ?? results.value;
     resultsVisible.value = state?.currentMatch?.resultsVisible ?? resultsVisible.value;
+    pickBanVisible.value = state?.pickBanVisible ?? pickBanVisible.value;
+    coinFlipKey.value = state?.coinFlipKey ?? coinFlipKey.value;
+    coinFlipAt.value = state?.coinFlipAt ?? coinFlipAt.value;
 
     scoresSetsCurrent.value = state?.currentMatch?.scores?.sets?.current ?? scoresSetsCurrent.value;
     scoresSetsMax.value = state?.currentMatch?.scores?.sets?.max ?? scoresSetsMax.value;

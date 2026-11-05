@@ -1,6 +1,32 @@
 <template>
     <AppLayout title="Match (Overview)">
         <SpinInput
+            label="Spulti Match"
+            type="path"
+            :hint="spultiStatus"
+        >
+            <input
+                type="text"
+                v-model="spultiUrl"
+                placeholder="https://spulti.ellite.dev/matches/..."
+                @keydown.enter="followSpultiMatch(spultiUrl)"
+            />
+            <SpinButton
+                :label="spulti.url && spulti.url === spultiUrl.trim() ? 'Reconnect' : 'Follow'"
+                @click="followSpultiMatch(spultiUrl)"
+            />
+        </SpinInput>
+        <SpinInput
+            label="Auto Spulti"
+            hint="On match ingame: flips the coin once the toss is in (waits until match ingame is live), shows the pick/ban board for bans and picks, hides it when the song loads"
+            type="horizontal"
+        >
+            <SpinSwitch
+                v-model="autoSpulti"
+                @update:model-value="setAutoSpulti"
+            />
+        </SpinInput>
+        <SpinInput
             label="Player 1"
             :hint="loadedPlayer1 === null ? 'None selected' : loadedPlayer1?.spinshareProfile?.username ?? 'Unknown user'"
         >
@@ -41,6 +67,18 @@
             />
         </SpinInput>
 
+        <ol
+            class="spulti-steps"
+            v-if="spultiSteps.length"
+        >
+            <li
+                v-for="(step, i) in spultiSteps"
+                :key="i"
+            >
+                {{ step }}
+            </li>
+        </ol>
+
         <template #transition>
             <SpinButton
                 @click="toggleRefDen"
@@ -76,13 +114,25 @@ import AppLayout from '../../layouts/AppLayout.vue';
 import SpinButton from '@/components/Common/SpinButton.vue';
 import SpinInput from '@/components/Common/SpinInput.vue';
 import SpinSelect from '@/components/Common/SpinSelect.vue';
+import SpinSwitch from '@/components/Common/SpinSwitch.vue';
 import { ref, computed, watch, inject, onMounted, onUnmounted } from 'vue';
 import useSrxd, { guessIngameName } from '@/modules/useSrxd';
 import { resetMatch } from '@/modules/useWinnerPrompt';
+import useSpulti, { autofilled, draftSteps, findMapping, followSpultiMatch, playerOptions, withGuests } from '@/modules/useSpulti';
 const emitter = inject('emitter');
 const game = useSrxd();
 
 const playerMappings = ref([]);
+// The selects also list spulti guests, players of the followed match who aren't in the player mapping
+const baseMappings = ref([]);
+const statePlayers = ref([]);
+// Guests only once the mapping is in, before that everyone would look like one
+const mappingsLoaded = ref(false);
+// Up here since watchers earlier in the setup read them (spulti is only used once it runs)
+const refreshPlayers = () => {
+    playerMappings.value = mappingsLoaded.value ? withGuests(baseMappings.value, spulti.value.match, statePlayers.value) : [];
+    playerSelectOptions.value = playerOptions(playerMappings.value);
+};
 const playerSelectOptions = ref([]);
 const player1Id = ref(null);
 const player2Id = ref(null);
@@ -242,17 +292,64 @@ const showPlayers = () => {
     );
 };
 
-const loadPlayers = (newMappings) => {
-    playerMappings.value = newMappings;
-    playerSelectOptions.value = [];
+const spulti = useSpulti();
+const spultiUrl = ref('');
+// Fill the box once from what the backend follows, after that it's the user's
+watch(
+    () => spulti.value.url,
+    (url) => {
+        if (!spultiUrl.value) spultiUrl.value = url ?? '';
+    },
+);
+const spultiStatus = computed(() => {
+    if (!spulti.value.url) return 'Paste a match link to follow it';
+    if (spulti.value.error) return spulti.value.error;
+    if (!spulti.value.connected) return 'Connecting...';
+    const match = spulti.value.match;
+    if (!match) return 'Connected, match not found';
+    const missing = spultiPlayers.value?.names.length ? `, using spulti's profile for ${spultiPlayers.value.names.join(', ')} (not in player mapping)` : '';
+    return `${match.player1?.name ?? 'TBD'} vs ${match.player2?.name ?? 'TBD'}, ${match.score.player1}-${match.score.player2} (${match.status})${missing}`;
+});
+// Kept in the state, useSpultiOverlays (App.vue) does the work on every panel page
+const autoSpulti = ref(false);
+const setAutoSpulti = (value) => window.electronAPI.send('message', JSON.stringify({ command: 'state-set', data: { autoSpulti: value } }));
+const spultiSteps = computed(() => draftSteps(spulti.value.match, spulti.value.mappool));
 
-    playerMappings.value.forEach((mapping) => {
-        playerSelectOptions.value.push({
-            icon: 'account-box',
-            label: mapping.spinshareProfile?.username ?? mapping.name,
-            value: mapping.id + '',
-        });
-    });
+// Picks the followed match's players, same order as spulti. Only a selection like picking them by hand, the screen
+// changes on transition. Once per match and pairing, so a manual change afterwards sticks
+const spultiPlayers = computed(() => {
+    const match = spulti.value.match;
+    if (!match) return null;
+    return {
+        key: `${match.id}:${match.player1?.name}:${match.player2?.name}`,
+        player1: findMapping(match.player1, playerMappings.value),
+        player2: findMapping(match.player2, playerMappings.value),
+        // Not in the mapping, filled in as spulti guests
+        names: [match.player1, match.player2].filter((player) => player && !findMapping(player, baseMappings.value)).map((player) => player.name),
+    };
+});
+// After the state is in, it would overwrite the picks otherwise
+const stateLoaded = ref(false);
+let lastStatePlayers = null;
+watch([spultiPlayers, stateLoaded, mappingsLoaded], ([found]) => {
+    if (!found || !stateLoaded.value || !mappingsLoaded.value || found.key === autofilled.key || (!found.player1 && !found.player2)) return;
+    autofilled.key = found.key;
+    if (found.player1 && found.player1.id + '' !== player1Id.value) {
+        player1Id.value = found.player1.id + '';
+        setPlayer1();
+    }
+    if (found.player2 && found.player2.id + '' !== player2Id.value) {
+        player2Id.value = found.player2.id + '';
+        setPlayer2();
+    }
+});
+
+watch(() => spulti.value.match, refreshPlayers);
+
+const loadPlayers = (newMappings) => {
+    baseMappings.value = newMappings;
+    mappingsLoaded.value = true;
+    refreshPlayers();
 };
 
 const setPlayer1 = () => {
@@ -275,18 +372,27 @@ const swapPlayers = () => {
 
 onMounted(() => {
     emitter.on('state-get-response', (state) => {
-        player1Id.value = state?.currentMatch?.players?.player1?.id ? state?.currentMatch?.players?.player1?.id + '' : player1Id.value;
-        player2Id.value = state?.currentMatch?.players?.player2?.id ? state?.currentMatch?.players?.player2?.id + '' : player2Id.value;
-        loadedPlayer1.value = state?.currentMatch?.players?.player1 ?? loadedPlayer1.value;
-        loadedPlayer2.value = state?.currentMatch?.players?.player2 ?? loadedPlayer2.value;
-        ingamePlayer1.value = state?.currentMatch?.ingame?.player1 ?? ingamePlayer1.value;
-        ingamePlayer2.value = state?.currentMatch?.ingame?.player2 ?? ingamePlayer2.value;
+        statePlayers.value = [state?.currentMatch?.players?.player1, state?.currentMatch?.players?.player2];
+        refreshPlayers();
+        // Only when the players on screen changed, other modules refresh the state too and that wiped picks not shown yet
+        const playersKey = JSON.stringify([state?.currentMatch?.players?.player1?.id, state?.currentMatch?.players?.player2?.id, state?.currentMatch?.ingame]);
+        if (playersKey !== lastStatePlayers) {
+            lastStatePlayers = playersKey;
+            player1Id.value = state?.currentMatch?.players?.player1?.id ? state?.currentMatch?.players?.player1?.id + '' : player1Id.value;
+            player2Id.value = state?.currentMatch?.players?.player2?.id ? state?.currentMatch?.players?.player2?.id + '' : player2Id.value;
+            loadedPlayer1.value = state?.currentMatch?.players?.player1 ?? loadedPlayer1.value;
+            loadedPlayer2.value = state?.currentMatch?.players?.player2 ?? loadedPlayer2.value;
+            ingamePlayer1.value = state?.currentMatch?.ingame?.player1 ?? ingamePlayer1.value;
+            ingamePlayer2.value = state?.currentMatch?.ingame?.player2 ?? ingamePlayer2.value;
+        }
         currentMatch.value = state?.currentMatch ?? {};
         scores.value = state?.currentMatch?.scores ?? {};
         historyLength.value = state?.currentMatch?.history?.length ?? 0;
         const players = state?.currentMatch?.players;
         matchPlayerIds.value = players?.player1 || players?.player2 ? [players?.player1?.id, players?.player2?.id].map(String).sort() : [];
         guessIngamePlayers();
+        stateLoaded.value = true;
+        autoSpulti.value = state?.autoSpulti ?? false;
     });
 
     emitter.on('settings-get-full-response', async (settings) => {
@@ -314,4 +420,12 @@ onUnmounted(() => {
 });
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.spulti-steps {
+    margin: 0 0 15px;
+    padding-left: 25px;
+    opacity: 0.7;
+    font-size: 0.9em;
+    line-height: 1.6;
+}
+</style>

@@ -24,6 +24,8 @@ public class CommandFactory
             "obs-connect" => new CommandObsConnect(),
             "srxd-get" => new CommandSrxdGet(),
             "srxd-connect" => new CommandSrxdConnect(),
+            "spulti-get" => new CommandSpultiGet(),
+            "spulti-connect" => new CommandSpultiConnect(),
             "theme-get" => new CommandThemeGet(),
             "voicebot-status-get" => new CommandVoiceBotStatusGet(),
             "voicebot-start" => new CommandVoiceBotStart(),
