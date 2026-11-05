@@ -13,6 +13,7 @@ public class MessageHandler
         "settings-get-full",
         "screen-music-get",
         "srxd-get",
+        "spulti-get",
         "theme-get",
         "voicebot-status-get",
     };

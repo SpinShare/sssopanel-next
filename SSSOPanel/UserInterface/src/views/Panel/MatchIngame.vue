@@ -252,13 +252,33 @@
                 :color="refDenIsVisible ? 'primary' : 'default'"
                 v-tooltip="'Toggle Ref Den'"
             />
-            <SpinButton
-                @click="toggleResults"
-                :icon="resultsVisible ? 'trophy' : 'trophy-outline'"
-                :color="resultsVisible ? 'primary' : 'default'"
-                :disabled="!resultsVisible && !game.results?.complete"
-                v-tooltip="'Toggle Results'"
-            />
+            <!-- Everything that goes over the gameplay, lit while any of it is up -->
+            <SpinMenu
+                :icon="resultsVisible || pickBanVisible ? 'layers' : 'layers-outline'"
+                :color="resultsVisible || pickBanVisible ? 'primary' : 'default'"
+                tooltip="Gameplay Overlays"
+            >
+                <SpinButton
+                    @click="toggleResults"
+                    :icon="resultsVisible ? 'trophy' : 'trophy-outline'"
+                    :color="resultsVisible ? 'primary' : 'default'"
+                    :disabled="!resultsVisible && !game.results?.complete"
+                    label="Results"
+                />
+                <SpinButton
+                    @click="setPickBanVisible(!pickBanVisible)"
+                    :icon="pickBanVisible ? 'cards' : 'cards-outline'"
+                    :color="pickBanVisible ? 'primary' : 'default'"
+                    :disabled="!pickBanVisible && !spulti.match"
+                    label="Pick / Ban"
+                />
+                <SpinButton
+                    @click="playCoinFlip(spultiCoin.key)"
+                    icon="circle-multiple-outline"
+                    :disabled="!spultiCoin"
+                    :label="spultiCoin && spultiCoin.key === coinFlipKey ? 'Flip Coin Again' : 'Flip Coin'"
+                />
+            </SpinMenu>
 
             <SpinButton
                 @click="replayLastSet"
@@ -271,7 +291,6 @@
                 @click="transition"
                 icon="record"
                 color="primary"
-                :disabled="loadedChart === null"
                 v-tooltip="'Transition to screen'"
             />
         </template>
@@ -286,10 +305,13 @@ import SpinInput from '@/components/Common/SpinInput.vue';
 import SpinInputGroup from '@/components/Common/SpinInputGroup.vue';
 import SpinSelect from '@/components/Common/SpinSelect.vue';
 import SpinSwitch from '@/components/Common/SpinSwitch.vue';
+import SpinMenu from '@/components/Common/SpinMenu.vue';
 import { computed, onMounted, onUnmounted, ref, inject, watch } from 'vue';
 import useCurrentScreen from '@/modules/useCurrentScreen';
 import useSpinShareApi from '@/modules/useSpinShareApi';
 import { nextRecapSlideAt, showMatchResults } from '@/modules/useWinnerPrompt';
+import useSpulti, { coinResult, playerOptions, withGuests } from '@/modules/useSpulti';
+import { playCoinFlip, setPickBanVisible } from '@/modules/useSpultiOverlays';
 import useSrxd, { chartFromTrack, guessIngameName, matchWinner, pickResults } from '@/modules/useSrxd';
 
 const currentScreen = useCurrentScreen();
@@ -297,6 +319,16 @@ const emitter = inject('emitter');
 const game = useSrxd();
 
 const playerMappings = ref([]);
+// The selects also list spulti guests, players of the followed match who aren't in the player mapping
+const baseMappings = ref([]);
+const statePlayers = ref([]);
+// Guests only once the mapping is in, before that everyone would look like one
+const mappingsLoaded = ref(false);
+// Up here since watchers earlier in the setup read them (spulti is only used once it runs)
+const refreshPlayers = () => {
+    playerMappings.value = mappingsLoaded.value ? withGuests(baseMappings.value, spulti.value.match, statePlayers.value) : [];
+    playerSelectOptions.value = playerOptions(playerMappings.value);
+};
 const playerSelectOptions = ref([]);
 const player1Id = ref(null);
 const player2Id = ref(null);
@@ -315,6 +347,12 @@ const stateLoaded = ref(false);
 const ingamePlayer1 = ref('');
 const ingamePlayer2 = ref('');
 const autoChart = ref(true);
+
+const spulti = useSpulti();
+const pickBanVisible = ref(false);
+// The toss plays as the board's intro, coinFlipKey = the toss that already got its flip
+const spultiCoin = computed(() => coinResult(spulti.value.match));
+const coinFlipKey = ref(null);
 const winnerPrompt = ref(true);
 const autoResults = ref(false);
 const resultsAutoProgress = ref(false);
@@ -599,17 +637,12 @@ const loadChart = async () => {
     loadedChart.value = await loadChart(chartId.value);
 };
 
-const loadPlayers = (newMappings) => {
-    playerMappings.value = newMappings;
-    playerSelectOptions.value = [];
+watch(() => spulti.value.match, refreshPlayers);
 
-    playerMappings.value.forEach((mapping) => {
-        playerSelectOptions.value.push({
-            icon: 'account-box',
-            label: mapping.spinshareProfile?.username ?? mapping.name,
-            value: mapping.id + '',
-        });
-    });
+const loadPlayers = (newMappings) => {
+    baseMappings.value = newMappings;
+    mappingsLoaded.value = true;
+    refreshPlayers();
 };
 
 const setPlayer1 = () => {
@@ -654,6 +687,8 @@ const toggleResults = () => {
 
 onMounted(() => {
     emitter.on('state-get-response', (state) => {
+        statePlayers.value = [state?.currentMatch?.players?.player1, state?.currentMatch?.players?.player2];
+        refreshPlayers();
         player1Id.value = state?.currentMatch?.players?.player1?.id ? state?.currentMatch?.players?.player1?.id + '' : player1Id.value;
         loadedPlayer1.value = state?.currentMatch?.players?.player1 ?? loadedPlayer1.value;
 
@@ -683,6 +718,8 @@ onMounted(() => {
         savedResults.value = state?.currentMatch?.results ?? null;
         postResults.value = state?.postResults ?? false;
         autoChart.value = state?.autoChart ?? true;
+        pickBanVisible.value = state?.pickBanVisible ?? false;
+        coinFlipKey.value = state?.coinFlipKey ?? null;
 
         if (!stateLoaded.value) {
             stateLoaded.value = true;

@@ -29,6 +29,7 @@ import useWinnerPrompt from '@/modules/useWinnerPrompt';
 import useTheme from '@/modules/useTheme';
 import useVoiceBot from '@/modules/useVoiceBot';
 import useRefDenRelay from '@/modules/useRefDenRelay';
+import useSpultiOverlays from '@/modules/useSpultiOverlays';
 import AlertMessage from '@/components/Common/AlertMessage.vue';
 import RefDenSpotlightPrompt from '@/components/RefDenSpotlightPrompt.vue';
 const emitter = inject('emitter');
@@ -38,6 +39,8 @@ useTheme();
 useVoiceBot();
 // Ref channel messages go into the state from the panel only
 useRefDenRelay();
+// Auto coin flip and pick/ban board from the followed spulti match, panel only
+useSpultiOverlays();
 
 window.electronAPI.on('message', (rawResponse) => {
     const response = JSON.parse(rawResponse);
