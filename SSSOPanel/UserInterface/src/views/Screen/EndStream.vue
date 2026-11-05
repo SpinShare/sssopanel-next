@@ -64,50 +64,42 @@
                                 <div class="group">
                                     <span>broadcasters</span>
                                     <span>Gavi Guy</span>
-                                    <span>smb</span>
                                     <span>blyenn</span>
                                 </div>
                                 <div class="group">
                                     <span>commentators</span>
-                                    <span>alpine</span>
+                                    <span>Aexus</span>
                                     <span>Carbon</span>
-                                    <span>Dama</span>
+                                    <span>echeerie</span>
                                     <span>Gavi Guy</span>
-                                    <span>Halflite</span>
-                                    <span>Khromatical</span>
                                     <span>kyu!</span>
                                     <span>metalman20</span>
-                                    <span>moonlight.</span>
                                     <span>TheWay123</span>
-                                    <span>Unholy Synthetix</span>
+                                    <span>u.Synthetix</span>
                                 </div>
                                 <div class="group">
                                     <span>referees</span>
-                                    <span>alpine</span>
+                                    <span>Aexus</span>
                                     <span>blyenn</span>
                                     <span>C4veden</span>
-                                    <span>Echeerie</span>
+                                    <span>echeerie</span>
                                     <span>Gavi Guy</span>
-                                    <span>Halflite</span>
-                                    <span>Khromatical</span>
                                     <span>kyu!</span>
                                     <span>LuminaryCat</span>
-                                    <span>Ricki</span>
                                     <span>snaphap</span>
+                                    <span>TheAlphaMaggie</span>
                                     <span>TheWay123</span>
                                 </div>
                                 <div class="group">
                                     <span>playtesters</span>
-                                    <span>blyenn</span>
                                     <span>C4veden</span>
-                                    <span>Carbon</span>
                                     <span>Gavi Guy</span>
                                     <span>Halloween</span>
+                                    <span>IZEIYOX</span>
                                     <span>kyu!</span>
                                     <span>MrCringe</span>
-                                    <span>quuqirjain</span>
                                     <span>snaphap</span>
-                                    <span>Unholy Synthetix</span>
+                                    <span>u.Synthetix</span>
                                 </div>
 
                                 <h2>players</h2>
@@ -131,49 +123,53 @@
                                 <h2>with charts created by</h2>
                                 <div class="group">
                                     <span></span>
-                                    <span>AleX(痛い)24</span>
-                                    <span>BHUUQIUMZIINGA</span>
-                                    <span>blyenn</span>
-                                    <span>C4veden</span>
-                                    <span>Carbon</span>
-                                    <span>cosmic</span>
-                                    <span>Crooky</span>
-                                    <span>CubTheCube</span>
-                                    <span>Dama</span>
-                                    <span>Danicchi</span>
-
-                                    <span>Edge</span>
-                                    <span>Enynine</span>
-                                    <span>Eraser</span>
-                                    <span>Gavi Guy</span>
-                                    <span>groggo</span>
-                                    <span>Halflite</span>
-                                    <span>Halloween</span>
-                                    <span>HighCaliberTree</span>
-                                    <span>IZEIYOX</span>
-                                    <span>KatzAndBoxez</span>
-                                    <span>Kwazi</span>
-                                    <span>kyu!</span>
-                                    <span>Loosiano</span>
-                                    <span>Mazar</span>
-                                    <span>moonlight.</span>
-                                    <span>MrCringe</span>
-                                    <span>NEFirefox</span>
-                                    <span>NOIN</span>
-                                    <span>Pea_nut Butt_er</span>
-                                    <span>quuqirjain</span>
-                                    <span>Schroeder</span>
-                                    <span>snaphap</span>
-                                    <span>sodapants</span>
-                                    <span>Steven of Astora</span>
-                                    <span>Stride</span>
-                                    <span>swago</span>
-                                    <span>szandad</span>
-                                    <span>TheBlockiest</span>
-                                    <span>TheWay123</span>
-                                    <span>TypeY</span>
-                                    <span>Unholy Synthetix</span>
-                                    <span>zxcv-01</span>
+                                    <span>Airplane man</span>
+    								<span>AleX(痛い)24</span>
+    								<span>Ballin</span>
+    								<span>BHUUQIUMZIINGA</span>
+    								<span>blyenn</span>
+    								<span>C4veden</span>
+    								<span>Carbon</span>
+    								<span>Crooky</span>
+    								<span>CubeGetsReal</span>
+    								<span>Dama</span>
+    								<span>Echeerie</span>
+    								<span>Edge</span>
+    								<span>Enynine</span>
+    								<span>Eraser</span>
+    								<span>Gavi Guy</span>
+    								<span>Halflite</span>
+    								<span>Halloween</span>
+    								<span>HighCaliberTree</span>
+    								<span>IZEIYOX</span>
+    								<span>KatzAndBoxez</span>
+    								<span>Kirstery</span>
+    								<span>Kwazi</span>
+    								<span>kyu!</span>
+    								<span>Loosiano</span>
+    								<span>mathi</span>
+    								<span>Mazar</span>
+    								<span>miguling</span>
+    								<span>moonlight.</span>
+    								<span>MrCringe</span>
+    								<span>NOIN</span>
+    								<span>Pea_nut_Butt_er</span>
+    								<span>Programmatic</span>
+    								<span>quuqirjain</span>
+    								<span>Schroeder</span>
+    								<span>skiera</span>
+    								<span>smb</span>
+    								<span>snaphap</span>
+    								<span>sodapants</span>
+    								<span>Steven of Astora</span>
+    								<span>Stride</span>
+    								<span>Synthetix</span>
+    								<span>szanded</span>
+    								<span>T2864.NEFirefox</span>
+    								<span>TheWay123</span>
+    								<span>Velvet</span>
+    								<span>Void</span>
+    								<span>一只某Y</span>
                                 </div>
                             </div>
                         </div>
