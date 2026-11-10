@@ -27,12 +27,14 @@ defineProps({
 <style lang="scss" scoped>
 .player {
     display: grid;
-    grid-template-columns: 1fr auto;
+    // minmax, long names ellipsize instead of stretching the bracket
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: 0.3vw 0.5vw;
     padding: 0.25vw 0.5vw;
     align-items: center;
 
     & > div {
+        min-width: 0;
         display: flex;
         flex-direction: column;
         gap: 0.12vw;
@@ -44,6 +46,9 @@ defineProps({
         }
         & span.username {
             flex-grow: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
             font-size: 0.7vw;
             font-weight: bold;
             letter-spacing: 0.025vw;

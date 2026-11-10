@@ -49,6 +49,7 @@
                 :hint="gameStatus"
                 type="horizontal"
             />
+            <RefreshDataInput :spulti-match="spulti.match" />
             <SpinInput
                 label="Chart from Game"
                 hint="Load the picked chart automatically"
@@ -97,6 +98,19 @@
                 <SpinSwitch
                     v-model="postResults"
                     @update:model-value="(value) => setStateFlag('postResults', value)"
+                />
+            </SpinInput>
+            <SpinInput
+                label="Results Delay"
+                hint="Seconds to wait after a round ends before the prompt, auto results and posting, the game sometimes sends results before every count is in"
+            >
+                <input
+                    v-model="resultsDelay"
+                    type="number"
+                    min="0"
+                    max="30"
+                    step="0.5"
+                    @change="setStateFlag('resultsDelay', Math.max(0, Number(resultsDelay) || 0))"
                 />
             </SpinInput>
             <SpinInput
@@ -246,12 +260,6 @@
         </SpinInputGroup>
 
         <template #transition>
-            <SpinButton
-                @click="toggleRefDen"
-                :icon="refDenIsVisible ? 'comment-text-multiple' : 'comment-text-multiple-outline'"
-                :color="refDenIsVisible ? 'primary' : 'default'"
-                v-tooltip="'Toggle Ref Den'"
-            />
             <!-- Everything that goes over the gameplay, lit while any of it is up -->
             <SpinMenu
                 :icon="resultsVisible || pickBanVisible ? 'layers' : 'layers-outline'"
@@ -298,7 +306,6 @@
 </template>
 
 <script setup>
-import useRefDenToggle from '@/modules/useRefDenToggle';
 import AppLayout from '../../layouts/AppLayout.vue';
 import SpinButton from '@/components/Common/SpinButton.vue';
 import SpinInput from '@/components/Common/SpinInput.vue';
@@ -310,6 +317,7 @@ import { computed, onMounted, onUnmounted, ref, inject, watch } from 'vue';
 import useCurrentScreen from '@/modules/useCurrentScreen';
 import useSpinShareApi from '@/modules/useSpinShareApi';
 import { nextRecapSlideAt, showMatchResults } from '@/modules/useWinnerPrompt';
+import RefreshDataInput from '@/components/RefreshDataInput.vue';
 import useSpulti, { coinResult, playerOptions, withGuests } from '@/modules/useSpulti';
 import { playCoinFlip, setPickBanVisible } from '@/modules/useSpultiOverlays';
 import useSrxd, { chartFromTrack, guessIngameName, matchWinner, pickResults } from '@/modules/useSrxd';
@@ -361,6 +369,7 @@ const historyLength = ref(0);
 const history = ref([]);
 const recapVisible = ref(false);
 const postResults = ref(false);
+const resultsDelay = ref(0);
 const lastSet = ref(null);
 const savedResults = ref(null);
 
@@ -656,7 +665,6 @@ const setPlayer2 = () => {
     guessIngamePlayers(false);
 };
 
-const { refDenIsVisible, toggleRefDen } = useRefDenToggle();
 const resultsVisible = ref(false);
 
 // Shows the last finished round over the gameplay cutout, hidden again when the next song loads
@@ -717,6 +725,7 @@ onMounted(() => {
         lastSet.value = state?.currentMatch?.lastSet ?? null;
         savedResults.value = state?.currentMatch?.results ?? null;
         postResults.value = state?.postResults ?? false;
+        resultsDelay.value = state?.resultsDelay ?? 0;
         autoChart.value = state?.autoChart ?? true;
         pickBanVisible.value = state?.pickBanVisible ?? false;
         coinFlipKey.value = state?.coinFlipKey ?? null;

@@ -4,7 +4,7 @@
             <SpinInputGroup header="General">
                 <SpinInput
                     label="SSSOPanel Next"
-                    hint="Version 1.4.1"
+                    hint="Version 1.5.2"
                     type="horizontal"
                 >
                     <SpinButton
@@ -354,6 +354,17 @@
                         />
                     </SpinInput>
                     <SpinInput
+                        label="Connection"
+                        :hint="tunaCheck"
+                        type="horizontal"
+                    >
+                        <SpinButton
+                            label="Check"
+                            :disabled="tunaChecking"
+                            @click="checkTuna"
+                        />
+                    </SpinInput>
+                    <SpinInput
                         label="Album Cover"
                         hint="Show the cover instead of the music icon"
                         type="horizontal"
@@ -395,6 +406,7 @@ import { getTheme, themes } from '@/modules/themes';
 import useTournamentAPI from '@/modules/useStartGGApi';
 import SpinLoader from '@/components/Common/SpinLoader.vue';
 import router from '@/router';
+import { onBeforeRouteLeave } from 'vue-router';
 import SpinInputGroup from '@/components/Common/SpinInputGroup.vue';
 const emitter = inject('emitter');
 const game = useSrxd();
@@ -523,6 +535,7 @@ const toggleJoin = () =>
         const result = await VoiceBotService.join(voiceChannelId.value);
         // Remembered for auto join without needing a save
         window.electronAPI.send('message', JSON.stringify({ command: 'settings-set', data: [{ key: 'voicebot.voiceChannelId', value: voiceChannelId.value }] }));
+        if (saved) saved['voicebot.voiceChannelId'] = JSON.stringify(voiceChannelId.value ?? null);
         return result;
     });
 
@@ -544,6 +557,17 @@ const toggleVoiceBot = () => {
 
 const musicSource = ref('spotify');
 const tunaUrl = ref('');
+const tunaCheck = ref('');
+const tunaChecking = ref(false);
+const checkTuna = () => {
+    tunaChecking.value = true;
+    tunaCheck.value = 'Checking...';
+    window.electronAPI.send('message', JSON.stringify({ command: 'tuna-check', data: { url: tunaUrl.value } }));
+};
+const onTunaCheck = (data) => {
+    tunaChecking.value = false;
+    tunaCheck.value = data.ok ? data.message : `Error: ${data.message}`;
+};
 const tunaShowCover = ref(true);
 
 const obsSceneOptions = (screenKey) => {
@@ -608,19 +632,55 @@ const loadStartGGEvents = async () => {
     }
 };
 
+const collectSettings = () => [{ key: 'theme', value: theme.value }, { key: 'currentEvent.startgg.apiToken', value: startGGApiToken.value }, { key: 'currentEvent.startgg.tournamentSlug', value: startGGTournamentSlug.value }, { key: 'currentEvent.startgg.tournamentId', value: startGGTournamentId.value }, { key: 'currentEvent.startgg.tournamentName', value: startGGTournamentName.value }, { key: 'currentEvent.startgg.eventId', value: startGGEventId.value }, { key: 'obs.enabled', value: obsEnabled.value }, { key: 'obs.url', value: obsUrl.value }, { key: 'obs.password', value: obsPassword.value }, { key: 'srxd.enabled', value: srxdEnabled.value }, { key: 'srxd.url', value: srxdUrl.value }, { key: 'voicebot.mode', value: voiceBotMode.value }, { key: 'voicebot.url', value: voiceBotUrl.value }, { key: 'voicebot.token', value: voiceBotToken.value }, { key: 'voicebot.port', value: voiceBotPort.value }, { key: 'voicebot.nodePath', value: voiceBotNodePath.value }, { key: 'voicebot.autoJoin', value: voiceBotAutoJoin.value }, { key: 'voicebot.voiceChannelId', value: voiceChannelId.value }, { key: 'music.source', value: musicSource.value }, { key: 'tuna.url', value: tunaUrl.value }, { key: 'tuna.showCover', value: tunaShowCover.value }, ...obsScreens.map((screen) => ({ key: `obs.scene.${screen.key}`, value: obsSceneMapping.value[screen.key] }))];
+
+// What's saved, to warn about unsaved changes when leaving. null until loaded
+let saved = null;
+const snapshot = () => Object.fromEntries(collectSettings().map(({ key, value }) => [key, JSON.stringify(value ?? null)]));
+const hasUnsavedChanges = () => {
+    if (!saved) return false;
+    const current = snapshot();
+    return Object.keys(current).some((key) => current[key] !== saved[key]);
+};
+
 const saveSettings = () => {
     settingsState.value = SETTING_STATE_SAVING;
-
-    const settings = [{ key: 'theme', value: theme.value }, { key: 'currentEvent.startgg.apiToken', value: startGGApiToken.value }, { key: 'currentEvent.startgg.tournamentSlug', value: startGGTournamentSlug.value }, { key: 'currentEvent.startgg.tournamentId', value: startGGTournamentId.value }, { key: 'currentEvent.startgg.tournamentName', value: startGGTournamentName.value }, { key: 'currentEvent.startgg.eventId', value: startGGEventId.value }, { key: 'obs.enabled', value: obsEnabled.value }, { key: 'obs.url', value: obsUrl.value }, { key: 'obs.password', value: obsPassword.value }, { key: 'srxd.enabled', value: srxdEnabled.value }, { key: 'srxd.url', value: srxdUrl.value }, { key: 'voicebot.mode', value: voiceBotMode.value }, { key: 'voicebot.url', value: voiceBotUrl.value }, { key: 'voicebot.token', value: voiceBotToken.value }, { key: 'voicebot.port', value: voiceBotPort.value }, { key: 'voicebot.nodePath', value: voiceBotNodePath.value }, { key: 'voicebot.autoJoin', value: voiceBotAutoJoin.value }, { key: 'voicebot.voiceChannelId', value: voiceChannelId.value }, { key: 'music.source', value: musicSource.value }, { key: 'tuna.url', value: tunaUrl.value }, { key: 'tuna.showCover', value: tunaShowCover.value }, ...obsScreens.map((screen) => ({ key: `obs.scene.${screen.key}`, value: obsSceneMapping.value[screen.key] }))];
+    saved = snapshot();
 
     window.electronAPI.send(
         'message',
         JSON.stringify({
             command: 'settings-set',
-            data: settings,
+            data: collectSettings(),
         }),
     );
 };
+
+let leaveAnyway = false;
+onBeforeRouteLeave((to) => {
+    if (leaveAnyway || !hasUnsavedChanges()) return true;
+    const leave = () => {
+        leaveAnyway = true;
+        router.push(to.fullPath);
+    };
+    emitter.emit('alert-show', {
+        title: 'Unsaved changes',
+        message: 'Save your settings before leaving?',
+        actions: [
+            { label: 'Cancel' },
+            { label: 'Discard', click: leave },
+            {
+                label: 'Save',
+                color: 'primary',
+                click: () => {
+                    saveSettings();
+                    leave();
+                },
+            },
+        ],
+    });
+    return false;
+});
 
 const openGithubReleases = () => {
     window.electronAPI.send(
@@ -668,12 +728,14 @@ onMounted(() => {
             await loadStartGGEvents();
         }
 
+        saved = snapshot();
         settingsState.value = SETTING_STATE_IDLE;
     });
     emitter.on('settings-set-response', (settings) => {
         applySavedVoiceBot(settings);
         settingsState.value = SETTING_STATE_IDLE;
     });
+    emitter.on('tuna-check-response', onTunaCheck);
     emitter.on('obs-status-get-response', (status) => {
         obsConnecting.value = false;
         obsScenes.value = status.scenes;
@@ -699,6 +761,7 @@ onUnmounted(() => {
     emitter.off('settings-get-full-response');
     emitter.off('settings-set-response');
     emitter.off('obs-status-get-response');
+    emitter.off('tuna-check-response', onTunaCheck);
 });
 </script>
 

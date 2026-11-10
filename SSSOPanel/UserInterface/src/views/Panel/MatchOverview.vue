@@ -18,7 +18,7 @@
         </SpinInput>
         <SpinInput
             label="Auto Spulti"
-            hint="On match ingame: flips the coin once the toss is in (waits until match ingame is live), shows the pick/ban board for bans and picks, hides it when the song loads"
+            hint="On match overview and ingame: flips the coin once the toss is in, shows the pick/ban board for bans and picks, hides it when the song loads"
             type="horizontal"
         >
             <SpinSwitch
@@ -26,6 +26,7 @@
                 @update:model-value="setAutoSpulti"
             />
         </SpinInput>
+        <RefreshDataInput :spulti-match="spulti.match" />
         <SpinInput
             label="Player 1"
             :hint="loadedPlayer1 === null ? 'None selected' : loadedPlayer1?.spinshareProfile?.username ?? 'Unknown user'"
@@ -80,12 +81,26 @@
         </ol>
 
         <template #transition>
-            <SpinButton
-                @click="toggleRefDen"
-                :icon="refDenIsVisible ? 'comment-text-multiple' : 'comment-text-multiple-outline'"
-                :color="refDenIsVisible ? 'primary' : 'default'"
-                v-tooltip="'Toggle Ref Den'"
-            />
+            <!-- Same menu as on match ingame, separate buttons didn't fit the footer at the default size -->
+            <SpinMenu
+                :icon="pickBanVisible ? 'layers' : 'layers-outline'"
+                :color="pickBanVisible ? 'primary' : 'default'"
+                tooltip="Overlays"
+            >
+                <SpinButton
+                    @click="setPickBanVisible(!pickBanVisible)"
+                    :icon="pickBanVisible ? 'cards' : 'cards-outline'"
+                    :color="pickBanVisible ? 'primary' : 'default'"
+                    :disabled="!pickBanVisible && !spulti.match"
+                    label="Pick / Ban"
+                />
+                <SpinButton
+                    @click="playCoinFlip(spultiCoin.key)"
+                    icon="circle-multiple-outline"
+                    :disabled="!spultiCoin"
+                    :label="spultiCoin && spultiCoin.key === coinFlipKey ? 'Flip Coin Again' : 'Flip Coin'"
+                />
+            </SpinMenu>
             <SpinButton
                 @click="swapPlayers"
                 icon="swap-horizontal"
@@ -109,16 +124,18 @@
 </template>
 
 <script setup>
-import useRefDenToggle from '@/modules/useRefDenToggle';
 import AppLayout from '../../layouts/AppLayout.vue';
 import SpinButton from '@/components/Common/SpinButton.vue';
 import SpinInput from '@/components/Common/SpinInput.vue';
 import SpinSelect from '@/components/Common/SpinSelect.vue';
 import SpinSwitch from '@/components/Common/SpinSwitch.vue';
+import SpinMenu from '@/components/Common/SpinMenu.vue';
 import { ref, computed, watch, inject, onMounted, onUnmounted } from 'vue';
 import useSrxd, { guessIngameName } from '@/modules/useSrxd';
 import { resetMatch } from '@/modules/useWinnerPrompt';
-import useSpulti, { autofilled, draftSteps, findMapping, followSpultiMatch, playerOptions, withGuests } from '@/modules/useSpulti';
+import RefreshDataInput from '@/components/RefreshDataInput.vue';
+import useSpulti, { autofilled, coinResult, draftSteps, findMapping, followSpultiMatch, playerOptions, withGuests } from '@/modules/useSpulti';
+import { playCoinFlip, setPickBanVisible } from '@/modules/useSpultiOverlays';
 const emitter = inject('emitter');
 const game = useSrxd();
 
@@ -142,8 +159,6 @@ const loadedPlayer2 = ref(null);
 
 const ingamePlayer1 = ref('');
 const ingamePlayer2 = ref('');
-
-const { refDenIsVisible, toggleRefDen } = useRefDenToggle();
 
 const scores = ref({});
 const historyLength = ref(0);
@@ -293,6 +308,9 @@ const showPlayers = () => {
 };
 
 const spulti = useSpulti();
+const spultiCoin = computed(() => coinResult(spulti.value.match));
+const pickBanVisible = ref(false);
+const coinFlipKey = ref(null);
 const spultiUrl = ref('');
 // Fill the box once from what the backend follows, after that it's the user's
 watch(
@@ -385,6 +403,10 @@ onMounted(() => {
             ingamePlayer1.value = state?.currentMatch?.ingame?.player1 ?? ingamePlayer1.value;
             ingamePlayer2.value = state?.currentMatch?.ingame?.player2 ?? ingamePlayer2.value;
         }
+        // Same player with a refreshed profile, a transition would put the old one back otherwise
+        const fresh = state?.currentMatch?.players ?? {};
+        if (fresh.player1 && String(fresh.player1.id) === String(loadedPlayer1.value?.id)) loadedPlayer1.value = fresh.player1;
+        if (fresh.player2 && String(fresh.player2.id) === String(loadedPlayer2.value?.id)) loadedPlayer2.value = fresh.player2;
         currentMatch.value = state?.currentMatch ?? {};
         scores.value = state?.currentMatch?.scores ?? {};
         historyLength.value = state?.currentMatch?.history?.length ?? 0;
@@ -393,6 +415,8 @@ onMounted(() => {
         guessIngamePlayers();
         stateLoaded.value = true;
         autoSpulti.value = state?.autoSpulti ?? false;
+        pickBanVisible.value = state?.pickBanVisible ?? false;
+        coinFlipKey.value = state?.coinFlipKey ?? null;
     });
 
     emitter.on('settings-get-full-response', async (settings) => {

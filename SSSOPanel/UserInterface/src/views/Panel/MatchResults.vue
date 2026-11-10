@@ -29,12 +29,6 @@
 
         <template #transition>
             <SpinButton
-                @click="toggleRefDen"
-                :icon="refDenIsVisible ? 'comment-text-multiple' : 'comment-text-multiple-outline'"
-                :color="refDenIsVisible ? 'primary' : 'default'"
-                v-tooltip="'Toggle Ref Den'"
-            />
-            <SpinButton
                 @click="newMatch"
                 icon="restart"
                 v-tooltip="'New Match (clears scores and sets, keeps players)'"
@@ -51,7 +45,6 @@
 </template>
 
 <script setup>
-import useRefDenToggle from '@/modules/useRefDenToggle';
 import AppLayout from '../../layouts/AppLayout.vue';
 import SpinButton from '@/components/Common/SpinButton.vue';
 import SpinInput from '@/components/Common/SpinInput.vue';
@@ -61,7 +54,6 @@ import { nextRecapSlideAt, resetMatch, showMatchResults } from '@/modules/useWin
 import router from '@/router';
 const emitter = inject('emitter');
 
-const { refDenIsVisible, toggleRefDen } = useRefDenToggle();
 const players = ref({});
 const ingame = ref({});
 const scores = ref({});

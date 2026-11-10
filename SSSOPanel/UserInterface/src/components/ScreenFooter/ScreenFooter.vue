@@ -71,7 +71,7 @@ const promos = ref([
         subtitle: 'Download the new desktop client and receive a profile card!',
     },
     {
-        title: 'discord.io/SpinShare',
+        title: 'spinsha.re/discord',
         subtitle: 'Connect with the Spin Rhythm XD customs community!',
     },
 ]);
@@ -158,22 +158,29 @@ onUnmounted(() => {
     & .promos {
         font-size: 1vw;
         position: relative;
+        align-self: stretch;
 
+        // Absolute so the out-in transition doesn't move the music, full footer height so both lines center on it
         & > div {
             position: absolute;
-            top: -0.5vw;
+            top: 0;
+            bottom: 0;
             display: flex;
             gap: 1vw;
             align-items: center;
             letter-spacing: 0.125rem;
 
+            // Orbitron's x-height sits low in its line box (more so in bold), these put the middle of the lowercase
+            // letters on the middle of the footer
             & span:nth-child(1) {
                 font-weight: bold;
                 letter-spacing: 0.025rem;
                 font-size: 1.25vw;
+                transform: translateY(-0.083em);
             }
             & span:nth-child(2) {
                 color: rgba(255, 255, 255, 0.8);
+                transform: translateY(-0.052em);
             }
         }
     }
@@ -205,6 +212,9 @@ onUnmounted(() => {
             white-space: nowrap;
             // The marquee clips at the line box, the reset's line-height: 1 would cut off g, y, p
             line-height: 1.3;
+            // Same nudge as the promos, Orbitron's lowercase sits low. Relative since these are inline
+            position: relative;
+            top: -0.083em;
 
             &.title {
                 color: rgba(255, 255, 255, 0.8);

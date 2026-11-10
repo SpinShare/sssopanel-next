@@ -3,7 +3,7 @@
     <div
         class="screen-coin"
         :class="{ flipping: !landed }"
-        :style="{ '--ring': landed ? color : 'transparent', '--skip': `-${Math.min(elapsed, FLIP_TIME)}ms` }"
+        :style="{ '--ring': landed ? color : 'transparent', '--skip': `${-Math.min(elapsed, FLIP_TIME)}ms`, '--flip': `${FLIP_TIME}ms` }"
     >
         <div class="spin">
             <img
@@ -24,9 +24,7 @@
 import { onMounted, onUnmounted, ref } from 'vue';
 import coinFront from '@/assets/spulti/coin-front.svg';
 import coinBack from '@/assets/spulti/coin-back.svg';
-
-// Matches the animations below
-const FLIP_TIME = 3000;
+import { COIN_FLIP_TIME as FLIP_TIME } from '@/modules/useSpultiOverlays';
 
 const props = defineProps({
     // spulti's tap color of the winner
@@ -34,11 +32,11 @@ const props = defineProps({
         type: String,
         required: true,
     },
-    // ms since the flip started, FLIP_TIME or more = already landed (no animation)
+    // ms since the flip started, FLIP_TIME or more = already landed (no animation), negative = starts that much later
     elapsed: {
         type: Number,
-        // FLIP_TIME, defineProps can't use local consts
-        default: 3000,
+        // Already landed, defineProps can't use imports
+        default: 999999,
     },
 });
 
@@ -57,6 +55,8 @@ onUnmounted(() => clearTimeout(timer));
 </script>
 
 <style lang="scss" scoped>
+// Port of spulti's CoinToss: perspective on the hopping wrapper (a perspective() inside the spin's keyframes
+// warped the coin mid turn), one hop, 5 turns in one direction
 .screen-coin {
     position: relative;
     // Sized by the parent, aspect-ratio is newer than older OBS browser sources
@@ -65,14 +65,14 @@ onUnmounted(() => clearTimeout(timer));
     border-radius: 50%;
     box-shadow: 0 0 0 0.4vw var(--ring);
     transition: box-shadow 0.3s;
+    perspective: 45vw;
 
     &.flipping {
-        // The hop, separate from the spin so the spin keeps one direction
-        animation: hop 3s ease-in-out both;
+        animation: hop var(--flip) both;
         animation-delay: var(--skip);
 
         & .spin {
-            animation: spin 3s cubic-bezier(0.2, 0.6, 0.35, 1) both;
+            animation: spin var(--flip) cubic-bezier(0.2, 0.6, 0.4, 1) both;
             animation-delay: var(--skip);
         }
     }
@@ -96,28 +96,24 @@ onUnmounted(() => clearTimeout(timer));
     }
 }
 
-// 6 turns, lands face up
+// Lands waveform up, spectators have no side
 @keyframes spin {
     from {
-        transform: perspective(60vw) rotateX(0deg);
+        transform: rotateX(0deg);
     }
     to {
-        transform: perspective(60vw) rotateX(2160deg);
+        transform: rotateX(1800deg);
     }
 }
 @keyframes hop {
     0%,
     100% {
         transform: translateY(0);
+        animation-timing-function: ease-out;
     }
-    35% {
-        transform: translateY(-4vw);
-    }
-    70% {
-        transform: translateY(0);
-    }
-    82% {
-        transform: translateY(-0.8vw);
+    50% {
+        transform: translateY(-2.5vw);
+        animation-timing-function: ease-in;
     }
 }
 </style>

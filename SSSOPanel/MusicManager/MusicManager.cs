@@ -1,3 +1,5 @@
+using System.Net;
+using System.Net.Sockets;
 using System.Security.Cryptography;
 using Newtonsoft.Json.Linq;
 using Process = System.Diagnostics.Process;
@@ -23,7 +25,9 @@ public class MusicManager
     // Tuna sometimes writes cover.png a while after the title changes, keep updating it for this long
     private static readonly TimeSpan CoverSettleTime = TimeSpan.FromSeconds(10);
 
-    private static readonly HttpClient HttpClient = new() { Timeout = TimeSpan.FromSeconds(2) };
+    // Tuna only listens on IPv4 (0.0.0.0). "localhost" resolves to ::1 first, and on Windows a refused connect takes
+    // ~2s (SYN retries), which used up the whole timeout every poll. Browsers race both, so tuna looked fine there
+    private static readonly HttpClient HttpClient = new(new SocketsHttpHandler { ConnectCallback = ConnectIPv4First }) { Timeout = TimeSpan.FromSeconds(2) };
     private static readonly HttpClient RemoteHttpClient = new() { Timeout = TimeSpan.FromSeconds(5) };
 
     // Online cover per song for when tuna has none, misses included so we don't hit the rate limits every poll
@@ -127,11 +131,7 @@ public class MusicManager
             return;
         }
 
-        var url = settingsManager.Get<string>("tuna.url");
-        if (string.IsNullOrWhiteSpace(url)) url = DefaultTunaUrl;
-        url = url.Trim().TrimEnd('/');
-        // "localhost:1609" would otherwise be read as a url with the scheme "localhost"
-        if (!url.Contains("://")) url = "http://" + url;
+        var url = TunaUrl(settingsManager.Get<string>("tuna.url"));
 
         var (song, key, coverSource) = await GetTunaSong(url);
         var showCover = !settingsManager.Exists("tuna.showCover") || settingsManager.Get<bool>("tuna.showCover");
@@ -141,6 +141,67 @@ public class MusicManager
 
         if (song.Active && coverSource != "") await FetchCover(coverSource, coverSource != url + "/cover.png");
         Apply(song, key, coverSource);
+    }
+
+    private static string TunaUrl(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) url = DefaultTunaUrl;
+        url = url.Trim().TrimEnd('/');
+        // "localhost:1609" would otherwise be read as a url with the scheme "localhost"
+        return url.Contains("://") ? url : "http://" + url;
+    }
+
+    /// <summary>
+    /// One request to tuna for the settings page, says what's wrong in words when it fails
+    /// </summary>
+    public static async Task<(bool Ok, string Message)> CheckTuna(string? rawUrl)
+    {
+        string url;
+        try
+        {
+            url = new Uri(TunaUrl(rawUrl)).ToString().TrimEnd('/');
+        }
+        catch (UriFormatException)
+        {
+            return (false, $"\"{rawUrl}\" isn't an address, it should look like {DefaultTunaUrl}");
+        }
+
+        string body;
+        try
+        {
+            using var response = await HttpClient.GetAsync(url);
+            if (!response.IsSuccessStatusCode) return (false, $"{url} answered with {(int)response.StatusCode} {response.ReasonPhrase}, is that tuna's port?");
+            body = await response.Content.ReadAsStringAsync();
+        }
+        catch (TaskCanceledException)
+        {
+            return (false, $"{url} didn't answer within {HttpClient.Timeout.TotalSeconds}s");
+        }
+        catch (HttpRequestException e) when (e.InnerException is SocketException { SocketErrorCode: SocketError.ConnectionRefused })
+        {
+            return (false, $"Nothing is listening at {url}, is OBS open with tuna's web server on, on that port?");
+        }
+        catch (HttpRequestException e)
+        {
+            return (false, $"Couldn't reach {url}: {e.InnerException?.Message ?? e.Message}");
+        }
+
+        JObject song;
+        try
+        {
+            song = JObject.Parse(body);
+        }
+        catch (Exception)
+        {
+            return (false, $"{url} answered, but not with tuna's song info");
+        }
+        if (song["status"] == null && song["title"] == null) return (false, $"{url} answered, but not with tuna's song info");
+
+        var title = song.Value<string>("title") ?? "";
+        var artists = song["artists"] is JArray array ? string.Join(", ", array.Values<string>().Where(a => !string.IsNullOrEmpty(a))) : "";
+        var status = song.Value<string>("status") ?? "unknown";
+        if (status == "playing" && title != "") return (true, $"Connected, playing {(artists == "" ? title : $"{artists} - {title}")}");
+        return (true, $"Connected, nothing playing right now (tuna says \"{status}\"{(title == "" ? "" : $" for {title}")})");
     }
 
     // Remote art urls belong to one track and never change, tuna's cover.png is rewritten in place
@@ -257,6 +318,33 @@ public class MusicManager
         }
 
         return song;
+    }
+
+    private static async ValueTask<Stream> ConnectIPv4First(SocketsHttpConnectionContext context, CancellationToken cancellationToken)
+    {
+        var host = context.DnsEndPoint.Host;
+        var addresses = IPAddress.TryParse(host, out var literal) ? [literal] : await Dns.GetHostAddressesAsync(host, cancellationToken);
+        Exception? last = null;
+        foreach (var address in addresses.OrderBy(a => a.AddressFamily == AddressFamily.InterNetwork ? 0 : 1))
+        {
+            var socket = new Socket(address.AddressFamily, SocketType.Stream, ProtocolType.Tcp) { NoDelay = true };
+            try
+            {
+                await socket.ConnectAsync(new IPEndPoint(address, context.DnsEndPoint.Port), cancellationToken);
+                return new NetworkStream(socket, ownsSocket: true);
+            }
+            catch (Exception e) when (e is SocketException)
+            {
+                socket.Dispose();
+                last = e;
+            }
+            catch
+            {
+                socket.Dispose();
+                throw;
+            }
+        }
+        throw last ?? new SocketException((int)SocketError.HostNotFound);
     }
 
     private static bool IsImage(byte[] bytes)

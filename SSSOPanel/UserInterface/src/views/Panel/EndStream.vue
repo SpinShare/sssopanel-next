@@ -13,12 +13,6 @@
 
         <template #transition>
             <SpinButton
-                @click="toggleRefDen"
-                :icon="refDenIsVisible ? 'comment-text-multiple' : 'comment-text-multiple-outline'"
-                :color="refDenIsVisible ? 'primary' : 'default'"
-                v-tooltip="'Toggle Ref Den'"
-            />
-            <SpinButton
                 @click="transition"
                 icon="record"
                 color="primary"
@@ -29,13 +23,11 @@
 </template>
 
 <script setup>
-import useRefDenToggle from '@/modules/useRefDenToggle';
 import AppLayout from '../../layouts/AppLayout.vue';
 import SpinButton from '@/components/Common/SpinButton.vue';
 import SpinInput from '@/components/Common/SpinInput.vue';
 import { ref, inject, onMounted, onUnmounted } from 'vue';
 const emitter = inject('emitter');
-const { refDenIsVisible, toggleRefDen } = useRefDenToggle();
 const nextStreamDate = ref(new Date());
 
 const transition = () => {

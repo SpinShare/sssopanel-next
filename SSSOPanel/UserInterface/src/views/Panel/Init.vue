@@ -2,12 +2,6 @@
     <AppLayout title="Init">
         <template #transition>
             <SpinButton
-                @click="toggleRefDen"
-                :icon="refDenIsVisible ? 'comment-text-multiple' : 'comment-text-multiple-outline'"
-                :color="refDenIsVisible ? 'primary' : 'default'"
-                v-tooltip="'Toggle Ref Den'"
-            />
-            <SpinButton
                 @click="transition"
                 icon="record"
                 color="primary"
@@ -18,10 +12,8 @@
 </template>
 
 <script setup>
-import useRefDenToggle from '@/modules/useRefDenToggle';
 import AppLayout from '../../layouts/AppLayout.vue';
 import SpinButton from '@/components/Common/SpinButton.vue';
-const { refDenIsVisible, toggleRefDen } = useRefDenToggle();
 
 const transition = () => {
     window.electronAPI.send(

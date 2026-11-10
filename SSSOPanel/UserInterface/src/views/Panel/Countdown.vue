@@ -27,12 +27,6 @@
 
         <template #transition>
             <SpinButton
-                @click="toggleRefDen"
-                :icon="refDenIsVisible ? 'comment-text-multiple' : 'comment-text-multiple-outline'"
-                :color="refDenIsVisible ? 'primary' : 'default'"
-                v-tooltip="'Toggle Ref Den'"
-            />
-            <SpinButton
                 @click="transition"
                 icon="record"
                 color="primary"
@@ -43,14 +37,12 @@
 </template>
 
 <script setup>
-import useRefDenToggle from '@/modules/useRefDenToggle';
 import AppLayout from '../../layouts/AppLayout.vue';
 import { onMounted, ref, inject, onUnmounted } from 'vue';
 import SpinButton from '@/components/Common/SpinButton.vue';
 import SpinInput from '@/components/Common/SpinInput.vue';
 import SpinSwitch from '@/components/Common/SpinSwitch.vue';
 const emitter = inject('emitter');
-const { refDenIsVisible, toggleRefDen } = useRefDenToggle();
 const countdownActive = ref(false);
 const countdownTime = ref(new Date());
 

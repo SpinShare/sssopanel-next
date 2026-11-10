@@ -1,5 +1,8 @@
 <template>
-    <section class="screen-pick-ban">
+    <section
+        class="screen-pick-ban"
+        :class="variant"
+    >
         <div class="backdrop">
             <div class="tint"></div>
             <div class="noise"></div>
@@ -62,6 +65,16 @@
                             <span>{{ turn.text }}</span>
                         </div>
                     </header>
+                    <div
+                        v-if="subs.length"
+                        class="subs"
+                    >
+                        <span
+                            v-for="sub in subs"
+                            :key="sub"
+                            ><span class="mdi mdi-account-switch"></span> {{ sub }}</span
+                        >
+                    </div>
 
                     <div
                         v-if="phase?.type === 'roll'"
@@ -75,7 +88,7 @@
                         :style="{ '--card': cardSize }"
                     >
                         <div
-                            v-for="(row, i) in rows"
+                            v-for="(row, i) in rows.rows"
                             :key="i"
                             class="row"
                         >
@@ -120,6 +133,19 @@
                                 </div>
                                 <div class="title">{{ card.title }}</div>
                                 <div class="artist">{{ card.artist }}</div>
+                                <div
+                                    v-if="card.charter"
+                                    class="charter"
+                                >
+                                    <span class="mdi mdi-pencil"></span> {{ card.charter }}
+                                </div>
+                                <!-- Outside the cover so the dimmed art doesn't dim it, like spulti's tile -->
+                                <div
+                                    v-if="card.banOrder"
+                                    class="ban-order"
+                                >
+                                    {{ card.banOrder }}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -131,12 +157,10 @@
 
 <script setup>
 import { computed, onUnmounted, ref, watch } from 'vue';
-import { coinResult, sideMap, slotStates, spultiPhase } from '@/modules/useSpulti';
-import { COIN_INTRO_DURATION } from '@/modules/useSpultiOverlays';
+import { coinResult, ourSide, sideMap, slotStates, spultiPhase } from '@/modules/useSpulti';
+import { stripRichText } from '@/modules/useSrxd';
+import { COIN_FLIP_TIME as FLIP_TIME, COIN_INTRO_DURATION } from '@/modules/useSpultiOverlays';
 import ScreenCoin from '@/components/ScreenSpulti/ScreenCoin.vue';
-
-// Matches ScreenCoin's flip
-const FLIP_TIME = 3000;
 
 const props = defineProps({
     // spulti-update snapshot
@@ -158,17 +182,35 @@ const props = defineProps({
         type: Number,
         default: 0,
     },
+    // cutout = over the gameplay band on match-ingame, panel = its own dark box (match overview), same size
+    variant: {
+        type: String,
+        default: 'cutout',
+    },
+    // vw, the gameplay band is 28 tall and 88 wide inside its margins
+    height: {
+        type: Number,
+        default: 28,
+    },
+    width: {
+        type: Number,
+        default: 88,
+    },
 });
 
 const match = computed(() => props.spulti.match);
 const sides = computed(() => sideMap(match.value, props.players));
 
-// Our player's name when they're linked, spulti's otherwise
+// Our player's name when they're the one spulti has on that side, spulti's otherwise (a sub, or nobody linked yet)
 const name = (spultiSide) => {
     if (!spultiSide) return '';
-    const player = props.players?.[sides.value[spultiSide]];
-    return player?.spinshareProfile?.username ?? player?.name ?? match.value?.[spultiSide]?.name ?? '';
+    const spultiPlayer = match.value?.[spultiSide];
+    const player = ourSide(match.value, spultiSide, props.players) ? props.players[sides.value[spultiSide]] : null;
+    return player?.spinshareProfile?.username ?? player?.name ?? spultiPlayer?.user?.username ?? spultiPlayer?.name ?? '';
 };
+
+// "Sub subbing for Original", one line per subbed side
+const subs = computed(() => ['player1', 'player2'].filter((side) => match.value?.[side] && match.value?.subbedFor?.[side]).map((side) => `${name(side)} subbing for ${match.value.subbedFor[side]}`));
 
 const phase = computed(() => spultiPhase(match.value, props.spulti.mappool));
 const striking = computed(() => (match.value?.sets?.length ?? 0) === 0);
@@ -237,6 +279,7 @@ const cards = computed(() => {
         let status = 'open';
         let tag = null;
         let by = null;
+        let banOrder = null;
 
         if (state.played !== undefined) {
             status = 'played';
@@ -251,18 +294,21 @@ const cards = computed(() => {
             status = 'banned';
             tag = 'Banned';
             by = state.banned ? name(state.banned) : null;
+            banOrder = state.banOrder;
         }
 
         return {
             key: slot.id,
             label: slot.label,
-            title: slot.chart.title,
-            artist: slot.chart.artist,
+            title: stripRichText(slot.chart.title),
+            artist: stripRichText(slot.chart.artist),
+            charter: stripRichText(slot.chart.charter),
             cover: slot.chart.coverUrl,
             difficulty: rating(slot.chart, slot.difficulty),
             status,
             tag,
             by,
+            banOrder,
         };
     });
 
@@ -273,8 +319,9 @@ const cards = computed(() => {
         cards.push({
             key: `tiebreak-${i}`,
             label: 'TB',
-            title: action.chart.title,
-            artist: action.chart.artist,
+            title: stripRichText(action.chart.title),
+            artist: stripRichText(action.chart.artist),
+            charter: stripRichText(action.chart.charter),
             cover: action.chart.coverUrl,
             difficulty: rating(action.chart, action.difficulty),
             status: set ? 'played' : 'next',
@@ -286,31 +333,27 @@ const cards = computed(() => {
     return cards;
 });
 
-// Charts per row by best of (spulti pools have best of + 2 charts)
-const POOL_LAYOUTS = {
-    3: [5],
-    5: [3, 4],
-    7: [4, 5],
-    9: [5, 6],
-};
-// Biggest card that fits, one row or two in the 1920x540 cutout (in vw, 1vw gaps)
-const MAX_CARD = { 1: 11, 2: 7.6 };
+// Card sizes in vw, the board is `height` tall (the 1920x540 cutout is 28vw): 1vw gaps, 0.9vw card padding, the text
+// under the cover is about 0.36 cover tall. Header, sub line and margins take the rest
+const MAX_CARD = 11;
+const boardHeight = () => props.height - 6 - (subs.value.length ? 2 : 0);
 
+// One row, or two even ones (bigger rows at the bottom), whichever fits the bigger cover
 const rows = computed(() => {
     const count = cards.value.length;
-    let layout = POOL_LAYOUTS[match.value?.bestOf];
-    // Anything else, like an extra tiebreak card: one row up to 6, then two even ones
-    if (!layout || layout.reduce((a, b) => a + b, 0) !== count) {
-        layout = count <= 6 ? [count] : [Math.floor(count / 2), Math.ceil(count / 2)];
-    }
+    const layouts = count > 1 ? [[count], [Math.floor(count / 2), Math.ceil(count / 2)]] : [[count]];
+    const fit = (layout) => {
+        const widest = Math.max(...layout);
+        const byWidth = (props.width - (widest - 1)) / widest - 0.9;
+        const byHeight = (boardHeight() - (layout.length - 1) - layout.length * 1.6) / (layout.length * 1.36);
+        return Math.min(MAX_CARD, byWidth, byHeight);
+    };
+    const layout = layouts.reduce((best, layout) => (fit(layout) > fit(best) + 0.01 ? layout : best));
     let start = 0;
-    return layout.map((size) => cards.value.slice(start, (start += size)));
+    return { size: fit(layout), rows: layout.map((size) => cards.value.slice(start, (start += size))) };
 });
 
-const cardSize = computed(() => {
-    const widest = Math.max(...rows.value.map((row) => row.length));
-    return `${Math.min(MAX_CARD[rows.value.length] ?? 7.6, (88 - (widest - 1)) / widest)}vw`;
-});
+const cardSize = computed(() => `${rows.value.size}vw`);
 </script>
 
 <style lang="scss" scoped>
@@ -320,10 +363,11 @@ const cardSize = computed(() => {
     inset: 0;
     overflow: hidden;
 
+    // Nearly opaque, the gameplay behind made the text hard to read
     & .backdrop {
         position: absolute;
         inset: 0;
-        opacity: 0.8;
+        opacity: 0.94;
     }
 
     & .tint {
@@ -346,6 +390,26 @@ const cardSize = computed(() => {
         inset: 0;
         opacity: 0.4;
         mix-blend-mode: soft-light;
+    }
+
+    // A box like the player cards, the overview's bright background shows around it
+    &.panel {
+        border-radius: 0.5vw;
+
+        & .backdrop {
+            background: #111;
+            opacity: 1;
+
+            & > .tint,
+            & > .noise {
+                display: none;
+            }
+        }
+
+        // Invisible on the dark box anyway, and scaled (ref den up) they peeked out under its edge
+        & .card {
+            box-shadow: none;
+        }
     }
 
     & .content {
@@ -470,10 +534,21 @@ const cardSize = computed(() => {
         }
     }
 
+    & .subs {
+        display: flex;
+        gap: 1.5vw;
+        margin-top: -0.6vw;
+        font-size: 1vw;
+        font-weight: 600;
+        opacity: 0.8;
+    }
+
     & .cards {
         display: flex;
         flex-direction: column;
         gap: 1vw;
+        // Eases with the board when it gets narrower or wider (ref den on overview), see @property below
+        transition: --card 0.5s ease-in-out;
 
         & .row {
             display: flex;
@@ -482,12 +557,38 @@ const cardSize = computed(() => {
         }
     }
 
+    // Each card on its own dark panel, readable on any theme
     & .card {
-        width: var(--card);
+        box-sizing: border-box;
+        width: calc(var(--card) + 0.9vw);
         display: flex;
         flex-direction: column;
         gap: 0.2vw;
+        padding: 0.45vw 0.45vw 0.55vw;
+        border-radius: 0.7vw;
+        background: rgba(0, 0, 0, 0.55);
+        box-shadow: 0 0.3vw 1vw rgba(0, 0, 0, 0.35);
+        position: relative;
         transition: transform 0.4s ease-out;
+
+        // spulti's ban number, red circle over the top left corner
+        & .ban-order {
+            position: absolute;
+            top: -0.55vw;
+            left: -0.55vw;
+            width: 1.7vw;
+            height: 1.7vw;
+            border-radius: 50%;
+            background: #fb1357;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1vw;
+            font-weight: 800;
+            box-shadow: 0 0.15vw 0.4vw rgba(0, 0, 0, 0.5);
+            z-index: 20;
+        }
 
         & .cover {
             width: var(--card);
@@ -569,24 +670,31 @@ const cardSize = computed(() => {
         }
 
         & .title,
-        & .artist {
+        & .artist,
+        & .charter {
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
         & .title {
             font-weight: 700;
-            font-size: calc(var(--card) * 0.1);
+            // Small covers (Bo9 in one row) still need readable text
+            font-size: max(0.8vw, calc(var(--card) * 0.1));
         }
-        & .artist {
-            font-size: calc(var(--card) * 0.085);
-            opacity: 0.6;
+        & .artist,
+        & .charter {
+            font-size: max(0.7vw, calc(var(--card) * 0.085));
+            color: #aaa;
+        }
+        & .charter .mdi {
+            font-size: 0.85em;
         }
 
         // Dimmed, not faded, a see-through card would show the gameplay behind the board
         & .art,
         & .title,
-        & .artist {
+        & .artist,
+        & .charter {
             transition: filter 0.4s ease-out, color 0.4s ease-out;
         }
 
@@ -595,7 +703,8 @@ const cardSize = computed(() => {
                 filter: grayscale(1) brightness(0.35);
             }
             & .title,
-            & .artist {
+            & .artist,
+            & .charter {
                 color: #666;
             }
 
@@ -609,7 +718,8 @@ const cardSize = computed(() => {
                 filter: brightness(0.45);
             }
             & .title,
-            & .artist {
+            & .artist,
+            & .charter {
                 color: #888;
             }
         }
@@ -621,6 +731,13 @@ const cardSize = computed(() => {
             }
         }
     }
+}
+
+// Registered so it can transition, plain custom properties just switch
+@property --card {
+    syntax: '<length>';
+    inherits: true;
+    initial-value: 0px;
 }
 
 // Shrinks up toward the header, where the small coin stays

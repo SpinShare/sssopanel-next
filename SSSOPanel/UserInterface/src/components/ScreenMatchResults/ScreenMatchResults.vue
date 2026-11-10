@@ -43,7 +43,7 @@
                                     <span class="mdi mdi-trophy"></span>
                                     <span>WINNER &middot;</span>
                                 </template>
-                                <span>{{ side.player?.spinshareProfile?.username ?? side.entry?.name ?? 'Unknown' }}</span>
+                                <span class="name">{{ side.player?.spinshareProfile?.username ?? side.entry?.name ?? 'Unknown' }}</span>
                             </header>
                             <div class="box">
                                 <!-- Winner only, the tinted rim around the card -->
@@ -352,10 +352,20 @@ const sides = computed(() => {
                 display: flex;
                 align-items: center;
                 gap: 0.5vw;
+                // Long names ellipsize inside the card instead of running past it
+                box-sizing: border-box;
+                max-width: 100%;
+                white-space: nowrap;
 
                 & span {
                     position: relative;
                     z-index: 10;
+                }
+
+                & .name {
+                    min-width: 0;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
                 }
 
                 & .mdi {

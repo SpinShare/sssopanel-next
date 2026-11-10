@@ -2,11 +2,12 @@
     <ScreenLayout>
         <section
             class="screen-match-overview"
-            :class="{ 'ref-den': refDenIsVisible }"
+            :class="{ 'ref-den': layoutRefDen, 'pick-ban': layoutPickBan }"
+            :style="{ '--move': `${MOVE}ms` }"
         >
             <div class="tint themed"></div>
             <div class="noise"></div>
-            <!-- Tall column on the right, the cards move over while it's up -->
+            <!-- Tall column on the right, the content moves over while it's up -->
             <ScreenRefDen variant="column" />
 
             <div class="content">
@@ -30,7 +31,10 @@
                                 >
                                     {{ player1.spinshareProfile?.pronouns }}
                                 </div>
-                                <div class="username">
+                                <div
+                                    class="username"
+                                    :style="{ fontSize: fitFontSize(player1.spinshareProfile?.username ?? player1.name, 1, 20, 0.6, 'em') }"
+                                >
                                     {{ player1.spinshareProfile?.username ?? player1.name }}
                                 </div>
                             </div>
@@ -53,13 +57,36 @@
                                 >
                                     {{ player2.spinshareProfile?.pronouns }}
                                 </div>
-                                <div class="username">
+                                <div
+                                    class="username"
+                                    :style="{ fontSize: fitFontSize(player2.spinshareProfile?.username ?? player2.name, 1, 20, 0.6, 'em') }"
+                                >
                                     {{ player2.spinshareProfile?.username ?? player2.name }}
                                 </div>
                             </div>
                         </div>
                     </div>
                 </section>
+                <!-- spulti's coin toss and draft under the cards, which move up for it -->
+                <transition
+                    name="pick-ban"
+                    @after-leave="layoutPickBan = showPickBan"
+                >
+                    <div
+                        v-if="showPickBan"
+                        class="pick-ban-area"
+                    >
+                        <ScreenPickBan
+                            variant="panel"
+                            :height="PICK_BAN_HEIGHT"
+                            :width="layoutRefDen ? 65.5 : 93"
+                            :spulti="spulti"
+                            :players="{ player1, player2 }"
+                            :coin-flip-key="coinFlipKey"
+                            :coin-flip-at="boardFlipAt"
+                        />
+                    </div>
+                </transition>
             </div>
 
             <div class="marquees">
@@ -86,17 +113,58 @@
 
 <script setup>
 import ScreenLayout from '../../layouts/ScreenLayout.vue';
-import { onMounted, onUnmounted, ref, inject } from 'vue';
+import { computed, onMounted, onUnmounted, ref, inject, watch } from 'vue';
 import ScreenRefDen from '@/components/ScreenRefDen/ScreenRefDen.vue';
+import ScreenPickBan from '@/components/ScreenSpulti/ScreenPickBan.vue';
+import { fitFontSize } from '@/modules/fitText';
+import useSpulti from '@/modules/useSpulti';
 const emitter = inject('emitter');
 
 const player1 = ref(null);
 const player2 = ref(null);
 const refDenIsVisible = ref(false);
 
-// The toggle comes in through state-set, it doesn't touch the players
+// vw, the board under the cards, see the pick-ban styles
+const PICK_BAN_HEIGHT = 20.5;
+const spulti = useSpulti();
+const pickBanVisible = ref(false);
+const coinFlipKey = ref(null);
+const coinFlipAt = ref(0);
+const showPickBan = computed(() => pickBanVisible.value && !!spulti.value.match && !!player1.value && !!player2.value);
+
+// The layout classes, they lag behind on the way back: the cards only move once the board or the ref den column
+// is gone (and coming in, the board waits for the cards, its enter delay is MOVE)
+const MOVE = 500;
+// ScreenRefDen's column leave
+const REF_DEN_LEAVE = 250;
+const layoutPickBan = ref(false);
+const layoutRefDen = ref(false);
+// When the board last came in
+const boardShownAt = ref(0);
+watch(showPickBan, (show) => {
+    // Off happens in the board's after-leave
+    if (!show) return;
+    layoutPickBan.value = true;
+    boardShownAt.value = Date.now();
+});
+// A flip that opened the board (Auto Spulti) starts once the board shows, MOVE later, not while it's still hidden
+const boardFlipAt = computed(() => {
+    const opened = boardShownAt.value - coinFlipAt.value < 1000 && coinFlipAt.value < boardShownAt.value + MOVE;
+    return opened ? boardShownAt.value + MOVE : coinFlipAt.value;
+});
+let refDenTimer = null;
+watch(refDenIsVisible, (visible) => {
+    clearTimeout(refDenTimer);
+    if (visible) layoutRefDen.value = true;
+    else refDenTimer = setTimeout(() => (layoutRefDen.value = false), REF_DEN_LEAVE);
+});
+
+// Toggles come in through state-set, they don't touch the players
 const applyRefDen = (state) => {
     refDenIsVisible.value = state?.refDenIsVisible ?? false;
+    pickBanVisible.value = state?.pickBanVisible ?? pickBanVisible.value;
+    coinFlipKey.value = state?.coinFlipKey ?? coinFlipKey.value;
+    coinFlipAt.value = state?.coinFlipAt ?? coinFlipAt.value;
 };
 
 onMounted(() => {
@@ -115,6 +183,7 @@ onMounted(() => {
     );
 });
 onUnmounted(() => {
+    clearTimeout(refDenTimer);
     emitter.off('state-get-response');
     emitter.off('state-set-response', applyRefDen);
 });
@@ -166,18 +235,18 @@ onUnmounted(() => {
         display: grid;
         grid-template-rows: 1fr;
         gap: 5vw;
-        // One transform instead of animating sizes, nothing reflows while it moves.
-        // Growing back waits for the ref den column to fade out first
-        transition: transform 0.5s ease-in-out 0.2s;
+        // Moves for the ref den and pick/ban, see the end
 
         & .player-info {
             display: grid;
-            grid-template-columns: 1fr auto 1fr;
+            // minmax, a long name would stretch its card off screen
+            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
             justify-content: center;
             align-items: center;
             gap: 5vw;
 
             & .player {
+                min-width: 0;
                 display: flex;
                 flex-direction: column;
                 align-items: flex-start;
@@ -218,10 +287,14 @@ onUnmounted(() => {
                         }
                     }
 
+                    // Pronouns + a full size name, so both cards are the same height with a shrunk name or no pronouns
                     & .meta {
                         display: flex;
                         flex-direction: column;
+                        justify-content: flex-end;
                         gap: 0.25vw;
+                        min-width: 0;
+                        min-height: 2.75vw;
 
                         & .pronouns {
                             color: rgba(255, 255, 255, 0.6);
@@ -232,6 +305,9 @@ onUnmounted(() => {
                         & .username {
                             font-weight: 600;
                             letter-spacing: 0.1vw;
+                            white-space: nowrap;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
                         }
                     }
                 }
@@ -341,9 +417,65 @@ onUnmounted(() => {
     }
 }
 
-// Room for the ref den column on the right (starts at 72vw): scaled around the middle, then centered in what's left
+// Ref den and pick/ban move the content with its insets, avatar size and the cards' margin, all on one transition
+// (--move, no delays, the lagging layout classes do the ordering). align-items stays center: with the margin the
+// cards' row is as tall as the cards, so they end up on the top edge too.
+// Ref den: the content ends 2.5vw before the column (72.5vw). Pick/ban: 2.5vw on every edge, the cards keep
+// their size under the top bar with smaller avatars, the board takes the bottom PICK_BAN_HEIGHT
+.screen-match-overview .content {
+    transition-property: top, bottom, left, right;
+    transition-duration: var(--move);
+    transition-timing-function: ease-in-out;
+
+    & .player-info {
+        transition: margin-bottom var(--move) ease-in-out;
+    }
+
+    & .avatar {
+        transition: width var(--move) ease-in-out, height var(--move) ease-in-out;
+    }
+
+    & .pick-ban-area {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 20.5vw;
+    }
+}
 .screen-match-overview.ref-den .content {
-    transform: translateX(-14vw) scale(0.72);
-    transition-delay: 0s;
+    left: 2.5vw;
+    right: 30vw;
+}
+.screen-match-overview.pick-ban .content {
+    top: 2.5vw;
+    bottom: 2.5vw;
+    left: 2.5vw;
+
+    & .player-info {
+        // Board + gap
+        margin-bottom: 23vw;
+    }
+
+    & .player-info .player .box .avatar-box .avatar {
+        width: 10.5vw;
+        height: 10.5vw;
+    }
+}
+.screen-match-overview.pick-ban:not(.ref-den) .content {
+    right: 2.5vw;
+}
+
+// Waits for the cards to move, leaves before they move back (after-leave)
+.pick-ban-enter-active {
+    transition: opacity 0.35s ease-out var(--move), transform 0.35s ease-out var(--move);
+}
+.pick-ban-leave-active {
+    transition: opacity 0.3s ease-in, transform 0.3s ease-in;
+}
+.pick-ban-enter-from,
+.pick-ban-leave-to {
+    opacity: 0;
+    transform: translateY(2vw);
 }
 </style>
