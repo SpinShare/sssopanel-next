@@ -24,7 +24,10 @@
                             >
                                 {{ player1?.spinshareProfile?.pronouns }}
                             </div>
-                            <div class="username">
+                            <div
+                                class="username"
+                                :style="{ fontSize: fitFontSize(player1?.spinshareProfile?.username ?? player1?.name, 1.75, 10, 0.45) }"
+                            >
                                 {{ player1?.spinshareProfile?.username ?? player1?.name }}
                             </div>
                             <div
@@ -102,7 +105,10 @@
                             >
                                 {{ player2?.spinshareProfile?.pronouns }}
                             </div>
-                            <div class="username">
+                            <div
+                                class="username"
+                                :style="{ fontSize: fitFontSize(player2?.spinshareProfile?.username ?? player2?.name, 1.75, 10, 0.45) }"
+                            >
                                 {{ player2?.spinshareProfile?.username ?? player2?.name }}
                             </div>
                             <div
@@ -217,7 +223,7 @@
                             <div class="title">
                                 <span class="name">Waiting for info...</span>
                             </div>
-                            <span class="artist">The chart shows up once it's picked</span>
+                            <span class="artist"></span>
                         </div>
                     </div>
 
@@ -253,6 +259,7 @@ import ScreenMatchResults from '@/components/ScreenMatchResults/ScreenMatchResul
 import ScreenStatsBox from '@/components/ScreenStatsBox/ScreenStatsBox.vue';
 import ScreenRefDen from '@/components/ScreenRefDen/ScreenRefDen.vue';
 import ScreenTugOfWar from '@/components/ScreenTugOfWar/ScreenTugOfWar.vue';
+import { fitFontSize } from '@/modules/fitText';
 import ScreenPickBan from '@/components/ScreenSpulti/ScreenPickBan.vue';
 import useSpulti from '@/modules/useSpulti';
 const emitter = inject('emitter');
@@ -479,7 +486,8 @@ $gameplayMask: linear-gradient(to bottom, #000 calc(50% - #{$gameplayHeight * 0.
         // Stats columns are as wide as ScreenStatsBox, the two boxes leave on different frames and an auto column would shift the sets box
         & .match-info {
             display: grid;
-            grid-template-columns: 1fr 12.5vw auto 12.5vw 1fr;
+            // minmax so a long name can't push the sets box, it shrinks and ellipsizes instead
+            grid-template-columns: minmax(0, 1fr) 12.5vw auto 12.5vw minmax(0, 1fr);
             // No row gap, the tug row brings its own spacing so it can collapse fully
             column-gap: 2vw;
             padding: 0 4vw;
@@ -488,10 +496,12 @@ $gameplayMask: linear-gradient(to bottom, #000 calc(50% - #{$gameplayHeight * 0.
                 display: flex;
                 align-items: center;
                 gap: 1.5vw;
+                min-width: 0;
 
                 & .avatar {
                     background-position: center;
                     background-size: cover;
+                    flex-shrink: 0;
                     width: 6vw;
                     height: 6vw;
                     border-radius: 100%;
@@ -501,6 +511,7 @@ $gameplayMask: linear-gradient(to bottom, #000 calc(50% - #{$gameplayHeight * 0.
                     display: flex;
                     flex-direction: column;
                     gap: 0.5vw;
+                    min-width: 0;
 
                     & .pronouns {
                         color: rgba(255, 255, 255, 0.6);
@@ -512,6 +523,9 @@ $gameplayMask: linear-gradient(to bottom, #000 calc(50% - #{$gameplayHeight * 0.
                         font-weight: 600;
                         font-size: 1.75vw;
                         letter-spacing: 0.1vw;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
                     }
 
                     & .difficulty {

@@ -21,6 +21,19 @@
             </SpinInput>
 
             <SpinInput
+                label="Refresh Profiles"
+                :hint="refreshHint"
+                type="horizontal"
+            >
+                <SpinButton
+                    label="Refresh"
+                    icon="refresh"
+                    :disabled="state !== STATE_IDLE"
+                    @click="refreshMapping"
+                />
+            </SpinInput>
+
+            <SpinInput
                 label="Import CSV"
                 :hint="importHint"
                 type="horizontal"
@@ -81,6 +94,7 @@
 import AppLayout from '../../layouts/AppLayout.vue';
 import { onMounted, ref, inject, onUnmounted } from 'vue';
 import useTournamentAPI from '@/modules/useStartGGApi';
+import { refreshEntrantNames, refreshProfiles } from '@/modules/refreshData';
 import SpinLoader from '@/components/Common/SpinLoader.vue';
 import SpinButton from '@/components/Common/SpinButton.vue';
 import SpinInput from '@/components/Common/SpinInput.vue';
@@ -118,6 +132,18 @@ const loadStartGGEventEntrants = async () => {
     // Add new event entrants not present in player mappings
     for (const entrant of entrantsMap.values()) {
         playerMappings.value.push({ ...entrant });
+    }
+};
+
+const refreshHint = ref('Fetch every name from start.gg and every SpinShare profile again, save afterwards');
+const refreshMapping = async () => {
+    state.value = STATE_LOADING;
+    try {
+        const renamed = await refreshEntrantNames(playerMappings.value, startGGApiToken.value, startGGEventId.value).catch(() => null);
+        const profiles = await refreshProfiles(playerMappings.value);
+        refreshHint.value = `${renamed === null ? 'start.gg failed' : `${renamed} name${renamed === 1 ? '' : 's'} changed`}, ${profiles} profile${profiles === 1 ? '' : 's'} refreshed. Save to keep them`;
+    } finally {
+        state.value = STATE_IDLE;
     }
 };
 

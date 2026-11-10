@@ -256,12 +256,13 @@ onUnmounted(() => {
         z-index: 99;
     }
 
-    // match-overview moves its cards over for it, always the full height
+    // match-overview moves its content over for it, full height, 2.5vw from the edges like the content with the
+    // pick/ban board up, so it never has to move
     &.column {
         position: absolute;
-        top: 5vw;
-        bottom: 5vw;
-        right: 3vw;
+        top: 2.5vw;
+        bottom: 2.5vw;
+        right: 2.5vw;
         width: 25vw;
         z-index: 20;
         --clamp: 10;
@@ -444,9 +445,10 @@ onUnmounted(() => {
 .ref-den-leave-to {
     opacity: 0;
 }
-// The overview's column comes in once the cards have mostly moved over, and leaves before they grow back
+// The overview's column comes in once the content moved over (its --move), and leaves before it grows back
+// (the overview waits 0.25s, REF_DEN_LEAVE)
 .column.ref-den-enter-active {
-    transition: opacity 0.4s ease-out 0.25s, transform 0.4s ease-out 0.25s;
+    transition: opacity 0.4s ease-out var(--move, 0.5s), transform 0.4s ease-out var(--move, 0.5s);
 }
 .column.ref-den-leave-active {
     transition: opacity 0.25s ease-in, transform 0.25s ease-in;

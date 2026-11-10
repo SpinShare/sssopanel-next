@@ -42,13 +42,22 @@ defineProps({
     gap: 10px;
 
     &.type-horizontal {
-        grid-template-columns: 1fr auto;
+        // minmax so a long word in a hint wraps instead of pushing the input out of a narrow window
+        grid-template-columns: minmax(0, 1fr) auto;
         gap: 50px;
         align-items: center;
+
+        // Narrow window: the input goes under its text instead of squeezing it
+        @media (max-width: 600px) {
+            grid-template-columns: minmax(0, 1fr);
+            gap: 10px;
+            justify-items: start;
+        }
     }
     &.type-path {
         & .input {
-            grid-template-columns: 1fr auto auto;
+            // minmax, the input's own min width pushed the buttons out of narrow windows
+            grid-template-columns: minmax(0, 1fr) auto auto;
         }
     }
 
@@ -63,6 +72,7 @@ defineProps({
         & .hint {
             color: rgba(var(--colorBaseText), 0.4);
             line-height: 1.25rem;
+            overflow-wrap: anywhere;
         }
     }
     & .input {

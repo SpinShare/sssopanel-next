@@ -12,17 +12,25 @@
             </div>
 
             <nav>
+                <!-- Ref den spotlight box, lit while referees asked for something or a message is up big -->
+                <SpinButton
+                    :icon="activeSpotlight ? 'broadcast' : 'bullhorn-outline'"
+                    :label="spotlightRequests.length ? `${spotlightRequests.length}` : false"
+                    :color="spotlightRequests.length ? 'primary' : 'transparent'"
+                    v-tooltip="'Ref Den Spotlight'"
+                    @click="toggleSpotlight"
+                />
+                <SpinButton
+                    :icon="refDenIsVisible ? 'comment-text-multiple' : 'comment-text-multiple-outline'"
+                    :color="refDenIsVisible ? 'primary' : 'transparent'"
+                    v-tooltip="'Toggle Ref Den'"
+                    @click="toggleRefDen"
+                />
                 <SpinButton
                     :icon="overlayUrlCopied ? 'check' : 'content-copy'"
                     color="transparent"
                     v-tooltip="'Copy OBS Browser Source URL'"
                     @click="copyOverlayUrl"
-                />
-                <SpinButton
-                    icon="open-in-new"
-                    color="transparent"
-                    v-tooltip="'Preview Screen in Browser'"
-                    @click="openOverlayPreview"
                 />
                 <SpinButton
                     icon="cog"
@@ -53,6 +61,8 @@ import router from '@/router';
 import useCurrentScreen from '@/modules/useCurrentScreen';
 import { overlayUrl } from '@/modules/transport';
 import { ref } from 'vue';
+import { activeSpotlight, spotlightOpen, spotlightRequests } from '@/modules/useRefDenRelay';
+import useRefDenToggle from '@/modules/useRefDenToggle';
 
 const props = defineProps({
     title: {
@@ -62,6 +72,8 @@ const props = defineProps({
 });
 
 const currentScreen = useCurrentScreen();
+const { refDenIsVisible, toggleRefDen } = useRefDenToggle();
+const toggleSpotlight = () => (spotlightOpen.value = !spotlightOpen.value);
 
 const overlayUrlCopied = ref(false);
 
@@ -72,15 +84,6 @@ const copyOverlayUrl = async () => {
     setTimeout(() => {
         overlayUrlCopied.value = false;
     }, 2000);
-};
-const openOverlayPreview = () => {
-    window.electronAPI.send(
-        'message',
-        JSON.stringify({
-            command: 'open-in-browser',
-            data: overlayUrl,
-        }),
-    );
 };
 </script>
 

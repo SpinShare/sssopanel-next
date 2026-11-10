@@ -63,7 +63,8 @@ window.electronAPI.on('message', (rawResponse) => {
 // Solid backdrop the screens fade over. The gameplay band (1920x540 at 1080p) only opens up
 // once a screen with a gameplay cutout is fully in place, and closes before it leaves.
 .screen-backdrop {
-    $gameplayHeight: 28.125vw;
+    // Same as the stage's band, the stage gets scaled to the window height when the window is wider than 16:9
+    --gameplayHeight: min(28.125vw, 50vh);
 
     position: fixed;
     inset: 0;
@@ -77,16 +78,16 @@ window.electronAPI.on('message', (rawResponse) => {
     }
     & .top {
         top: 0;
-        bottom: calc(50% + #{$gameplayHeight * 0.5});
+        bottom: calc(50% + var(--gameplayHeight) / 2);
     }
     & .bottom {
-        top: calc(50% + #{$gameplayHeight * 0.5});
+        top: calc(50% + var(--gameplayHeight) / 2);
         bottom: 0;
     }
     & .gameplay {
         // Overlaps by a pixel to avoid seams
-        top: calc(50% - #{$gameplayHeight * 0.5} - 1px);
-        height: calc(#{$gameplayHeight} + 2px);
+        top: calc(50% - var(--gameplayHeight) / 2 - 1px);
+        height: calc(var(--gameplayHeight) + 2px);
         // Closed again before the screen visibly starts to leave
         transition: opacity 0.4s ease-out;
     }

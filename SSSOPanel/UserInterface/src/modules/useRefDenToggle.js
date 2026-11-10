@@ -1,6 +1,6 @@
 import { inject, onMounted, onUnmounted, ref } from 'vue';
 
-// The ref den button on the panel pages. Pages used to keep their own copy, some never loaded the state,
+// The ref den button in the panel header (AppLayout). Pages used to keep their own copy, some never loaded the state,
 // so the first click only "turned off" what was already on (two clicks to toggle)
 export default function useRefDenToggle() {
     const emitter = inject('emitter');

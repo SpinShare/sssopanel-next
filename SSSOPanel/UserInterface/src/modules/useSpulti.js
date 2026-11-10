@@ -107,7 +107,7 @@ export const spultiPhase = (match, mappool) => {
     return { type: 'pick', side: otherSide(last.winner) };
 };
 
-// What happened to every slot: { banned: side } (strike), { picked: side } (loser's pick), { played: set index, winner }
+// What happened to every slot: { banned: side, banOrder } (strike), { picked: side } (loser's pick), { played: set index, winner }
 export const slotStates = (match, mappool) => {
     const states = {};
     const actions = match?.draft?.actions ?? [];
@@ -115,7 +115,8 @@ export const slotStates = (match, mappool) => {
     let bans = 0;
     for (const action of actions) {
         if (action.type === 'ban') {
-            states[action.slotId] = { banned: roll ? (bans % 2 === 0 ? roll.firstBan : otherSide(roll.firstBan)) : null };
+            // banOrder: the how-manyth ban, spulti shows it on the tile
+            states[action.slotId] = { banned: roll ? (bans % 2 === 0 ? roll.firstBan : otherSide(roll.firstBan)) : null, banOrder: bans + 1 };
             bans++;
         }
         if (action.type === 'pick') {

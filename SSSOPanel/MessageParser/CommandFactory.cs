@@ -19,6 +19,7 @@ public class CommandFactory
             "current-route-get" => new CommandCurrentRouteGet(),
             "screen-navigate" => new CommandScreenNavigate(),
             "screen-music-get" => new CommandScreenMusicGet(),
+            "tuna-check" => new CommandTunaCheck(),
             "screen-match-update" => new CommandScreenMatchUpdate(),
             "obs-status-get" => new CommandObsStatusGet(),
             "obs-connect" => new CommandObsConnect(),

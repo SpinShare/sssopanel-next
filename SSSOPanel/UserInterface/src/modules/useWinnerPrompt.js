@@ -69,6 +69,11 @@ export default function useWinnerPrompt() {
     let slideTimer = null;
     let slideTimerFor = null;
     let lastPicked = null;
+    // Results waiting out state.resultsDelay (seconds)
+    let delayed = null;
+    let delayTimer = null;
+    // The spulti match the backend follows right now, the state keeps spultiMatchId after unfollowing
+    let followedSpultiMatchId = null;
 
     useSrxd((message) => {
         // App.vue also hosts the screens, those never prompt
@@ -79,20 +84,46 @@ export default function useWinnerPrompt() {
             lastPromptedRound = null;
             resultsStale = true;
             clearTimeout(autoHideTimer);
+            clearTimeout(delayTimer);
+            delayed = null;
             // The next song is coming up, the old results would cover it
             if (state.currentMatch?.resultsVisible || state.currentMatch?.recapVisible) setState({ currentMatch: { resultsVisible: false, recapVisible: false } });
         }
-        if (message.type !== 'results' || !message.results?.complete || message.results.round === lastPromptedRound) return;
+        if (message.type !== 'results' || message.results?.round === lastPromptedRound) return;
 
-        // Players and scores may have changed on any page, ask for the latest state first
-        pendingResults = message.results;
+        // The game can send complete results before every count is in, with a delay set the latest message for the
+        // round wins once it runs out
+        if (delayed && delayed.round === message.results?.round) {
+            // A partial one (someone still finishing) must not replace complete results with fewer players
+            if (message.results.complete || (message.results.entries?.length ?? 0) >= (delayed.entries?.length ?? 0)) delayed = message.results;
+            return;
+        }
+        if (!message.results?.complete) return;
+
+        const delay = Number(state.resultsDelay ?? 0);
+        if (delay > 0) {
+            delayed = message.results;
+            clearTimeout(delayTimer);
+            delayTimer = setTimeout(() => {
+                const results = delayed;
+                delayed = null;
+                if (results) requestPrompt(results);
+            }, delay * 1000);
+            return;
+        }
+        requestPrompt(message.results);
+    });
+
+    // Players and scores may have changed on any page, ask for the latest state first
+    const requestPrompt = (results) => {
+        pendingResults = results;
         window.electronAPI.send(
             'message',
             JSON.stringify({
                 command: 'state-get',
             }),
         );
-    });
+    };
 
     const promptWinner = (results) => {
         const match = state.currentMatch ?? {};
@@ -244,6 +275,8 @@ export default function useWinnerPrompt() {
                 })),
                 player1: player('player1'),
                 player2: player('player2'),
+                // The match results embed links the spulti match page
+                spultiMatchId: match.spultiMatchId && match.spultiMatchId === followedSpultiMatchId ? match.spultiMatchId : null,
             },
         }).catch((error) => {
             emitter.emit('alert-show', { title: 'Could not post results', message: error.message, actions: [{ label: 'OK', color: 'primary' }] });
@@ -311,6 +344,7 @@ export default function useWinnerPrompt() {
 
     // Pages clear every listener of the state events they use when they unmount, a wildcard listener survives that
     const onAnyMessage = (type, data) => {
+        if (type === 'spulti-update' || type === 'spulti-get-response') followedSpultiMatchId = data?.url ? data.match?.id ?? null : null;
         if (type !== 'state-get-response' && type !== 'state-set-response') return;
         // Screens get the same state, their recap timers would push the stream screen to the panel page
         if (!router.currentRoute.value.path.startsWith('/panel')) return;
@@ -340,6 +374,7 @@ export default function useWinnerPrompt() {
 
     onUnmounted(() => {
         clearTimeout(autoHideTimer);
+        clearTimeout(delayTimer);
         clearTimeout(slideTimer);
         clearTimeout(recapTimer);
         nextRecapSlideAt.value = null;

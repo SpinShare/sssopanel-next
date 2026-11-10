@@ -10,8 +10,15 @@ const isPanel = () => window.location.hash.startsWith('#/panel');
 
 // Referee messages (the bot's spotlight role) waiting for the broadcaster to show them big or not, oldest first
 export const spotlightRequests = ref([]);
-// Some stay unanswered, the oldest go once there are more
+// Some stay unanswered, the oldest go once there are more, and each goes on its own after a while
 const MAX_REQUESTS = 5;
+const REQUEST_TTL = 3 * 60 * 1000;
+
+// The spotlight box (RefDenSpotlightPrompt) is open, folded it's a header button (AppLayout)
+export const spotlightOpen = ref(false);
+
+// The listed ref den messages (newest first), for picking one to show big by hand
+export const refDenMessageList = ref([]);
 
 const spotlightRequest = (data) => ({ messageId: data.messageId, author: data.author, color: data.color && data.color !== '#000000' ? data.color : null, text: (data.content ?? '').trim() ? replyText(data.content) : '(attachment)' });
 
@@ -26,9 +33,14 @@ const setSpotlightState = (spotlight) => {
     window.electronAPI.send('message', JSON.stringify({ command: 'state-set', data: { refDenSpotlight: spotlight } }));
 };
 
-// Replaces whatever is up
+export const dismissAllSpotlights = () => {
+    spotlightRequests.value = [];
+};
+
+// Replaces whatever is up. Any listed message works, not just requests
 export const showSpotlight = (messageId) => {
-    activeSpotlight.value = spotlightRequests.value.find((request) => request.messageId === messageId) ?? { messageId, author: '', color: null, text: '' };
+    const listed = refDenMessageList.value.find((message) => message.messageId === messageId);
+    activeSpotlight.value = spotlightRequests.value.find((request) => request.messageId === messageId) ?? (listed ? spotlightRequest(listed) : { messageId, author: '', color: null, text: '' });
     dismissSpotlight(messageId);
     setSpotlightState({ messageId });
 };
@@ -42,6 +54,7 @@ const trackSpotlight = (event) => {
     const data = event.data ?? {};
     if (event.command === 'message-received' && data.spotlight) {
         spotlightRequests.value = [...spotlightRequests.value, spotlightRequest(data)].slice(-MAX_REQUESTS);
+        setTimeout(() => dismissSpotlight(data.messageId), REQUEST_TTL);
     } else if (event.command === 'message-updated') {
         const text = spotlightRequest(data).text;
         spotlightRequests.value = spotlightRequests.value.map((request) => (request.messageId === data.messageId ? { ...request, text } : request));
@@ -102,6 +115,7 @@ export default function useRefDenRelay() {
         if (!next) return;
         trackSpotlight(event);
         messages = next;
+        refDenMessageList.value = messages;
         // Pushed out of the list by newer ones, the screens only know the listed messages
         if (activeSpotlight.value && !messages.some((message) => message.messageId === activeSpotlight.value.messageId)) hideSpotlight();
         push();
@@ -112,6 +126,7 @@ export default function useRefDenRelay() {
         if (messages !== null || (type !== 'state-get-response' && type !== 'state-set-response') || !isPanel()) return;
 
         messages = Array.isArray(data?.refDenMessages) ? data.refDenMessages : [];
+        refDenMessageList.value = messages;
         // A panel reload keeps the hide button for what's still up
         const shown = data?.refDenSpotlight?.messageId ? messages.find((message) => message.messageId === data.refDenSpotlight.messageId) : null;
         if (shown) activeSpotlight.value = spotlightRequest(shown);
