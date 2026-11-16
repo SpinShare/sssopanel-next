@@ -27,6 +27,7 @@ public class CommandFactory
             "srxd-connect" => new CommandSrxdConnect(),
             "spulti-get" => new CommandSpultiGet(),
             "spulti-connect" => new CommandSpultiConnect(),
+            "spulti-matches" => new CommandSpultiMatches(),
             "theme-get" => new CommandThemeGet(),
             "voicebot-status-get" => new CommandVoiceBotStatusGet(),
             "voicebot-start" => new CommandVoiceBotStart(),

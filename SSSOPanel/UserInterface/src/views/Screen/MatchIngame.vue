@@ -175,7 +175,7 @@
                                 >
                             </div>
                             <span class="artist"
-                                >{{ chart.artist }}<template v-if="chartMeta.featArtists"> feat. {{ chartMeta.featArtists }}</template></span
+                                >{{ chart.artist }}<template v-if="chartMeta.featArtists">{{ ' ' + chartMeta.featArtists }}</template></span
                             >
                             <span
                                 class="charter"
@@ -228,20 +228,36 @@
                     </div>
 
                     <div class="side">
-                        <transition name="side">
+                        <!-- chat's pick falls onto the banner while voting is open (and a bit after), the banner shrinks away under it -->
+                        <transition name="under">
                             <div
-                                class="banner"
-                                v-if="chart?.id"
+                                v-if="!showChatPick"
+                                class="under"
                             >
-                                <div class="tint themed"></div>
-                                <div class="noise"></div>
+                                <transition name="side">
+                                    <div
+                                        class="banner"
+                                        v-if="chart?.id"
+                                    >
+                                        <div class="tint themed"></div>
+                                        <div class="noise"></div>
 
-                                <div class="text">
-                                    <span>Get this chart on SpinSha.re!</span>
-                                    <span>spinsha.re/song/{{ chart.id }}</span>
-                                </div>
-                                <span class="mdi mdi-archive-music-outline"></span>
+                                        <div class="text">
+                                            <span>Get this chart on SpinSha.re!</span>
+                                            <span>spinsha.re/song/{{ chart.id }}</span>
+                                        </div>
+                                        <span class="mdi mdi-archive-music-outline"></span>
+                                    </div>
+                                </transition>
                             </div>
+                        </transition>
+                        <transition name="drop">
+                            <ScreenChatPick
+                                v-if="showChatPick"
+                                variant="banner"
+                                :spulti="spulti"
+                                :players="{ player1, player2 }"
+                            />
                         </transition>
                     </div>
                 </section>
@@ -262,6 +278,7 @@ import ScreenTugOfWar from '@/components/ScreenTugOfWar/ScreenTugOfWar.vue';
 import { fitFontSize } from '@/modules/fitText';
 import ScreenPickBan from '@/components/ScreenSpulti/ScreenPickBan.vue';
 import useSpulti from '@/modules/useSpulti';
+import ScreenChatPick from '@/components/ScreenSpulti/ScreenChatPick.vue';
 const emitter = inject('emitter');
 const game = useSrxd();
 
@@ -284,6 +301,33 @@ const results = ref(null);
 const resultsVisible = ref(false);
 
 const spulti = useSpulti();
+
+// Chat's pick over the spinsha.re banner: the whole time voting is open, then CHAT_PICK_LINGER after it locks or
+// resolves so the final split shows. Off in the Overlays menu, only for the spulti match on screen
+const CHAT_PICK_LINGER = 10000;
+const chatPickVisible = ref(true);
+const spultiMatchId = ref(null);
+const chatPickLingers = ref(false);
+let chatPickTimer = null;
+watch(
+    // One string, an array would be new on every spulti update and restart the linger
+    () => `${spulti.value.prediction?.id}|${spulti.value.prediction?.status}`,
+    (key, oldKey) => {
+        const [id, status] = key.split('|');
+        const [oldId, oldStatus] = oldKey.split('|');
+        clearTimeout(chatPickTimer);
+        chatPickLingers.value = false;
+        // A screen loaded after voting closed doesn't bring it back
+        if (id !== oldId || !['locked', 'resolved'].includes(status) || !['open', 'locked'].includes(oldStatus)) return;
+        chatPickLingers.value = true;
+        chatPickTimer = setTimeout(() => (chatPickLingers.value = false), CHAT_PICK_LINGER);
+    },
+);
+const showChatPick = computed(() => {
+    const prediction = spulti.value.prediction;
+    if (!chatPickVisible.value || !prediction || spulti.value.match?.id !== spultiMatchId.value) return false;
+    return prediction.status === 'open' || chatPickLingers.value;
+});
 const pickBanVisible = ref(false);
 const coinFlipKey = ref(null);
 const coinFlipAt = ref(0);
@@ -354,6 +398,9 @@ const track = computed(() => {
     return gameTrack;
 });
 
+// Some charts put the "feat." in the field themselves, or use it for something else entirely
+const featText = (artists) => (!artists ? '' : /^\s*\(?\s*(feat(uring)?|ft)\b/i.test(artists) ? artists : `feat. ${artists}`);
+
 const chartMeta = computed(() => {
     const tags = [];
     const scores = track.value ? liveScores.value : null;
@@ -370,7 +417,7 @@ const chartMeta = computed(() => {
 
     return {
         subtitle: stripRichText(track.value?.subtitle ?? chart.value?.subtitle),
-        featArtists: stripRichText(track.value?.featArtists),
+        featArtists: featText(stripRichText(track.value?.featArtists)),
         tags,
         // Separate from the tags so the time can roll like the other live numbers
         length: length ? formatTime(length) : null,
@@ -399,6 +446,8 @@ const applyState = (state) => {
     pickBanVisible.value = state?.pickBanVisible ?? pickBanVisible.value;
     coinFlipKey.value = state?.coinFlipKey ?? coinFlipKey.value;
     coinFlipAt.value = state?.coinFlipAt ?? coinFlipAt.value;
+    chatPickVisible.value = state?.chatPickVisible ?? chatPickVisible.value;
+    spultiMatchId.value = state?.currentMatch?.spultiMatchId ?? spultiMatchId.value;
 
     scoresSetsCurrent.value = state?.currentMatch?.scores?.sets?.current ?? scoresSetsCurrent.value;
     scoresSetsMax.value = state?.currentMatch?.scores?.sets?.max ?? scoresSetsMax.value;
@@ -422,6 +471,7 @@ onMounted(() => {
     );
 });
 onUnmounted(() => {
+    clearTimeout(chatPickTimer);
     emitter.off('state-get-response');
     emitter.off('state-set-response');
 });
@@ -630,6 +680,11 @@ $gameplayMask: linear-gradient(to bottom, #000 calc(50% - #{$gameplayHeight * 0.
                     & .player {
                         display: flex;
                         gap: 0.5vw;
+
+                        // Points fill from the center out, player 1's right to left
+                        &:first-child {
+                            flex-direction: row-reverse;
+                        }
 
                         & .point {
                             border: 0.125vw solid rgba(0, 0, 0, 0.4);
@@ -862,6 +917,32 @@ $gameplayMask: linear-gradient(to bottom, #000 calc(50% - #{$gameplayHeight * 0.
             }
         }
     }
+}
+
+// Coming in decelerates, going away accelerates. The banner comes back once chat's pick is mostly off
+.under-enter-active {
+    transition: opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.1s, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.1s;
+}
+.under-leave-active {
+    transition: opacity 0.3s cubic-bezier(0.55, 0, 1, 0.45), transform 0.3s cubic-bezier(0.55, 0, 1, 0.45);
+}
+// The banner sinks back as chat's pick lands on it, and comes back up when it lifts off
+.under-enter-from,
+.under-leave-to {
+    opacity: 0;
+    transform: scale(0.85);
+}
+// Lands with a little settle (back out), lifts off accelerating
+.drop-enter-active {
+    transition: opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1), transform 0.5s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+.drop-leave-active {
+    transition: opacity 0.3s cubic-bezier(0.55, 0, 1, 0.45), transform 0.35s cubic-bezier(0.55, 0, 1, 0.45);
+}
+.drop-enter-from,
+.drop-leave-to {
+    opacity: 0;
+    transform: scale(1.3);
 }
 
 .side-enter-active,

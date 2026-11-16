@@ -257,10 +257,11 @@ onUnmounted(() => {
     }
 
     // match-overview moves its content over for it, full height, 2.5vw from the edges like the content with the
-    // pick/ban board up, so it never has to move
+    // pick/ban board up, so it never has to move. Only the top moves, under chat's pick (--refDenTop)
     &.column {
         position: absolute;
-        top: 2.5vw;
+        top: var(--refDenTop, 2.5vw);
+        transition: top 0.5s ease;
         bottom: 2.5vw;
         right: 2.5vw;
         width: 25vw;
@@ -448,10 +449,10 @@ onUnmounted(() => {
 // The overview's column comes in once the content moved over (its --move), and leaves before it grows back
 // (the overview waits 0.25s, REF_DEN_LEAVE)
 .column.ref-den-enter-active {
-    transition: opacity 0.4s ease-out var(--move, 0.5s), transform 0.4s ease-out var(--move, 0.5s);
+    transition: opacity 0.4s ease-out var(--move, 0.5s), transform 0.4s ease-out var(--move, 0.5s), top 0.5s ease;
 }
 .column.ref-den-leave-active {
-    transition: opacity 0.25s ease-in, transform 0.25s ease-in;
+    transition: opacity 0.25s ease-in, transform 0.25s ease-in, top 0.5s ease;
 }
 .column.ref-den-enter-from,
 .column.ref-den-leave-to {

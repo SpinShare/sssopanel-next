@@ -13,7 +13,7 @@ public class SettingsManager
     private readonly string _settingsFilePath;
 
     // Only these are encrypted on disk, in memory everything stays plaintext for the managers
-    private static readonly string[] SecretKeys = ["voicebot.token", "obs.password", "currentEvent.startgg.apiToken"];
+    private static readonly string[] SecretKeys = ["voicebot.token", "obs.password", "currentEvent.startgg.apiToken", "spulti.streamKey"];
     private const string EncryptedPrefix = "enc:";
     private readonly IDataProtector _protector;
 

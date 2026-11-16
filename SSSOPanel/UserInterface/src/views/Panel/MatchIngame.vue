@@ -131,12 +131,26 @@
             :collapsed="true"
         >
             <SpinInput
+                v-if="spultiLinkedScore"
+                :label="spultiScore ? 'Kept by spulti' : 'Counted by hand'"
+                :hint="spultiScore ? 'Points, undos and lag replays come from the followed match' : 'Spulti\'s points are ignored until you relink'"
+                type="horizontal"
+            >
+                <SpinButton
+                    :icon="spultiScore ? 'link-variant-off' : 'link-variant'"
+                    :label="spultiScore ? 'Unlink' : 'Relink'"
+                    v-tooltip="spultiScore ? 'Count the points here instead' : 'Take the points from spulti again'"
+                    @click="spultiScore ? setScoreUnlinked(true) : relinkScore()"
+                />
+            </SpinInput>
+            <SpinInput
                 label="Sets"
                 type="horizontal"
             >
                 <div style="display: flex; gap: 10px">
                     <input
                         v-model="scoresSetsCurrent"
+                        :disabled="spultiScore"
                         type="number"
                         min="1"
                         :max="scoresSetsMax"
@@ -146,6 +160,7 @@
                     />
                     <input
                         v-model="scoresSetsMax"
+                        :disabled="spultiScore"
                         type="number"
                         :min="scoresSetsCurrent"
                         max="9"
@@ -162,6 +177,7 @@
             >
                 <input
                     v-model="scoresScorePlayer1"
+                    :disabled="spultiScore"
                     type="number"
                     min="0"
                     :max="Math.ceil(scoresSetsMax / 2)"
@@ -175,6 +191,7 @@
             >
                 <input
                     v-model="scoresScorePlayer2"
+                    :disabled="spultiScore"
                     type="number"
                     min="0"
                     :max="Math.ceil(scoresSetsMax / 2)"
@@ -286,13 +303,19 @@
                     :disabled="!spultiCoin"
                     :label="spultiCoin && spultiCoin.key === coinFlipKey ? 'Flip Coin Again' : 'Flip Coin'"
                 />
+                <SpinButton
+                    @click="setChatPickVisible(!chatPickVisible)"
+                    :icon="chatPickVisible ? 'twitch' : 'eye-off-outline'"
+                    :color="chatPickVisible && spulti.prediction ? 'primary' : 'default'"
+                    :label="spulti.prediction ? `Chat's Pick` : `Chat's Pick (no prediction)`"
+                />
             </SpinMenu>
 
             <SpinButton
                 @click="replayLastSet"
                 icon="replay"
-                :disabled="!canReplay"
-                v-tooltip="'Replay last set'"
+                :disabled="!canReplay || spultiScore"
+                v-tooltip="spultiScore ? 'Lag replay on spulti' : 'Replay last set'"
             />
 
             <SpinButton
@@ -318,8 +341,8 @@ import useCurrentScreen from '@/modules/useCurrentScreen';
 import useSpinShareApi from '@/modules/useSpinShareApi';
 import { nextRecapSlideAt, showMatchResults } from '@/modules/useWinnerPrompt';
 import RefreshDataInput from '@/components/RefreshDataInput.vue';
-import useSpulti, { coinResult, playerOptions, withGuests } from '@/modules/useSpulti';
-import { playCoinFlip, setPickBanVisible } from '@/modules/useSpultiOverlays';
+import useSpulti, { coinResult, playerOptions, spultiKeepsScore, spultiLinked, withGuests } from '@/modules/useSpulti';
+import { playCoinFlip, setChatPickVisible, setPickBanVisible } from '@/modules/useSpultiOverlays';
 import useSrxd, { chartFromTrack, guessIngameName, matchWinner, pickResults } from '@/modules/useSrxd';
 
 const currentScreen = useCurrentScreen();
@@ -358,8 +381,26 @@ const autoChart = ref(true);
 
 const spulti = useSpulti();
 const pickBanVisible = ref(false);
+const chatPickVisible = ref(true);
 // The toss plays as the board's intro, coinFlipKey = the toss that already got its flip
 const spultiCoin = computed(() => coinResult(spulti.value.match));
+const stateSpultiMatchId = ref(null);
+const stateScoreUnlinked = ref(false);
+const spultiLinkedScore = computed(() => spultiLinked(spulti.value, { spultiMatchId: stateSpultiMatchId.value }));
+const spultiScore = computed(() => spultiKeepsScore(spulti.value, { spultiMatchId: stateSpultiMatchId.value, spultiScoreUnlinked: stateScoreUnlinked.value }));
+// Unlinked = the broadcaster counts the points (winner prompt, inputs), spulti keeps the draft, names and chat.
+// spultiPosted is cleared both ways, relinking posts nothing from the hand counted stretch
+const setScoreUnlinked = (unlinked) => {
+    window.electronAPI.send('message', JSON.stringify({ command: 'state-set', data: { currentMatch: { spultiScoreUnlinked: unlinked, spultiPosted: null } } }));
+    window.electronAPI.send('message', JSON.stringify({ command: 'state-get' }));
+};
+const relinkScore = () => {
+    emitter.emit('alert-show', {
+        title: 'Relink the scores?',
+        message: "Replaces the scores and set history with spulti's.",
+        actions: [{ label: 'Cancel' }, { label: 'Relink', color: 'primary', click: () => setScoreUnlinked(false) }],
+    });
+};
 const coinFlipKey = ref(null);
 const winnerPrompt = ref(true);
 const autoResults = ref(false);
@@ -624,6 +665,8 @@ const updateState = () => {
             },
         },
     };
+    // Spulti keeps the score, these inputs may still be a step behind it
+    if (spultiScore.value) delete screenData.currentMatch.scores;
 
     window.electronAPI.send(
         'message',
@@ -677,7 +720,8 @@ const toggleResults = () => {
         const picked = pickResults(game.value.results, { player1: ingamePlayer1.value, player2: ingamePlayer2.value });
         // They also stand in when the game has no results (reconnected or restarted since)
         const saved = savedResults.value?.player1 || savedResults.value?.player2 ? savedResults.value : null;
-        currentMatch.results = saved && (saved.round === picked.round || (!picked.player1 && !picked.player2)) ? saved : picked;
+        // The saved ones keep who spulti gave the point, the feed's don't know
+        currentMatch.results = saved && (saved.round === picked.round || (!picked.player1 && !picked.player2)) ? saved : { ...picked, pointTo: null };
         currentMatch.resultsSlide = 0;
         currentMatch.recapVisible = false;
         resultsSlide.value = 0;
@@ -707,6 +751,8 @@ onMounted(() => {
         scoresSetsMax.value = state?.currentMatch?.scores?.sets?.max ?? scoresSetsMax.value;
         scoresScorePlayer1.value = state?.currentMatch?.scores?.score?.player1 ?? scoresScorePlayer1.value;
         scoresScorePlayer2.value = state?.currentMatch?.scores?.score?.player2 ?? scoresScorePlayer2.value;
+        stateSpultiMatchId.value = state?.currentMatch?.spultiMatchId ?? null;
+        stateScoreUnlinked.value = state?.currentMatch?.spultiScoreUnlinked === true;
 
         loadedChart.value = state?.currentMatch?.chart ?? loadedChart.value;
         chartId.value = state?.currentMatch?.chart?.id ?? chartId.value;
@@ -728,6 +774,7 @@ onMounted(() => {
         resultsDelay.value = state?.resultsDelay ?? 0;
         autoChart.value = state?.autoChart ?? true;
         pickBanVisible.value = state?.pickBanVisible ?? false;
+        chatPickVisible.value = state?.chatPickVisible ?? true;
         coinFlipKey.value = state?.coinFlipKey ?? null;
 
         if (!stateLoaded.value) {

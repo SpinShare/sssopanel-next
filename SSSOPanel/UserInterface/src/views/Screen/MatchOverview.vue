@@ -2,12 +2,22 @@
     <ScreenLayout>
         <section
             class="screen-match-overview"
-            :class="{ 'ref-den': layoutRefDen, 'pick-ban': layoutPickBan }"
-            :style="{ '--move': `${MOVE}ms` }"
+            :class="{ column: layoutColumn, 'pick-ban': layoutPickBan, 'chat-pick-up': layoutChatPick }"
+            :style="{ '--move': `${MOVE}ms`, '--chatPickHeight': `${CHAT_PICK_HEIGHT}vw`, '--refDenTop': layoutChatPick ? `${2.5 + CHAT_PICK_HEIGHT + 1}vw` : '2.5vw' }"
         >
             <div class="tint themed"></div>
             <div class="noise"></div>
-            <!-- Tall column on the right, the content moves over while it's up -->
+            <!-- Tall column on the right, the content moves over while it's up: chat's pick on top, the ref den under it.
+                 Without the ref den chat's pick doesn't move the cards: above player 2, or above VERSUS (pushed down)
+                 with the pick/ban board, it glides between the spots with the cards -->
+            <transition name="column-pick">
+                <ScreenChatPick
+                    v-if="showChatPick"
+                    class="column-pick"
+                    :spulti="spulti"
+                    :players="{ player1, player2 }"
+                />
+            </transition>
             <ScreenRefDen variant="column" />
 
             <div class="content">
@@ -40,7 +50,16 @@
                             </div>
                         </div>
                     </div>
-                    <div class="versus"><span>V</span><span>E</span><span>R</span><span>S</span><span>U</span><span>S</span></div>
+                    <div class="middle">
+                        <div class="versus"><span>V</span><span>E</span><span>R</span><span>S</span><span>U</span><span>S</span></div>
+                        <div class="below">
+                            <span
+                                v-if="roundLabel"
+                                class="round"
+                                >{{ roundLabel }}</span
+                            >
+                        </div>
+                    </div>
                     <div class="player">
                         <header>SPEENOPEN PLAYER</header>
                         <div class="box">
@@ -79,7 +98,7 @@
                         <ScreenPickBan
                             variant="panel"
                             :height="PICK_BAN_HEIGHT"
-                            :width="layoutRefDen ? 65.5 : 93"
+                            :width="layoutColumn ? 65.5 : 93"
                             :spulti="spulti"
                             :players="{ player1, player2 }"
                             :coin-flip-key="coinFlipKey"
@@ -117,6 +136,7 @@ import { computed, onMounted, onUnmounted, ref, inject, watch } from 'vue';
 import ScreenRefDen from '@/components/ScreenRefDen/ScreenRefDen.vue';
 import ScreenPickBan from '@/components/ScreenSpulti/ScreenPickBan.vue';
 import { fitFontSize } from '@/modules/fitText';
+import ScreenChatPick from '@/components/ScreenSpulti/ScreenChatPick.vue';
 import useSpulti from '@/modules/useSpulti';
 const emitter = inject('emitter');
 
@@ -131,14 +151,29 @@ const pickBanVisible = ref(false);
 const coinFlipKey = ref(null);
 const coinFlipAt = ref(0);
 const showPickBan = computed(() => pickBanVisible.value && !!spulti.value.match && !!player1.value && !!player2.value);
+// The match's Twitch prediction, unless the operator turned it off (Overlays menu)
+const chatPickVisible = ref(true);
+const showChatPick = computed(() => chatPickVisible.value && !!spulti.value.prediction && !!spulti.value.match && spulti.value.match.id === spultiMatchId.value);
+// The start.gg round of the spulti match these players are from, the bracket on its own line
+const spultiMatchId = ref(null);
+const roundLabel = computed(() => {
+    const match = spulti.value.match;
+    if (!match || match.id !== spultiMatchId.value) return '';
+    return [match.startgg?.round, match.startgg?.bracket].filter(Boolean).join('\n');
+});
 
-// The layout classes, they lag behind on the way back: the cards only move once the board or the ref den column
-// is gone (and coming in, the board waits for the cards, its enter delay is MOVE)
+// vw, chat's pick box at the top of the column, the ref den starts under it
+const CHAT_PICK_HEIGHT = 7.5;
+
+// The layout classes, they lag behind on the way back: the cards only move once the board or the column (ref den,
+// chat's pick) is gone (and coming in, the board waits for the cards, its enter delay is MOVE)
 const MOVE = 500;
-// ScreenRefDen's column leave
-const REF_DEN_LEAVE = 250;
+// ScreenRefDen's column leave, chat's pick leaves as fast
+const COLUMN_LEAVE = 250;
 const layoutPickBan = ref(false);
-const layoutRefDen = ref(false);
+const layoutColumn = ref(false);
+// The ref den only moves up into chat's pick spot once it faded out
+const layoutChatPick = ref(false);
 // When the board last came in
 const boardShownAt = ref(0);
 watch(showPickBan, (show) => {
@@ -152,12 +187,25 @@ const boardFlipAt = computed(() => {
     const opened = boardShownAt.value - coinFlipAt.value < 1000 && coinFlipAt.value < boardShownAt.value + MOVE;
     return opened ? boardShownAt.value + MOVE : coinFlipAt.value;
 });
-let refDenTimer = null;
-watch(refDenIsVisible, (visible) => {
-    clearTimeout(refDenTimer);
-    if (visible) layoutRefDen.value = true;
-    else refDenTimer = setTimeout(() => (layoutRefDen.value = false), REF_DEN_LEAVE);
-});
+let chatPickTimer = null;
+watch(
+    showChatPick,
+    (show) => {
+        clearTimeout(chatPickTimer);
+        if (show) layoutChatPick.value = true;
+        else chatPickTimer = setTimeout(() => (layoutChatPick.value = false), COLUMN_LEAVE);
+    },
+    { immediate: true },
+);
+let columnTimer = null;
+watch(
+    () => refDenIsVisible.value,
+    (visible) => {
+        clearTimeout(columnTimer);
+        if (visible) layoutColumn.value = true;
+        else columnTimer = setTimeout(() => (layoutColumn.value = false), COLUMN_LEAVE);
+    },
+);
 
 // Toggles come in through state-set, they don't touch the players
 const applyRefDen = (state) => {
@@ -165,6 +213,8 @@ const applyRefDen = (state) => {
     pickBanVisible.value = state?.pickBanVisible ?? pickBanVisible.value;
     coinFlipKey.value = state?.coinFlipKey ?? coinFlipKey.value;
     coinFlipAt.value = state?.coinFlipAt ?? coinFlipAt.value;
+    spultiMatchId.value = state?.currentMatch?.spultiMatchId ?? spultiMatchId.value;
+    chatPickVisible.value = state?.chatPickVisible ?? chatPickVisible.value;
 };
 
 onMounted(() => {
@@ -183,7 +233,8 @@ onMounted(() => {
     );
 });
 onUnmounted(() => {
-    clearTimeout(refDenTimer);
+    clearTimeout(columnTimer);
+    clearTimeout(chatPickTimer);
     emitter.off('state-get-response');
     emitter.off('state-set-response', applyRefDen);
 });
@@ -310,6 +361,38 @@ onUnmounted(() => {
                             text-overflow: ellipsis;
                         }
                     }
+                }
+            }
+
+            // The round hangs under VERSUS without widening the middle column
+            & .middle {
+                position: relative;
+
+                & .below {
+                    position: absolute;
+                    top: 100%;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    margin-top: 0.5vw;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 1vw;
+                }
+
+                & .round {
+                    // A long round wraps instead of running into the cards
+                    width: max-content;
+                    max-width: 23vw;
+                    text-align: center;
+                    font-family: 'JetBrains Mono', 'Noto Sans JP', monospace;
+                    font-size: 1vw;
+                    font-weight: 700;
+                    letter-spacing: 0.1em;
+                    text-transform: uppercase;
+                    opacity: 0.8;
+                    // round and bracket on their own lines
+                    white-space: pre-line;
                 }
             }
 
@@ -443,7 +526,7 @@ onUnmounted(() => {
         height: 20.5vw;
     }
 }
-.screen-match-overview.ref-den .content {
+.screen-match-overview.column .content {
     left: 2.5vw;
     right: 30vw;
 }
@@ -462,7 +545,7 @@ onUnmounted(() => {
         height: 10.5vw;
     }
 }
-.screen-match-overview.pick-ban:not(.ref-den) .content {
+.screen-match-overview.pick-ban:not(.column) .content {
     right: 2.5vw;
 }
 
@@ -477,5 +560,50 @@ onUnmounted(() => {
 .pick-ban-leave-to {
     opacity: 0;
     transform: translateY(2vw);
+}
+// Above player 2's card (content right 5vw, the card starts ~11.6vw down)
+.column-pick {
+    position: absolute;
+    top: 3vw;
+    right: 5vw;
+    width: 25vw;
+    height: var(--chatPickHeight);
+    z-index: 20;
+    transition-property: top, right, width, height;
+    transition-duration: var(--move);
+    transition-timing-function: ease-in-out;
+}
+// Centered over VERSUS, between the cards at the top
+.pick-ban .column-pick {
+    top: 2.5vw;
+    right: 39vw;
+    width: 22vw;
+    height: 6.5vw;
+}
+// Top of the ref den column (CHAT_PICK_HEIGHT, --refDenTop)
+.column .column-pick {
+    top: 2.5vw;
+    right: 2.5vw;
+    width: 25vw;
+    height: var(--chatPickHeight);
+}
+// VERSUS makes room for it with the pick/ban board, same move as the cards
+.screen-match-overview .content .player-info .middle {
+    transition: transform var(--move) ease-in-out;
+}
+.screen-match-overview.pick-ban.chat-pick-up:not(.column) .content .player-info .middle {
+    transform: translateY(3.5vw);
+}
+// Comes in once the content moved over, leaves before it grows back (COLUMN_LEAVE), keeps gliding meanwhile
+.column-pick-enter-active {
+    transition: opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1) var(--move), transform 0.4s cubic-bezier(0.22, 1, 0.36, 1) var(--move), top var(--move) ease-in-out, right var(--move) ease-in-out, width var(--move) ease-in-out, height var(--move) ease-in-out;
+}
+.column-pick-leave-active {
+    transition: opacity 0.25s cubic-bezier(0.55, 0, 1, 0.45), transform 0.25s cubic-bezier(0.55, 0, 1, 0.45);
+}
+.column-pick-enter-from,
+.column-pick-leave-to {
+    opacity: 0;
+    transform: translateX(4vw);
 }
 </style>

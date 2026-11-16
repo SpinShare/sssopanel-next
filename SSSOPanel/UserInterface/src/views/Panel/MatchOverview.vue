@@ -1,6 +1,24 @@
 <template>
     <AppLayout title="Match (Overview)">
         <SpinInput
+            label="Spulti Matches"
+            type="path"
+            :hint="spultiMatchesHint"
+        >
+            <SpinSelect
+                class="spulti-matches"
+                :model-value="spulti.match?.id"
+                :options="spultiMatchOptions"
+                @update:model-value="followListedMatch"
+            />
+            <SpinButton
+                icon="refresh"
+                :disabled="spultiMatchesLoading"
+                v-tooltip="'Refresh'"
+                @click="loadSpultiMatches"
+            />
+        </SpinInput>
+        <SpinInput
             label="Spulti Match"
             type="path"
             :hint="spultiStatus"
@@ -100,6 +118,12 @@
                     :disabled="!spultiCoin"
                     :label="spultiCoin && spultiCoin.key === coinFlipKey ? 'Flip Coin Again' : 'Flip Coin'"
                 />
+                <SpinButton
+                    @click="setChatPickVisible(!chatPickVisible)"
+                    :icon="chatPickVisible ? 'twitch' : 'eye-off-outline'"
+                    :color="chatPickVisible && spulti.prediction ? 'primary' : 'default'"
+                    :label="spulti.prediction ? `Chat's Pick` : `Chat's Pick (no prediction)`"
+                />
             </SpinMenu>
             <SpinButton
                 @click="swapPlayers"
@@ -134,8 +158,8 @@ import { ref, computed, watch, inject, onMounted, onUnmounted } from 'vue';
 import useSrxd, { guessIngameName } from '@/modules/useSrxd';
 import { resetMatch } from '@/modules/useWinnerPrompt';
 import RefreshDataInput from '@/components/RefreshDataInput.vue';
-import useSpulti, { autofilled, coinResult, draftSteps, findMapping, followSpultiMatch, playerOptions, withGuests } from '@/modules/useSpulti';
-import { playCoinFlip, setPickBanVisible } from '@/modules/useSpultiOverlays';
+import useSpulti, { autofilled, coinResult, draftSteps, findMapping, followSpultiMatch, loadSpultiMatches, onSpultiMatches, playerOptions, spultiMatchList, spultiOrigin, withGuests } from '@/modules/useSpulti';
+import { playCoinFlip, setChatPickVisible, setPickBanVisible } from '@/modules/useSpultiOverlays';
 const emitter = inject('emitter');
 const game = useSrxd();
 
@@ -310,6 +334,8 @@ const showPlayers = () => {
 const spulti = useSpulti();
 const spultiCoin = computed(() => coinResult(spulti.value.match));
 const pickBanVisible = ref(false);
+// The Twitch prediction under VERSUS, on unless turned off
+const chatPickVisible = ref(true);
 const coinFlipKey = ref(null);
 const spultiUrl = ref('');
 // Fill the box once from what the backend follows, after that it's the user's
@@ -319,6 +345,40 @@ watch(
         if (!spultiUrl.value) spultiUrl.value = url ?? '';
     },
 );
+// Live matches and the ones still to play, picking one follows it like pasting its link. Cached in useSpulti
+const spultiMatches = computed(() => spultiMatchList.value.matches);
+const spultiMatchesError = computed(() => spultiMatchList.value.error);
+const spultiMatchesLoading = computed(() => spultiMatchList.value.loading);
+// Following a link from another spulti site lists that site's matches
+watch(
+    () => spultiOrigin(spulti.value.url),
+    (origin) => {
+        if (spultiMatchList.value.origin !== origin) loadSpultiMatches();
+    },
+);
+const spultiMatchLabel = (match) => [match.status === 'live' ? 'Live' : null, `${match.player1 ?? 'TBD'} vs ${match.player2 ?? 'TBD'}`, [match.round, match.bracket].filter(Boolean).join(', ') || match.tournament || 'Casual'].filter(Boolean).join(' • ');
+const spultiMatchOptions = computed(() => {
+    const options = spultiMatches.value.map((match) => ({ value: match.id, label: spultiMatchLabel(match), icon: match.status === 'live' ? 'record-circle' : 'clock-outline', url: match.url }));
+    // The followed match stays picked after it finished and dropped off the list
+    const followed = spulti.value.match;
+    if (followed && !options.some((option) => option.value === followed.id)) {
+        const label = spultiMatchLabel({ ...followed, player1: followed.player1?.name, player2: followed.player2?.name, round: followed.startgg?.round, bracket: followed.startgg?.bracket, tournament: followed.tournament?.name });
+        options.unshift({ value: followed.id, label, icon: followed.status === 'finished' ? 'check' : 'link', url: spulti.value.url });
+    }
+    return options;
+});
+const spultiMatchesHint = computed(() => {
+    if (spultiMatchesLoading.value) return 'Loading...';
+    if (spultiMatchesError.value) return `Couldn't load the matches: ${spultiMatchesError.value}`;
+    return spultiMatches.value.length ? 'Live and unplayed matches, picking one follows it' : 'No live or unplayed matches right now';
+});
+const followListedMatch = (id) => {
+    const option = spultiMatchOptions.value.find((x) => x.value === id);
+    if (!option || id === spulti.value.match?.id) return;
+    spultiUrl.value = option.url;
+    followSpultiMatch(option.url);
+};
+
 const spultiStatus = computed(() => {
     if (!spulti.value.url) return 'Paste a match link to follow it';
     if (spulti.value.error) return spulti.value.error;
@@ -389,6 +449,10 @@ const swapPlayers = () => {
 };
 
 onMounted(() => {
+    emitter.on('spulti-matches-response', onSpultiMatches);
+    // A request still loading when the page was left lost its answer, ask again
+    if (!spultiMatchList.value.origin || spultiMatchList.value.loading) loadSpultiMatches();
+
     emitter.on('state-get-response', (state) => {
         statePlayers.value = [state?.currentMatch?.players?.player1, state?.currentMatch?.players?.player2];
         refreshPlayers();
@@ -416,6 +480,7 @@ onMounted(() => {
         stateLoaded.value = true;
         autoSpulti.value = state?.autoSpulti ?? false;
         pickBanVisible.value = state?.pickBanVisible ?? false;
+        chatPickVisible.value = state?.chatPickVisible ?? true;
         coinFlipKey.value = state?.coinFlipKey ?? null;
     });
 
@@ -439,12 +504,17 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+    emitter.off('spulti-matches-response', onSpultiMatches);
     emitter.off('settings-get-full-response');
     emitter.off('state-get-response');
 });
 </script>
 
 <style lang="scss" scoped>
+// Full width, the labels are long (players, round, bracket)
+.spulti-matches {
+    max-width: none;
+}
 .spulti-steps {
     margin: 0 0 15px;
     padding-left: 25px;
