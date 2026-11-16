@@ -27,6 +27,8 @@ public class CommandSettingsSet : ICommand
         // Connection details or scene mapping may have changed
         ObsManager.ObsManager.GetInstance().Configure();
         SrxdManager.SrxdManager.GetInstance().Configure();
+        // A new spulti stream key
+        _ = SpultiManager.SpultiManager.GetInstance().SendScene();
         // Restarts the local bot only when its token, port or mode changed
         await Task.Run(() => VoiceBotManager.VoiceBotManager.GetInstance().Configure());
 

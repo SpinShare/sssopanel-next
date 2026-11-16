@@ -21,6 +21,11 @@
                 <span class="mdi mdi-trophy"></span>
                 <span>{{ winnerName }} takes the match!</span>
             </header>
+            <!-- Under the title, e.g. chat's pick on the match results screen -->
+            <slot
+                v-if="winnerName"
+                name="below-title"
+            />
 
             <!-- One slide per set once the match is won. Both slides share a grid cell, so they cross over in place -->
             <div class="slides">
@@ -202,8 +207,10 @@ watch(shownSlide, (value, oldValue) => {
 const sides = computed(() => {
     const entry1 = shownResults.value?.player1;
     const entry2 = shownResults.value?.player2;
-    const player1Won = isPlayer1Winner(entry1, entry2);
-    const player2Won = !!entry2 && !player1Won;
+    // Who got the point when spulti counted it ('none' for a tie), else the higher score. null = not known
+    const counted = shownResults.value?.pointTo ?? null;
+    const player1Won = counted ? counted === 'player1' : isPlayer1Winner(entry1, entry2);
+    const player2Won = counted ? counted === 'player2' : !!entry2 && !player1Won;
 
     return [
         { key: 'left', player: props.player1, entry: entry1, won: player1Won },

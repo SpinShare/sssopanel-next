@@ -85,6 +85,22 @@ const applyEvent = (messages, event) => {
     }
 };
 
+// A spulti match chat message (the followed match) as a ref den message. Players and staff, plus !roll answers (a
+// match event, no user, the roller's name is in the text). Spulti already turned :name: emoji into the real ones
+const isSpultiRoll = (message) => !message.user && message.text?.startsWith('🎲');
+const fromSpulti = (message) => ({
+    messageId: `spulti-${message.id}`,
+    author: message.user?.username ?? 'Spulti',
+    role: 'spulti',
+    color: null,
+    content: message.text,
+    mentions: { users: {}, roles: {}, channels: {} },
+    reply: null,
+    spotlight: false,
+    timestamp: Date.parse(message.at),
+    isBot: false,
+});
+
 // Used once in App.vue. The panel is the only one writing ref den messages to the state, so several
 // screens (OBS sources) never race each other and nothing is lost while no screen is open
 export default function useRefDenRelay() {
@@ -123,6 +139,11 @@ export default function useRefDenRelay() {
 
     // Only seeded once, after that this list is the truth (a late state response could be older than it)
     const onAnyMessage = (type, data) => {
+        // Only new ones, every (re)connect sends the whole history again. Bans, picks and rolls (no user) aren't ref talk
+        if (type === 'spulti-chat') {
+            if (data?.append) (data.messages ?? []).filter((message) => message.user || isSpultiRoll(message)).forEach((message) => onEvent({ command: 'message-received', data: fromSpulti(message) }));
+            return;
+        }
         if (messages !== null || (type !== 'state-get-response' && type !== 'state-set-response') || !isPanel()) return;
 
         messages = Array.isArray(data?.refDenMessages) ? data.refDenMessages : [];

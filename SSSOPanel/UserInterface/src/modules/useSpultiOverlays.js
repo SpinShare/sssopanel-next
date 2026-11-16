@@ -1,5 +1,5 @@
 import { inject, onMounted, onUnmounted } from 'vue';
-import { coinResult, findMapping, sideMap, spultiGuest, spultiPhase } from '@/modules/useSpulti';
+import { coinResult, findMapping, sideMap, spultiGuest, spultiLinked, spultiPhase } from '@/modules/useSpulti';
 import useSrxd, { guessIngameName } from '@/modules/useSrxd';
 import { resetMatch } from '@/modules/useWinnerPrompt';
 
@@ -7,6 +7,8 @@ import { resetMatch } from '@/modules/useWinnerPrompt';
 export const COIN_FLIP_TIME = 1600;
 // The board on match-ingame opens with the coin: the flip, the result held a bit, then the charts come in
 export const COIN_INTRO_DURATION = 5000;
+// After a round the board waits out the results delay plus this, so auto results come up first, then until they hide
+const BOARD_AFTER_ROUND = 3000;
 
 const isPanel = () => window.location.hash.startsWith('#/panel');
 // Screens that have the pick/ban board, the toss waits for one of them to be live
@@ -25,6 +27,9 @@ export const playCoinFlip = (key) => setState({ coinFlipAt: Date.now(), coinFlip
 
 export const setPickBanVisible = (visible) => setState({ pickBanVisible: visible });
 
+// The Twitch prediction on match overview (column) and ingame (over the spinsha.re banner while voting is open)
+export const setChatPickVisible = (visible) => setState({ chatPickVisible: visible });
+
 // Panel only (App.vue). A different spulti match means a new match: scores reset to its best of, see syncMatch.
 // With autoSpulti on: a toss that wasn't flipped yet plays once match overview or ingame is the live screen (held
 // until then), a ban or pick turn shows the pick/ban board, the song loading hides it
@@ -39,6 +44,11 @@ export default function useSpultiOverlays() {
     // Sent but maybe not in the state yet
     let flipSent = null;
     let lastPhase = null;
+    // Sets played so far, more means a round just ended
+    let lastSets = null;
+    // When the board may come back after a round (ms timestamp), null when nothing is waiting
+    let boardAt = null;
+    let boardTimer;
     let stateLoaded = false;
     let spultiMatch = null;
     // The spulti match a reset or prompt already went out for, the state lags behind the set
@@ -47,9 +57,10 @@ export default function useSpultiOverlays() {
     let mappings = null;
     // Subs already sent, the state lags behind the set
     const subsSent = new Set();
+    // The in-game names last taken from spulti
+    let ingameSent = null;
 
-    // currentMatch.spultiMatchId is the spulti match the scores belong to. A new one resets them, unless the scores
-    // were never tied to spulti (counted by hand), then it asks since the link may be for the match being played
+    // currentMatch.spultiMatchId is the spulti match the scores belong to. A new one resets them
     const syncMatch = () => {
         const match = spultiMatch;
         if (!stateLoaded || !match?.id || match.id === handledMatchId) return;
@@ -60,25 +71,10 @@ export default function useSpultiOverlays() {
         }
         handledMatchId = match.id;
 
-        const maxSets = Number(match.bestOf) || Number(current.scores?.sets?.max ?? 3);
-        const startNew = () => {
-            resetMatch(maxSets);
-            setState({ currentMatch: { spultiMatchId: match.id } });
-        };
-        const started = (current.history?.length ?? 0) > 0 || Number(current.scores?.score?.player1 ?? 0) + Number(current.scores?.score?.player2 ?? 0) > 0;
-        if (current.spultiMatchId || !started) {
-            startNew();
-            return;
-        }
-
-        emitter.emit('alert-show', {
-            title: 'New match?',
-            message: `Following ${match.player1?.name ?? 'TBD'} vs ${match.player2?.name ?? 'TBD'} on spulti, but the current match still has scores and sets. Clear them for this match?`,
-            actions: [
-                { label: 'Keep Scores', click: () => setState({ currentMatch: { spultiMatchId: match.id } }) },
-                { label: 'New Match', color: 'primary', click: startNew },
-            ],
-        });
+        // Spulti keeps the score from here on (useWinnerPrompt), so whatever was counted by hand makes way
+        resetMatch(Number(match.bestOf) || Number(current.scores?.sets?.max ?? 3));
+        // spultiPosted too, coming back to a match later starts counting its posts fresh
+        setState({ currentMatch: { spultiMatchId: match.id, spultiPosted: null, spultiScoreUnlinked: false } });
     };
 
     // An organizer subbed someone in on spulti: that side's player is the sub now (subbedFor = who they replaced).
@@ -106,6 +102,26 @@ export default function useSpultiOverlays() {
         }
     };
 
+    // Who's who in the room, as the referee mapped it on spulti. Spulti wins for the match it keeps the score of, a side it
+    // doesn't know yet (or an older spulti without names) keeps the guess
+    const syncIngame = () => {
+        const current = state.currentMatch ?? {};
+        const names = spultiMatch?.ingame;
+        if (!stateLoaded || !names || !spultiLinked(spulti, current)) return;
+        const sides = sideMap(spultiMatch, current.players);
+        const ingame = {};
+        for (const side of ['player1', 'player2']) if (names[side] && current.ingame?.[sides[side]] !== names[side]) ingame[sides[side]] = names[side];
+        // Matching again forgets what was sent, so a later hand edit gets put back too
+        if (!Object.keys(ingame).length) {
+            ingameSent = null;
+            return;
+        }
+        const key = `${spultiMatch.id}:${JSON.stringify(ingame)}`;
+        if (key === ingameSent) return;
+        ingameSent = key;
+        setState({ currentMatch: { ingame } });
+    };
+
     // The state's coinFlipKey is the toss already flipped, so reloads never flip twice.
     // Only while the strike is still on, later the board just shows the landed coin
     const syncCoin = () => {
@@ -116,23 +132,49 @@ export default function useSpultiOverlays() {
         playCoinFlip(coin.key);
     };
 
+    const cancelBoard = () => {
+        boardAt = null;
+        clearTimeout(boardTimer);
+    };
+
+    // The board after a round: once the wait is over and the results are gone again. If the loser already picked,
+    // it still comes up so the pick shows
+    const syncBoard = () => {
+        if (boardAt === null) return;
+        if (!state.autoSpulti || state.pickBanVisible) return cancelBoard();
+        if (Date.now() < boardAt || state.currentMatch?.resultsVisible || state.currentMatch?.recapVisible) return;
+        cancelBoard();
+        if (spultiPhase(spulti?.match, spulti?.mappool)?.type !== 'finished') setPickBanVisible(true);
+    };
+
     const onSpulti = (data) => {
         spulti = data;
         spultiMatch = data?.match ?? null;
         syncMatch();
         syncSubs();
+        syncIngame();
         syncCoin();
 
         const phase = spultiPhase(data?.match, data?.mappool)?.type ?? null;
         const matchId = data?.match?.id ?? null;
+        const sets = data?.match?.sets?.length ?? 0;
         if (matchId !== lastMatchId || !state.autoSpulti) {
             lastMatchId = matchId;
             lastPhase = phase;
+            lastSets = sets;
+            cancelBoard();
             return;
         }
 
-        if ((phase === 'ban' || phase === 'pick') && phase !== lastPhase && !state.pickBanVisible) setPickBanVisible(true);
+        // A set undone, whatever was waiting is for a round that didn't happen. The board stays as the operator has it
+        if (sets < lastSets) cancelBoard();
+        else if (sets > lastSets && phase !== 'finished') {
+            cancelBoard();
+            boardAt = Date.now() + Number(state.resultsDelay ?? 0) * 1000 + BOARD_AFTER_ROUND;
+            boardTimer = setTimeout(syncBoard, boardAt - Date.now());
+        } else if (boardAt === null && (phase === 'ban' || phase === 'pick') && phase !== lastPhase && !state.pickBanVisible) setPickBanVisible(true);
         lastPhase = phase;
+        lastSets = sets;
     };
 
     const onAnyMessage = (type, data) => {
@@ -143,7 +185,9 @@ export default function useSpultiOverlays() {
             stateLoaded = true;
             syncMatch();
             syncSubs();
+            syncIngame();
             syncCoin();
+            syncBoard();
         }
         if (type === 'settings-get-full-response') {
             mappings = data?.['currentEvent.playerMapping'] ?? [];
@@ -159,6 +203,7 @@ export default function useSpultiOverlays() {
             syncCoin();
         }
         if (type === 'srxd-update' && data?.type === 'phase' && data.phase === 'loading' && state.autoSpulti) {
+            cancelBoard();
             if (state.pickBanVisible) setPickBanVisible(false);
         }
     };
@@ -174,5 +219,6 @@ export default function useSpultiOverlays() {
 
     onUnmounted(() => {
         emitter.off('*', onAnyMessage);
+        cancelBoard();
     });
 }

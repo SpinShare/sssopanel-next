@@ -4,7 +4,7 @@
             <SpinInputGroup header="General">
                 <SpinInput
                     label="SSSOPanel Next"
-                    hint="Version 1.5.2"
+                    :hint="`Version ${version}`"
                     type="horizontal"
                 >
                     <SpinButton
@@ -75,6 +75,19 @@
                     <SpinButton
                         label="Open Mapping"
                         @click="router.push({ path: '/panel/player-mapping' })"
+                    />
+                </SpinInput>
+            </SpinInputGroup>
+            <SpinInputGroup header="spulti">
+                <SpinInput
+                    label="Stream key"
+                    hint="Tournament settings"
+                    type="horizontal"
+                >
+                    <input
+                        :disabled="settingsState === SETTING_STATE_SAVING"
+                        type="password"
+                        v-model="spultiStreamKey"
                     />
                 </SpinInput>
             </SpinInputGroup>
@@ -408,6 +421,8 @@ import SpinLoader from '@/components/Common/SpinLoader.vue';
 import router from '@/router';
 import { onBeforeRouteLeave } from 'vue-router';
 import SpinInputGroup from '@/components/Common/SpinInputGroup.vue';
+// Bumped together with the csproj, so the panel never shows an old number
+import { version } from '../../../package.json';
 const emitter = inject('emitter');
 const game = useSrxd();
 
@@ -420,6 +435,7 @@ const theme = ref(getTheme().id);
 const themeOptions = themes.map(({ id, name, icon }) => ({ icon, label: name, value: id }));
 
 const startGGApiToken = ref('');
+const spultiStreamKey = ref('');
 const startGGTournamentSlug = ref('');
 const startGGTournamentId = ref(null);
 const startGGTournamentName = ref('');
@@ -632,7 +648,7 @@ const loadStartGGEvents = async () => {
     }
 };
 
-const collectSettings = () => [{ key: 'theme', value: theme.value }, { key: 'currentEvent.startgg.apiToken', value: startGGApiToken.value }, { key: 'currentEvent.startgg.tournamentSlug', value: startGGTournamentSlug.value }, { key: 'currentEvent.startgg.tournamentId', value: startGGTournamentId.value }, { key: 'currentEvent.startgg.tournamentName', value: startGGTournamentName.value }, { key: 'currentEvent.startgg.eventId', value: startGGEventId.value }, { key: 'obs.enabled', value: obsEnabled.value }, { key: 'obs.url', value: obsUrl.value }, { key: 'obs.password', value: obsPassword.value }, { key: 'srxd.enabled', value: srxdEnabled.value }, { key: 'srxd.url', value: srxdUrl.value }, { key: 'voicebot.mode', value: voiceBotMode.value }, { key: 'voicebot.url', value: voiceBotUrl.value }, { key: 'voicebot.token', value: voiceBotToken.value }, { key: 'voicebot.port', value: voiceBotPort.value }, { key: 'voicebot.nodePath', value: voiceBotNodePath.value }, { key: 'voicebot.autoJoin', value: voiceBotAutoJoin.value }, { key: 'voicebot.voiceChannelId', value: voiceChannelId.value }, { key: 'music.source', value: musicSource.value }, { key: 'tuna.url', value: tunaUrl.value }, { key: 'tuna.showCover', value: tunaShowCover.value }, ...obsScreens.map((screen) => ({ key: `obs.scene.${screen.key}`, value: obsSceneMapping.value[screen.key] }))];
+const collectSettings = () => [{ key: 'theme', value: theme.value }, { key: 'currentEvent.startgg.apiToken', value: startGGApiToken.value }, { key: 'spulti.streamKey', value: spultiStreamKey.value }, { key: 'currentEvent.startgg.tournamentSlug', value: startGGTournamentSlug.value }, { key: 'currentEvent.startgg.tournamentId', value: startGGTournamentId.value }, { key: 'currentEvent.startgg.tournamentName', value: startGGTournamentName.value }, { key: 'currentEvent.startgg.eventId', value: startGGEventId.value }, { key: 'obs.enabled', value: obsEnabled.value }, { key: 'obs.url', value: obsUrl.value }, { key: 'obs.password', value: obsPassword.value }, { key: 'srxd.enabled', value: srxdEnabled.value }, { key: 'srxd.url', value: srxdUrl.value }, { key: 'voicebot.mode', value: voiceBotMode.value }, { key: 'voicebot.url', value: voiceBotUrl.value }, { key: 'voicebot.token', value: voiceBotToken.value }, { key: 'voicebot.port', value: voiceBotPort.value }, { key: 'voicebot.nodePath', value: voiceBotNodePath.value }, { key: 'voicebot.autoJoin', value: voiceBotAutoJoin.value }, { key: 'voicebot.voiceChannelId', value: voiceChannelId.value }, { key: 'music.source', value: musicSource.value }, { key: 'tuna.url', value: tunaUrl.value }, { key: 'tuna.showCover', value: tunaShowCover.value }, ...obsScreens.map((screen) => ({ key: `obs.scene.${screen.key}`, value: obsSceneMapping.value[screen.key] }))];
 
 // What's saved, to warn about unsaved changes when leaving. null until loaded
 let saved = null;
@@ -699,6 +715,7 @@ onMounted(() => {
         theme.value = getTheme(settings['theme']?.includes('-') ? settings['theme'] : `${settings['theme'] ?? ''}${year}`).id;
 
         startGGApiToken.value = settings['currentEvent.startgg.apiToken'] ?? '';
+        spultiStreamKey.value = settings['spulti.streamKey'] ?? '';
         startGGTournamentSlug.value = settings['currentEvent.startgg.tournamentSlug'] ?? '';
         startGGTournamentId.value = settings['currentEvent.startgg.tournamentId'] ?? null;
         startGGTournamentName.value = settings['currentEvent.startgg.tournamentName'] ?? '';

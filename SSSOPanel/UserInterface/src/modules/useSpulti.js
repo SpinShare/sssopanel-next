@@ -1,4 +1,5 @@
 import { inject, onMounted, onUnmounted, ref } from 'vue';
+import { stripRichText } from '@/modules/useSrxd';
 
 // The spulti match the backend follows (coin toss, bans, picks), pushed as a full snapshot on every change.
 export default function useSpulti() {
@@ -27,6 +28,29 @@ export default function useSpulti() {
 
 export const followSpultiMatch = (url) => {
     window.electronAPI.send('message', JSON.stringify({ command: 'spulti-connect', data: { url } }));
+};
+
+// The panel's match dropdown, kept between visits to the page until refreshed or the followed site changes.
+// requestId drops answers to older requests (page load + refresh racing)
+export const spultiMatchList = ref({ matches: [], origin: null, error: '', loading: false, requestId: 0 });
+export const loadSpultiMatches = () => {
+    const requestId = spultiMatchList.value.requestId + 1;
+    spultiMatchList.value = { ...spultiMatchList.value, loading: true, requestId };
+    window.electronAPI.send('message', JSON.stringify({ command: 'spulti-matches', data: { requestId } }));
+};
+export const onSpultiMatches = (data) => {
+    if (data?.requestId !== spultiMatchList.value.requestId) return;
+    spultiMatchList.value = { ...spultiMatchList.value, loading: false, matches: data?.matches ?? [], origin: data?.origin ?? null, error: data?.error ?? '' };
+};
+// The site the backend lists matches from: the followed link's, spulti.ellite.dev otherwise (SpultiManager.ListMatches)
+export const spultiOrigin = (url) => {
+    try {
+        const page = new URL(url);
+        if (['http:', 'https:'].includes(page.protocol)) return page.origin;
+    } catch {
+        // ignored
+    }
+    return 'https://spulti.ellite.dev';
 };
 
 // What happened so far, oldest first, e.g. "Ban: alpine bans NM2 (Title)"
@@ -132,6 +156,42 @@ export const slotStates = (match, mappool) => {
     return states;
 };
 
+// The scores belong to the followed match. snapshot = useSpulti's, currentMatch = the state's
+export const spultiLinked = (snapshot, currentMatch) => !!snapshot?.url && !!snapshot.match?.id && currentMatch?.spultiMatchId === snapshot.match.id;
+
+// Spulti keeps the score (sets won, undos, lag replays) for its linked match, unless the broadcaster unlinked the scores
+// to count by hand (currentMatch.spultiScoreUnlinked). The live song numbers stay from the game feed
+export const spultiKeepsScore = (snapshot, currentMatch) => spultiLinked(snapshot, currentMatch) && !currentMatch.spultiScoreUnlinked;
+
+// One spulti set's results with our sides, pointTo = who spulti gave the point ('none' for a tie, see
+// ScreenMatchResults). Hand points have no results
+export const spultiSetResults = (set, sides) => ({
+    round: set.result?.round ?? 0,
+    [sides.player1]: set.result?.player1 ?? null,
+    [sides.player2]: set.result?.player2 ?? null,
+    pointTo: set.winner ? sides[set.winner] : 'none',
+});
+
+// The panel's scores and history from spulti's sets, sides mapped to ours. Ties and sets without a winner don't
+// count, same as the panel's own counting
+export const spultiScores = (match, players, fallbackMax = 3) => {
+    const sides = sideMap(match, players);
+    const max = Number(match?.bestOf) || Number(fallbackMax) || 3;
+    const score = { player1: 0, player2: 0 };
+    const history = [];
+    for (const set of match?.sets ?? []) {
+        if (!set.winner) continue;
+        const ours = sides[set.winner];
+        score[ours]++;
+        history.push({
+            chart: { title: stripRichText(set.chart?.title ?? ''), artist: stripRichText(set.chart?.artist ?? '') },
+            results: spultiSetResults(set, sides),
+            winner: ours,
+        });
+    }
+    return { scores: { sets: { current: Math.min(max, score.player1 + score.player2 + 1), max }, score }, history };
+};
+
 // The coin result worth flipping for: the roll (who bans first) or the custom pool coin toss (who gets the last chart)
 export const coinResult = (match) => {
     const roll = match?.draft?.actions?.find((a) => a.type === 'roll');
@@ -151,6 +211,28 @@ export const sideMap = (match, players) => {
     const two = ourSide(match, 'player2', players);
     const flipped = one === 'player2' || (!one && two === 'player1');
     return flipped ? { player1: 'player2', player2: 'player1' } : { player1: 'player1', player2: 'player2' };
+};
+
+// Each outcome's share of the coins, null until Twitch reported coins for every outcome. Two shares add up to 100
+export const predictionShares = (prediction) => {
+    const outcomes = prediction?.outcomes ?? [];
+    const total = outcomes.reduce((sum, outcome) => sum + (outcome.points ?? 0), 0);
+    if (!total || outcomes.some((outcome) => outcome.points == null)) return null;
+    const parts = outcomes.map((outcome) => ({ ...outcome, share: Math.round((outcome.points / total) * 100) }));
+    if (parts.length === 2) parts[1].share = 100 - parts[0].share;
+    return parts;
+};
+
+// How a paid out prediction went, the same call on every screen: called = the side with the most coins won, a dead even
+// split (by coins, not the rounded share) has no favorite (called null). Null before it resolved or without coins
+export const predictionVerdict = (prediction) => {
+    if (prediction?.status !== 'resolved' || !prediction.winner) return null;
+    const parts = predictionShares(prediction);
+    const won = parts?.find((part) => part.side === prediction.winner);
+    if (!won) return null;
+    const top = Math.max(...parts.map((part) => part.points));
+    const split = parts.every((part) => part.points === top);
+    return { side: won.side, name: won.name, share: won.share, called: split ? null : won.points === top };
 };
 
 const normalizeName = (name) => (name ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');

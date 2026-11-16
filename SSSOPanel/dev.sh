@@ -6,7 +6,9 @@ set -e
 
 export DOTNET_ROLL_FORWARD=LatestMajor
 
-cd "$(dirname "$0")"
+# Real path: on atomic fedora /home is a symlink to /var/home, and the dotnet 11 sdk then drops the folders of content
+# files (node/node lands on the node folder, VoiceBot/index.js in the output root)
+cd "$(dirname "$(realpath "$0")")"
 
 # Read a property from the project file, so versions only have to be bumped there
 csproj_property() {

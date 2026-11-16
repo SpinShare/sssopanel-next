@@ -2,6 +2,7 @@ import { inject, onMounted, onUnmounted, ref } from 'vue';
 import router from '@/router';
 import useSrxd, { bestAttempts, matchWinner, pickResults, player1Won as isPlayer1Winner, stripRichText } from '@/modules/useSrxd';
 import VoiceBotService from '@/modules/VoiceBotService';
+import { sideMap, spultiKeepsScore, spultiScores, spultiSetResults } from '@/modules/useSpulti';
 
 // How long auto results stay up, the next song loading hides them earlier
 const AUTO_RESULTS_DURATION = 30000;
@@ -9,6 +10,18 @@ const AUTO_RESULTS_DURATION = 30000;
 const RESULTS_CAROUSEL_DURATION = 60000;
 // The deciding set's own results stay up this long before the match results screen takes over (auto results or auto recap)
 const LAST_SET_DURATION = 15000;
+
+// Key order independent, the backend's merge keeps the old order of keys already in the state
+const stableJson = (value) =>
+    JSON.stringify(value, (key, v) =>
+        v && typeof v === 'object' && !Array.isArray(v)
+            ? Object.fromEntries(
+                  Object.keys(v)
+                      .sort()
+                      .map((k) => [k, v[k]]),
+              )
+            : v,
+    );
 
 // When auto progress moves the recap to the next set or starts it (ms timestamp), null while it isn't counting down
 export const nextRecapSlideAt = ref(null);
@@ -74,12 +87,23 @@ export default function useWinnerPrompt() {
     let delayTimer = null;
     // The spulti match the backend follows right now, the state keeps spultiMatchId after unfollowing
     let followedSpultiMatchId = null;
+    let spulti = null;
+    // How many of a spulti match's sets were posted, here and in the state (spultiPosted), the state lags behind the set
+    let postedFor = null;
+    let postedCount = 0;
+    // Spulti's set count when the song loaded, a set past it is this round's. null = not known (panel opened mid round)
+    let setsAtLoading = null;
+    // The results up are the feed's, spulti's counted ones replace them once its set is in
+    let swapResults = false;
+    let stateLoaded = false;
 
     useSrxd((message) => {
         // App.vue also hosts the screens, those never prompt
         if (!router.currentRoute.value.path.startsWith('/panel')) return;
 
         if (message.type === 'phase' && message.phase === 'loading') {
+            setsAtLoading = spulti?.match ? spulti.match.sets?.length ?? 0 : null;
+            swapResults = false;
             // Rounds count up again in a new room, so only the current song counts as prompted
             lastPromptedRound = null;
             resultsStale = true;
@@ -134,6 +158,7 @@ export default function useWinnerPrompt() {
 
         let picked = pickResults(results, match.ingame);
         if (!picked.player1 && !picked.player2) return;
+        if (spultiKeepsScore(spulti, match)) return showSpultiResults(picked, auto);
         // A replayed set keeps each player's best attempt, only for the same chart
         const replay = match.replay;
         if (replay && (!replay.fileReference || replay.fileReference === match.chart?.fileReference)) picked = bestAttempts(replay, picked);
@@ -175,6 +200,106 @@ export default function useWinnerPrompt() {
                 },
             ],
         });
+    };
+
+    // This round's spulti set, once it's in
+    const roundSet = () => (setsAtLoading !== null && (spulti?.match?.sets?.length ?? 0) > setsAtLoading ? spulti.match.sets[spulti.match.sets.length - 1] : null);
+    // A hand point has no results of its own, the feed's stay with spulti's winner
+    const countedResults = (set, picked) => {
+        const counted = spultiSetResults(set, sideMap(spulti.match, state.currentMatch?.players));
+        return set.result ? counted : { ...picked, pointTo: counted.pointTo };
+    };
+
+    // Spulti counts the point (and any lag replay), so this only shows the round's results
+    const showSpultiResults = (picked, auto) => {
+        lastPromptedRound = picked.round;
+        resultsStale = false;
+        const show = () => {
+            if (resultsStale) return;
+            const counted = roundSet();
+            // What spulti counted: the better run after a lag replay, the point a ref gave by hand
+            // pointTo always written, the state merges into the last round's results
+            const results = counted ? countedResults(counted, picked) : { ...picked, pointTo: null };
+            swapResults = !counted && setsAtLoading !== null;
+            setState({ currentMatch: { results, resultsVisible: true } });
+            clearTimeout(autoHideTimer);
+            // The deciding set moves on to the match results screen instead (syncRecapTimer)
+            autoHideTimer = setTimeout(() => {
+                if (state.currentMatch?.resultsVisible && !matchWinner(state.currentMatch?.scores)) setState({ currentMatch: { resultsVisible: false } });
+            }, AUTO_RESULTS_DURATION);
+        };
+        if (auto) return show();
+        const match = state.currentMatch ?? {};
+        emitter.emit('alert-show', {
+            title: 'Round over!',
+            message: `${stripRichText(match.chart?.title ?? 'This round')}. spulti counts the point, show the results on stream?`,
+            actions: [
+                { label: 'No', click: () => {} },
+                { label: 'Show', color: 'primary', click: show },
+            ],
+        });
+    };
+
+    // Spulti keeps the score: the panel's scores and history follow its sets on every change, so undos and lag
+    // replays on spulti undo the point here too. New sets get posted like the panel's own, spultiPosted = how many of
+    // that match's sets were posted, so a reload or reconnect doesn't post them again
+    const syncSpultiScore = () => {
+        const current = state.currentMatch ?? {};
+        if (!spultiKeepsScore(spulti, current)) {
+            // Relinking counts from what spulti has then (spultiPosted is cleared on unlink), sets from the hand
+            // counted stretch aren't posted again
+            postedFor = null;
+            return;
+        }
+        const matchId = spulti.match.id;
+        const { scores, history } = spultiScores(spulti.match, current.players, current.scores?.sets?.max);
+
+        const statePosted = current.spultiPosted?.matchId === matchId ? current.spultiPosted.count : undefined;
+        if (postedFor !== matchId) {
+            postedFor = matchId;
+            // Following a match that already has sets: those were before our time, nothing to post
+            postedCount = statePosted ?? history.length;
+        }
+        // An undone set that comes back is posted again, it may have changed
+        postedCount = Math.min(postedCount, history.length);
+        const newSet = history.length > postedCount;
+        postedCount = history.length;
+
+        // Compared to the state, not to what was sent, so a hand edit on another page gets put back
+        const same = stableJson({ scores, history }) === stableJson({ scores: current.scores, history: current.history ?? [] });
+        if (!same || statePosted !== postedCount) {
+            const update = { scores, history, lastSet: null, replay: null, spultiPosted: { matchId, count: postedCount } };
+            const wasWon = !!matchWinner(current.scores);
+            const won = !!matchWinner(scores);
+            // The deciding set shows on its own first, same as counting it here. An undone deciding set takes the recap down
+            if (won && !wasWon) Object.assign(update, { resultsSlide: 0, recapVisible: false });
+            // A deciding point with no results up (given by hand, results hidden) still gets its card, auto results
+            // moves on to the recap from there
+            if (won && !wasWon && state.autoResults === true && !current.resultsVisible && !resultsStale) Object.assign(update, { results: { ...history[history.length - 1].results }, resultsVisible: true });
+            if (!won && current.recapVisible) update.recapVisible = false;
+            setState({ currentMatch: update });
+        }
+
+        const counted = roundSet();
+        if (swapResults && counted && current.resultsVisible) {
+            swapResults = false;
+            setState({ currentMatch: { results: countedResults(counted, current.results ?? {}) } });
+        }
+
+        if (newSet) {
+            const charts = (spulti.match.sets ?? []).filter((set) => set.winner).map((set) => set.chart);
+            const last = history[history.length - 1];
+            const chart = charts[charts.length - 1];
+            lastPicked = {
+                picked: last.results,
+                set: history.length,
+                scores,
+                history: matchWinner(scores) ? history : [],
+                outcome: last.winner,
+                chart: chart && { title: stripRichText(chart.title ?? ''), artist: stripRichText(chart.artist ?? ''), charter: stripRichText(chart.charter ?? ''), id: chart.spinshareId ?? null },
+            };
+            postResults();
+        }
     };
 
     // picked is pickResults() shaped, player1Won is null when no point should be added. replay keeps the
@@ -229,7 +354,7 @@ export default function useWinnerPrompt() {
         }
 
         if (showResults && !resultsStale) {
-            currentMatch.results = picked;
+            currentMatch.results = { ...picked, pointTo: null };
             currentMatch.resultsVisible = true;
         }
 
@@ -245,7 +370,7 @@ export default function useWinnerPrompt() {
     const postResults = () => {
         if (state.postResults !== true || !lastPicked) return;
 
-        const { picked, set, scores, history, outcome } = lastPicked;
+        const { picked, set, scores, history, outcome, chart } = lastPicked;
         lastPicked = null;
         const match = state.currentMatch ?? {};
         const player = (key) => ({
@@ -255,7 +380,8 @@ export default function useWinnerPrompt() {
 
         VoiceBotService.request('post_results', {
             results: {
-                chart: {
+                // spulti's sets bring their own chart, the one on screen may have moved on already
+                chart: chart ?? {
                     title: stripRichText(match.chart?.title ?? ''),
                     artist: stripRichText(match.chart?.artist ?? ''),
                     charter: stripRichText(match.chart?.charter ?? ''),
@@ -344,12 +470,19 @@ export default function useWinnerPrompt() {
 
     // Pages clear every listener of the state events they use when they unmount, a wildcard listener survives that
     const onAnyMessage = (type, data) => {
-        if (type === 'spulti-update' || type === 'spulti-get-response') followedSpultiMatchId = data?.url ? data.match?.id ?? null : null;
-        if (type !== 'state-get-response' && type !== 'state-set-response') return;
         // Screens get the same state, their recap timers would push the stream screen to the panel page
         if (!router.currentRoute.value.path.startsWith('/panel')) return;
+        if (type === 'spulti-update' || type === 'spulti-get-response') {
+            followedSpultiMatchId = data?.url ? data.match?.id ?? null : null;
+            spulti = data;
+            if (stateLoaded) syncSpultiScore();
+            return;
+        }
+        if (type !== 'state-get-response' && type !== 'state-set-response') return;
 
         state = data ?? {};
+        stateLoaded = true;
+        syncSpultiScore();
         syncRecapTimer();
         syncSlideTimer();
         if (type === 'state-set-response' && refreshAfterSet) {

@@ -45,6 +45,7 @@ public class CommandScreenNavigate: ICommand
 
             screenManager.CurrentRoute = newCurrentRoute;
             ObsManager.ObsManager.GetInstance().SetSceneForScreen(path);
+            _ = SpultiManager.SpultiManager.GetInstance().SendScene();
             
             MessageHandler.SendResponse(sender, new
             {
