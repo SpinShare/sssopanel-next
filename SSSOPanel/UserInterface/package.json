@@ -1,6 +1,6 @@
 {
   "name": "sssopanel-ui",
-  "version": "1.5.3",
+  "version": "1.5.4",
   "scripts": {
     "dev": "vite",
     "build": "vite build --emptyOutDir",
