@@ -1,5 +1,6 @@
 import { inject, onMounted, onUnmounted, ref } from 'vue';
 import router from '@/router';
+import { withFreshResults } from '@/modules/stateMerge';
 import useSrxd, { bestAttempts, matchWinner, pickResults, player1Won as isPlayer1Winner, stripRichText } from '@/modules/useSrxd';
 import VoiceBotService from '@/modules/VoiceBotService';
 import { sideMap, spultiKeepsScore, spultiScores, spultiSetResults } from '@/modules/useSpulti';
@@ -460,7 +461,7 @@ export default function useWinnerPrompt() {
             'message',
             JSON.stringify({
                 command: 'state-set',
-                data,
+                data: withFreshResults(data, state),
             }),
         );
 
