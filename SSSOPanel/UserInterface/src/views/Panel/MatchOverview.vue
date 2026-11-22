@@ -160,6 +160,7 @@ import { resetMatch } from '@/modules/useWinnerPrompt';
 import RefreshDataInput from '@/components/RefreshDataInput.vue';
 import useSpulti, { autofilled, coinResult, draftSteps, findMapping, followSpultiMatch, loadSpultiMatches, onSpultiMatches, playerOptions, spultiMatchList, spultiOrigin, withGuests } from '@/modules/useSpulti';
 import { playCoinFlip, setChatPickVisible, setPickBanVisible } from '@/modules/useSpultiOverlays';
+import { withFreshResults } from '@/modules/stateMerge';
 const emitter = inject('emitter');
 const game = useSrxd();
 
@@ -308,6 +309,7 @@ const showPlayers = () => {
             player2: ingamePlayer2.value,
         },
     };
+    const data = withFreshResults({ currentMatch: match }, { currentMatch: currentMatch.value });
     // This page only reads the state on mount, a second transition must not flip it back
     currentMatch.value = { ...currentMatch.value, ...match };
     if (match.scores) scores.value = match.scores;
@@ -316,7 +318,7 @@ const showPlayers = () => {
         'message',
         JSON.stringify({
             command: 'state-set',
-            data: { currentMatch: match },
+            data,
         }),
     );
 
